@@ -1,5 +1,6 @@
 import * as THREE from './assets/three.module.js';
 import {makeVehicle,animateVehicle,loadVehiclePack} from './vehicles.js?v=4';
+import {loadCityPack,buildCity} from './city.js?v=5';
 import {GLTFLoader} from './assets/GLTFLoader.js';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
 import {clamp,ROAD,LIMIT,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=3';
@@ -12,15 +13,15 @@ let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch(error){$('game').innerHTML='<div class="error-panel"><h2>GETAWAY needs 3D graphics</h2><p>Open this link in Safari or Chrome with hardware acceleration enabled to play.</p></div>';throw error;}
 renderer.setPixelRatio(Math.min(devicePixelRatio,touch?1.5:2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
 $('game').appendChild(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','GETAWAY driving game. WASD to drive, Space to drift, Shift for nitro, E to bank at the garage.');
-const scene=new THREE.Scene();scene.background=new THREE.Color('#405977');scene.fog=new THREE.Fog('#405977',78,190);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#596585');scene.fog=new THREE.Fog('#596585',78,190);
 const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,240);
-scene.add(new THREE.HemisphereLight('#c5dfff','#293144',2.1));
-const sun=new THREE.DirectionalLight('#ffddad',3.3);sun.position.set(-40,75,50);sun.castShadow=true;sun.shadow.mapSize.set(touch?1024:2048,touch?1024:2048);Object.assign(sun.shadow.camera,{left:-85,right:85,top:85,bottom:-85,near:1,far:180});sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;scene.add(sun);
-const fill=new THREE.DirectionalLight('#73bfff',1.1);fill.position.set(40,20,-30);scene.add(fill);
+scene.add(new THREE.HemisphereLight('#bdd7ff','#253247',1.95));
+const sun=new THREE.DirectionalLight('#ffcf9b',2.65);sun.position.set(-40,75,50);sun.castShadow=true;sun.shadow.mapSize.set(touch?1024:2048,touch?1024:2048);Object.assign(sun.shadow.camera,{left:-85,right:85,top:85,bottom:-85,near:1,far:180});sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;scene.add(sun);
+const fill=new THREE.DirectionalLight('#8ecfff',1.0);fill.position.set(40,20,-30);scene.add(fill);
 // Soft sky reflections give the paint and glass a readable curved surface.
 const reflectionFaces=Array.from({length:6},()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,'#a8d5ff');g.addColorStop(.44,'#6189ad');g.addColorStop(.49,'#edf6ff');g.addColorStop(.58,'#3d5674');g.addColorStop(1,'#1b2739');x.fillStyle=g;x.fillRect(0,0,128,128);return c;});
 const skyReflection=new THREE.CubeTexture(reflectionFaces);skyReflection.colorSpace=THREE.SRGBColorSpace;skyReflection.needsUpdate=true;scene.environment=skyReflection;
-const world=new THREE.Group();scene.add(world);const materials=new Map(),buildingGroups=[],templates={},pickups=[],drops=[],destructibles=[],traffic=[],cops=[],debris=[],trails=[],sparks=[];
+const world=new THREE.Group();scene.add(world);const materials=new Map(),buildingGroups=[],templates={},pickups=[],drops=[],destructibles=[],traffic=[],cops=[],debris=[],trails=[],sparks=[],residents=[];
 let player=createCar(CARS[profile.selected],HOME.x,HOME.z,-Math.PI/2),playerView=null,run=createRun(),mode='menu',paused=false,ready=false,keys={},mobile={},clock=new THREE.Clock(),time=0,lastHUD=0,routeTimer=0,routePoints=[],target=null,targetLock=null,pickupLock=null,bankRoute=false;
 let pickupProgress=0,pickupKey='',damageCooldown=0,toastUntil=0,popUntil=0,nearMissTimer=0,smashTimer=0,copSpawnTimer=0,roadblockTimer=0,lastSiren=0,lastRecovery=-30,bankReady=false;
 let cameraHeading=player.heading,cameraTarget=new THREE.Vector3(HOME.x,0,HOME.z),cameraPosition=new THREE.Vector3(59,29,79),currentInput={throttle:0,steer:0,brake:false,boost:false};
@@ -33,39 +34,8 @@ function plane(w,d,color,x,z,y=.015){const p=new THREE.Mesh(new THREE.PlaneGeome
 function sign(text,w,h,x,y,z,color='#f2d89d',bg='#29494a',rot=0){const c=document.createElement('canvas');c.width=1024;c.height=Math.round(1024*h/w);const ctx=c.getContext('2d');ctx.fillStyle=bg;ctx.fillRect(0,0,c.width,c.height);ctx.strokeStyle=color;ctx.lineWidth=5;ctx.strokeRect(13,13,c.width-26,c.height-26);ctx.fillStyle=color;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`900 ${Math.min(115,Math.floor(1400/text.length))}px monospace`;ctx.fillText(text,512,c.height/2+4);const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;tx.magFilter=THREE.LinearFilter;const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:tx,emissive:color,emissiveIntensity:.55,roughness:1,side:THREE.DoubleSide}));m.position.set(x,y,z);m.rotation.y=rot;world.add(m);return m;}
 function ring(x,z,color,r=3.2){const root=new THREE.Group();root.position.set(x,.1,z);const m=new THREE.Mesh(new THREE.RingGeometry(r-.12,r,48),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false}));m.rotation.x=-Math.PI/2;root.add(m);const diamond=new THREE.Mesh(new THREE.OctahedronGeometry(.45),new THREE.MeshBasicMaterial({color}));diamond.position.y=3.6;root.add(diamond);world.add(root);return{root,mesh:m,diamond};}
 function tree(x,z,s=1){box(1.6*s,.35,1.6*s,'#838e79',x,.18,z);cylinder(.14*s,.2*s,2.5*s,'#8b7056',x,1.4*s,z);const m=new THREE.Mesh(new THREE.IcosahedronGeometry(1.7*s,1),material('#709073'));m.scale.set(.9,1.2,.9);m.position.set(x,3.5*s,z);m.castShadow=true;world.add(m);}
-function makeCity(){
- plane(240,240,'#344f63',0,0,-.19);box(134,.7,134,'#40536b',0,-.4,0);
- for(const n of ROAD){plane(132,11.8,'#293b50',0,n);plane(11.8,132,'#293b50',n,0,.018);}
- for(const n of ROAD)for(let p=-63;p<65;p+=4.5){if(ROAD.every(v=>Math.abs(p-v)>6.6)){plane(2.4,.14,'#dccf96',p,n,.027);plane(.14,2.4,'#dccf96',n,p,.028);}}
- for(const x of [-36,0,36])for(const z of [-36,0,36]){box(29.8,.2,29.8,'#71818f',x,-.02,z);for(let i=-13;i<15;i+=3){plane(.035,29.5,'#667783',x+i,z,.09);plane(29.5,.035,'#667783',x,z+i,.09);}}
- // Open alleys form meaningful shortcuts through two blocks.
- plane(8,29.8,'#465969',0,0,.102);plane(29.8,6,'#465969',-36,36,.103);
- for(const b of BLOCKS){
-  const childStart=world.children.length;
-  box(b.w,b.h,b.d,b.color,b.x,b.h/2,b.z);box(b.w+.5,.5,b.d+.5,'#253d53',b.x,b.h+.1,b.z);box(b.w+.25,.32,b.d+.25,'#abbec7',b.x,b.h-1,b.z);
-  for(let wx=-b.w/2+2;wx<b.w/2-1.5;wx+=3.4)for(let yy=2.6;yy<b.h-1.5;yy+=3.4){box(1.55,1.75,.08,'#183548',b.x+wx,yy,b.z+b.d/2+.05);box(1.28,1.48,.04,(Math.round(wx+yy)%3)?'#6db0cc':'#ffd390',b.x+wx,yy,b.z+b.d/2+.1);box(1.5,1.75,.08,'#416e88',b.x+wx,yy,b.z-b.d/2-.05);}
-  for(let zz=-b.d/2+2;zz<b.d/2-1.5;zz+=3.4)for(let yy=2.6;yy<b.h-1.5;yy+=3.4){box(.06,1.75,1.55,'#37627c',b.x+b.w/2+.04,yy,b.z+zz);box(.06,1.75,1.55,'#42738c',b.x-b.w/2-.04,yy,b.z+zz);}
-  const sw=Math.min(b.w-1,14);sign(b.name,sw,1.4,b.x,4.2,b.z+b.d/2+.14);if(b.z<0)sign(b.name,sw,1.4,b.x,4.2,b.z-b.d/2-.14,'#f2d89d','#29494a',Math.PI);
-  box(3.8,.25,1.5,'#d9ba7e',b.x,3.1,b.z+b.d/2+.6);box(2.2,2.5,.06,'#344f55',b.x,1.25,b.z+b.d/2+.07);
-  box(2.6,1.3,2.5,'#748b9a',b.x-2,b.h+.95,b.z);cylinder(.35,.35,1.8,'#55706d',b.x+3,b.h+1,b.z-2);
-  const group=new THREE.Group();for(const child of [...world.children].slice(childStart))group.add(child);world.add(group);buildingGroups.push({group,box:new THREE.Box3(new THREE.Vector3(b.x-b.w/2,0,b.z-b.d/2),new THREE.Vector3(b.x+b.w/2,b.h+1,b.z+b.d/2)),materials:[]});
- }
- // Our garage has a lit open bay facing the pickup lane.
- box(7.5,3.8,.15,'#243d44',36,1.9,44.6);for(const x of [31.8,40.2])box(.28,4.2,.3,'#f5d98c',x,2.1,44.7,world,{emissive:'#f5d98c',emissiveIntensity:.35});sign('BANK IT. KEEP IT.',9,.75,36,5.2,44.8,'#c8edc8','#244b4c');plane(9,7,'#789087',36,48.7,.12);for(const x of [31.5,40.5])plane(.14,8,'#c5dfb7',x,49.3,.135);
- for(const x of ROAD)for(const z of ROAD){for(let i=-2;i<=2;i++){plane(.8,3,'#ded7b6',x+i*1.35,z+7,.035);plane(3,.8,'#ded7b6',x+7,z+i*1.35,.036);}}
- for(const [x,z]of [[-49,-43],[-24,-28],[-9,-47],[48,-26],[-47,9],[47,11],[-48,45],[8,48],[47,31],[-10,23]])tree(x,z,.85);
- for(let i=0;i<14;i++){const h=12+(i*13%26),x=-100+i*15;box(10,h,10,i%2?'#496584':'#526985',x,h/2,-88);}
- for(const r of RAMPS){
-  const hw=r.w/2,hd=r.d/2,heights=[(-1*r.dir+1)/2*r.h,(-1*r.dir+1)/2*r.h,(1*r.dir+1)/2*r.h,(1*r.dir+1)/2*r.h];
-  const points=r.axis==='x'?[[-hw,0,-hd],[-hw,0,hd],[hw,r.h,hd],[hw,r.h,-hd]]:[[-hw,heights[0],-hd],[hw,heights[1],-hd],[hw,heights[2],hd],[-hw,heights[3],hd]];
-  const verts=[];for(const idx of [0,1,2,0,2,3])verts.push(...points[idx]);const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));g.computeVertexNormals();const m=new THREE.Mesh(g,material('#d6b475',{side:THREE.DoubleSide}));m.position.set(r.x,.08,r.z);m.castShadow=true;m.receiveShadow=true;world.add(m);
-  const start=r.axis==='x'?{x:r.x-r.w/2-2,z:r.z}:{x:r.x,z:r.z+r.d/2+2};plane(r.axis==='x'?1:4,r.axis==='x'?4:1,'#f5d68f',start.x,start.z,.12);
- }
-}
-makeCity();
-function batchStatic(parent=world){world.updateMatrixWorld(true);const groups=new Map();for(const m of [...parent.children]){if(!m.isMesh||m.material.map||m.material.transparent)continue;const key=m.material.uuid+'-'+m.castShadow;if(!groups.has(key))groups.set(key,{mat:m.material,shadow:m.castShadow,meshes:[],geos:[]});const group=groups.get(key),g=m.geometry.index?m.geometry.toNonIndexed():m.geometry.clone();g.applyMatrix4(m.matrixWorld);group.geos.push(g);group.meshes.push(m);}for(const group of groups.values()){if(group.meshes.length<2){group.geos.forEach(g=>g.dispose());continue;}const g=mergeGeometries(group.geos,false);group.geos.forEach(g=>g.dispose());if(!g)continue;const m=new THREE.Mesh(g,group.mat);m.castShadow=group.shadow;m.receiveShadow=true;parent.add(m);group.meshes.forEach(m=>{parent.remove(m);m.geometry.dispose();});}}
-batchStatic();
-for(const b of buildingGroups){batchStatic(b.group);b.group.traverse(m=>{if(m.isMesh){m.material=m.material.clone();m.material.transparent=true;b.materials.push(m.material);}});}
+let cityState=null;
+function makeCity(){cityState=buildCity(world);buildingGroups.push(...cityState.buildings);}
 const sightRay=new THREE.Ray(),sightHit=new THREE.Vector3();
 function fadeObstructions(dt){const origin=new THREE.Vector3(player.x,1.3+player.y,player.z),direction=camera.position.clone().sub(origin),length=direction.length();sightRay.set(origin,direction.normalize());for(const b of buildingGroups){const hit=mode!=='menu'&&sightRay.intersectBox(b.box,sightHit)&&sightHit.distanceTo(origin)<length;for(const m of b.materials){m.opacity=THREE.MathUtils.damp(m.opacity,hit?.13:1,8,dt);m.depthWrite=m.opacity>.9;}}}
 
@@ -105,22 +75,23 @@ function carThumbnail(config){
  carThumbnails.set(key,url);return url;
 }
 function disposeVehicle(view){const seen=new Set();view.root.traverse(o=>{if(!o.isMesh)return;const list=Array.isArray(o.material)?o.material:[o.material];for(const m of list)if(!seen.has(m)){seen.add(m);m.dispose();}if(!o.geometry.userData.shared)o.geometry.dispose();});}
-function createActor(name,x,z){const root=templates[name].scene.clone(true),group=new THREE.Group();root.scale.setScalar(.63);group.add(root);group.position.set(x,.16,z);world.add(group);const mixer=new THREE.AnimationMixer(root),clip=templates[name].animations.find(a=>a.name==='idle');if(clip)mixer.clipAction(clip).play();return{group,mixer};}
+function createActor(name,x,z,walking=false){const root=templates[name].scene.clone(true),group=new THREE.Group();root.scale.setScalar(.63);group.add(root);group.position.set(x,.16,z);world.add(group);const mixer=new THREE.AnimationMixer(root),clip=templates[name].animations.find(a=>a.name===(walking?'walk':'idle'));if(clip)mixer.clipAction(clip).play();return{group,mixer};}
 function addBreakable(name,x,z,scale=1,rotation=0,roadblock=false){const view=prop(name,x,z,scale,rotation);const item={view,x,z,scale,rotation,broken:false,r:name==='barrier'?1.55:name==='crate'?.95:.65,roadblock};destructibles.push(item);return item;}
 function setupActors(){
+ makeCity();
  playerView=carView(CARS[profile.selected].model,CARS[profile.selected].scale,PAINTS[profile.paint]);animateCar(playerView,player,0);
  for(const p of pickups){const road=closestRoad(p.stop),side=Math.abs(road.x)===54?1:0;p.actor=createActor(p.stop.type===3?'robber':'suit',p.stop.x+(side?3:0),p.stop.z+(side?0:3));p.actor.group.rotation.y=p.stop.x<0?-Math.PI/2:Math.PI/2;}
- for(const [x,z]of [[-48,-46],[-24,-46],[12,-28],[46,-46],[-46,12],[46,12],[-48,48],[12,46],[45,46]])prop('streetlight',x,z,8,z>0?Math.PI:0);
  for(const [x,z]of [[-27,-21],[26,-48],[47,26],[-24,45]])prop('dumpster',x,z,6,0);
  for(const [x,z]of [[0,10],[1,12],[-34,36],[-31,36],[25,50],[-48,15],[48,-23]])addBreakable('traffic-cone',x,z,1.6);
  for(const [x,z]of [[0,-10],[-44,36],[48,-6],[-48,-28]])addBreakable('crate',x,z,1.55,.1);
  for(const [x,z,rot]of [[0,-12,Math.PI/2],[-27,36,0],[48,-8,0]])addBreakable('barrier',x,z,8,rot);
  const paths=[[{x:-54,z:-54},{x:-54,z:54},{x:54,z:54},{x:54,z:-54}],[{x:-18,z:-54},{x:-18,z:54},{x:18,z:54},{x:18,z:-54}],[{x:54,z:18},{x:-54,z:18},{x:-54,z:-18},{x:54,z:-18}]];
  for(let i=0;i<6;i++){const path=paths[i%3],index=(i+1)%4,start=path[i%4],cfg={...CARS.coupe,speed:9,accel:13,steer:2.8};const car=createCar(cfg,start.x,start.z);const view=carView(['hatchback','taxi','suv','coupe','getaway-van','racer'][i],1.55,PAINTS[i%4]);traffic.push({car,view,path,index,near:0});}
+ for(const [a,b]of [[[-50,-44],[-50,-28]],[[-22,-43],[-22,-29]],[[14,-43],[14,-29]],[[50,-44],[50,-28]],[[-50,25],[-50,43]],[[-22,26],[-22,43]],[[14,27],[14,43]],[[50,25],[50,42]]]){const actor=createActor('suit',a[0],a[1],true);residents.push({...actor,a:{x:a[0],z:a[1]},b:{x:b[0],z:b[1]},direction:1});}
  ready=true;$('playBtn').disabled=false;$('playText').textContent='START YOUR SHIFT';$('loadNote').classList.add('hidden');refreshMenu();
 }
 const loader=new GLTFLoader();const assetNames=['robber','suit','police-officer','traffic-cone','barrier','crate','streetlight','dumpster'];
-Promise.all([loadVehiclePack(loader),...assetNames.map(name=>loader.loadAsync('/assets/models/'+name+'.glb').then(g=>{templates[name]=prepareModel(g);}))]).then(setupActors).catch(error=>{console.error(error);$('playText').textContent='RELOAD ASSETS';$('playBtn').disabled=false;$('loadNote').textContent='An asset could not load. Tap to retry.';$('playBtn').onclick=()=>location.reload();});
+Promise.all([loadCityPack(loader),document.fonts?.load('700 16px PixelArcade').catch(()=>{})||Promise.resolve(),loadVehiclePack(loader),...assetNames.map(name=>loader.loadAsync('/assets/models/'+name+'.glb').then(g=>{templates[name]=prepareModel(g);}))]).then(setupActors).catch(error=>{console.error(error);$('playText').textContent='RELOAD ASSETS';$('playBtn').disabled=false;$('loadNote').textContent='An asset could not load. Tap to retry.';$('playBtn').onclick=()=>location.reload();});
 
 function initAudio(){try{audioContext??=new(window.AudioContext||window.webkitAudioContext)();if(audioContext.state==='suspended')audioContext.resume();if(!engineOsc){engineOsc=audioContext.createOscillator();engineGain=audioContext.createGain();engineOsc.type='sawtooth';engineGain.gain.value=0;const filter=audioContext.createBiquadFilter();filter.type='lowpass';filter.frequency.value=420;engineOsc.connect(filter);filter.connect(engineGain);engineGain.connect(audioContext.destination);engineOsc.start();}}catch{}}
 function sound(freq,duration=.1,type='square',volume=.035,slide=0){if(profile.muted||!audioContext)return;const o=audioContext.createOscillator(),g=audioContext.createGain();o.type=type;o.frequency.setValueAtTime(freq,audioContext.currentTime);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,freq+slide),audioContext.currentTime+duration);g.gain.setValueAtTime(volume,audioContext.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+duration);o.connect(g);g.connect(audioContext.destination);o.start();o.stop(audioContext.currentTime+duration);}
@@ -138,7 +109,7 @@ function showGarage(){if(!ready)return;const cards=Object.values(CARS).map((c,i)
 }
 function showPause(){if(mode!=='driving')return;paused=true;clearControls();modal(`<h2 id="dialogTitle">ENGINE IDLING.</h2><p>The city can wait. Your shift is paused.</p><button id="resumeBtn" class="primary">RESUME SHIFT <span>↗</span></button><div class="modal-secondary"><button id="recoverBtn" class="small-btn">RECOVER CAR</button><button id="cameraBtn" class="small-btn">CAMERA: ${profile.camera.toUpperCase()}</button><button id="pauseSound" class="small-btn">SOUND ${profile.muted?'OFF':'ON'}</button></div><div class="modal-secondary"><button id="restartBtn" class="small-btn">RESTART SHIFT</button><button id="quitBtn" class="small-btn">BACK TO MENU</button></div><p class="note">Recover moves you to the nearest road. Your wanted level stays.</p>`);$('resumeBtn').onclick=closeModal;$('recoverBtn').onclick=()=>{closeModal();recover();};$('cameraBtn').onclick=()=>{cycleCamera();$('cameraBtn').textContent='CAMERA: '+profile.camera.toUpperCase();};$('pauseSound').onclick=()=>{toggleSound();$('pauseSound').textContent='SOUND '+(profile.muted?'OFF':'ON');};$('restartBtn').onclick=startRun;$('quitBtn').onclick=returnMenu;}
 function showJobs(){if(mode!=='driving')return;paused=true;clearControls();const available=pickups.filter(p=>!p.job.picked&&p.job.cooldown<=0).sort((a,b)=>dist(player,a.stop)-dist(player,b.stop));const full=run.passengers.length>=player.config.seats;modal(`<button class="modal-close" data-close aria-label="Close jobs">×</button><h2 id="dialogTitle">CHOOSE YOUR FARE.</h2><p>${full?'All seats are full. Drop off a passenger before picking up another.':'Easy fares keep things quiet. Hot pickups pay more and bring the police.'}</p><div class="job-list">${available.map(p=>`<button class="job-option" data-job="${p.stop.id}" ${full?'disabled':''}><span><strong>${p.stop.name}</strong><small>${p.job.name} · ${Math.round(dist(player,p.stop))} m<br>TO ${p.job.dest.name}</small></span><b>${Math.round(p.job.value*run.combo).toLocaleString()} CR</b></button>`).join('')||'<p>No pickups are available yet. Finish a delivery or head to the garage.</p>'}</div>`);document.querySelectorAll('[data-job]').forEach(b=>b.onclick=()=>{pickupLock=b.dataset.job;targetLock=null;bankRoute=false;closeModal();refreshRoute();updateHUD();});}
-function showCredits(){modal(`<button class="modal-close" data-close aria-label="Close credits">×</button><h2 id="dialogTitle">GOOD COMPANY.</h2><p>Animated characters and street props by <a href="https://kenney.nl" target="_blank" rel="noopener noreferrer">Kenney</a>, used under CC0.</p><p>Blocky Characters · Car Kit · City Kit Roads. City design, driving, missions, and sound effects made for GETAWAY.</p><p>Vehicles by <a href="https://rgsdev.itch.io/free-low-poly-vehicles-pack" target="_blank" rel="noopener noreferrer">RGS_Dev</a> (CC0). <a href="/assets/packs/rgsdev-vehicles.zip" download>Download the original 21-vehicle pack</a>.</p><p>Three.js (MIT). Space Mono (SIL Open Font License).</p><button class="primary" data-close>BACK TO THE NIGHT <span>↗</span></button>`);}
+function showCredits(){modal(`<button class="modal-close" data-close aria-label="Close credits">×</button><h2 id="dialogTitle">GOOD COMPANY.</h2><p>Animated characters and street props by <a href="https://kenney.nl" target="_blank" rel="noopener noreferrer">Kenney</a>, used under CC0.</p><p>Blocky Characters · City Kit Commercial · City Kit Roads. City design, driving, missions, and sound effects made for GETAWAY.</p><p>Vehicles by <a href="https://rgsdev.itch.io/free-low-poly-vehicles-pack" target="_blank" rel="noopener noreferrer">RGS_Dev</a> (CC0). <a href="/assets/packs/rgsdev-vehicles.zip" download>Download the original 21-vehicle pack</a>.</p><p>Three.js (MIT). Space Mono and Silkscreen (SIL Open Font License).</p><button class="primary" data-close>BACK TO THE NIGHT <span>↗</span></button>`);}
 function toggleSound(){initAudio();profile.muted=!profile.muted;saveProfile();refreshMenu();updateAudio();}
 function cycleCamera(){profile.camera=profile.camera==='chase'?'high':'chase';saveProfile();}
 function replacePlayer(){if(playerView){world.remove(playerView.group);disposeVehicle(playerView);}const cfg=CARS[profile.selected];player=createCar(cfg,HOME.x,HOME.z,-Math.PI/2);playerView=carView(cfg.model,cfg.scale,PAINTS[profile.paint]);animateCar(playerView,player,0);}
@@ -217,6 +188,7 @@ function breakProps(dt){for(const d of destructibles){if(d.broken)continue;const
 function tireTrail(){const geo=new THREE.PlaneGeometry(.15,.9),mat=new THREE.MeshBasicMaterial({color:'#263d44',transparent:true,opacity:.45,depthWrite:false});for(const sign of [-1,1]){const mesh=new THREE.Mesh(geo.clone(),mat.clone());mesh.rotation.set(-Math.PI/2,0,-player.heading);mesh.position.set(player.x+Math.cos(player.heading)*sign*.9-Math.sin(player.heading)*1.5,.15,player.z-Math.sin(player.heading)*sign*.9-Math.cos(player.heading)*1.5);world.add(mesh);trails.push({mesh,life:5});}geo.dispose();mat.dispose();}
 let trailTime=0,driftEarn=0;
 function effects(dt){
+ cityState?.update(time);for(const r of residents){const dest=r.direction>0?r.b:r.a,pos=r.group.position,dx=dest.x-pos.x,dz=dest.z-pos.z,length=Math.hypot(dx,dz);if(length<.16)r.direction*=-1;else{pos.x+=dx/length*dt*.85;pos.z+=dz/length*dt*.85;r.group.rotation.y=Math.atan2(dx,dz);}r.mixer.update(dt);}
  for(const p of pickups){p.marker.diamond.rotation.y+=dt;p.marker.diamond.position.y=3.6+Math.sin(time*2+p.stop.x)*.2;p.actor.mixer.update(dt);}
  for(const d of drops){d.marker.diamond.rotation.y+=dt*1.5;d.marker.mesh.material.opacity=.55+Math.sin(time*3)*.2;}
  garageMarker.diamond.rotation.y+=dt;garageMarker.mesh.material.opacity=.5+Math.sin(time*2)*.15;
