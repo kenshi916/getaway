@@ -1,5 +1,5 @@
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-export const ROAD=[-54,-18,18,54],LIMIT=66;
+export const ROAD=[-90,-54,-18,18,54,90],LIMIT=102;
 export const HOME={x:36,z:54,name:'LAST EXIT GARAGE'};
 export const CARS={
  van:{id:'van',name:'THE WORKHORSE',model:'getaway-van',price:0,speed:22,accel:18,grip:11,steer:2.35,seats:3,health:120,scale:1.7,description:'Three seats. Built to take a hit.'},
@@ -18,7 +18,24 @@ export const BLOCKS=[
  {x:-36,z:28,w:25,d:10,h:9,color:'#89795f',name:'PAWN SHOP'},
  {x:-36,z:44,w:25,d:10,h:7,color:'#508b88',name:'LAUNDROMAT'},
  {x:0,z:36,w:26,d:26,h:12,color:'#ba7564',name:'24H DINER'},
- {x:36,z:35,w:25,d:19,h:6,color:'#385d78',name:'LAST EXIT'}
+ {x:36,z:35,w:25,d:19,h:6,color:'#385d78',name:'LAST EXIT'},
+
+ {x:-72,z:-72,w:25,d:25,h:9,color:'#c59969',name:'HARBOR STORAGE',district:'docks'},
+ {x:-36,z:-72,w:26,d:26,h:13,color:'#c77c62',name:'BRICKWORKS',district:'north'},
+ {x:0,z:-72,w:27,d:24,h:14,color:'#c6d5b9',name:'CENTRAL STATION',district:'north'},
+ {x:36,z:-72,w:26,d:25,h:16,color:'#bf9bb8',name:'STARLIGHT CINEMA',district:'north'},
+ {x:72,z:-72,w:25,d:25,h:10,color:'#62a185',name:'NORTH GARDENS',district:'park',park:true},
+ {x:-72,z:-36,w:25,d:25,h:9,color:'#93acb8',name:'PORT AUTHORITY',district:'docks'},
+ {x:72,z:-36,w:26,d:26,h:26,color:'#a7bfd8',name:'SKYLINE PLAZA',district:'east'},
+ {x:-72,z:0,w:25,d:25,h:11,color:'#5ea896',name:'PIER MARKET',district:'docks'},
+ {x:72,z:0,w:25,d:26,h:12,color:'#b5a080',name:'EAST WAREHOUSE',district:'east'},
+ {x:-72,z:36,w:25,d:25,h:8,color:'#68a482',name:'RIVERSIDE PARK',district:'park',park:true},
+ {x:72,z:36,w:26,d:25,h:12,color:'#d59374',name:'EAST END',district:'east'},
+ {x:-72,z:72,w:25,d:25,h:10,color:'#acc4a6',name:'WEST COURT',district:'south'},
+ {x:-36,z:72,w:25,d:24,h:9,color:'#d4aa81',name:'RIVERSIDE CAFE',district:'south'},
+ {x:0,z:72,w:25,d:25,h:10,color:'#b49aaa',name:'SOUTH AUTOS',district:'south'},
+ {x:36,z:72,w:25,d:25,h:10,color:'#c0b098',name:'FUEL STOP',district:'south'},
+ {x:72,z:72,w:25,d:25,h:11,color:'#ce9778',name:'ROADHOUSE',district:'south'}
 ];
 export const STOPS=[
  {id:'bank',x:-36,z:-54,name:'UNION TRUST',type:3},
@@ -28,7 +45,11 @@ export const STOPS=[
  {id:'arcade',x:18,z:0,name:'ARCADE ALLEY',type:1},
  {id:'grand',x:54,z:0,name:'GRAND HOTEL',type:3},
  {id:'pawn',x:-54,z:36,name:'PAWN SHOP',type:2},
- {id:'diner',x:0,z:54,name:'24H DINER',type:1}
+ {id:'diner',x:0,z:54,name:'24H DINER',type:1},
+ {id:'station',x:0,z:-90,name:'CENTRAL STATION',type:1},
+ {id:'cinema',x:36,z:-90,name:'STARLIGHT CINEMA',type:2},
+ {id:'docks',x:-90,z:-36,name:'PORT AUTHORITY',type:3},
+ {id:'roadhouse',x:72,z:90,name:'ROADHOUSE',type:2}
 ];
 export const DESTS=[
  {id:'west',x:-54,z:-36,name:'WESTSIDE LOCKUP'},
@@ -36,21 +57,25 @@ export const DESTS=[
  {id:'east',x:54,z:36,name:'EASTSIDE HIDEOUT'},
  {id:'south',x:-18,z:36,name:'SOUTHERN SAFEHOUSE'},
  {id:'bay',x:-36,z:18,name:'LOADING BAY'},
- {id:'loft',x:36,z:-18,name:'ROOFTOP LOFT'}
+ {id:'loft',x:36,z:-18,name:'ROOFTOP LOFT'},
+ {id:'northyard',x:-36,z:-90,name:'NORTH YARD'},
+ {id:'pier',x:-90,z:0,name:'PIER LOCKUP'},
+ {id:'skyline',x:90,z:-36,name:'SKYLINE SAFEHOUSE'},
+ {id:'southyard',x:0,z:90,name:'SOUTH MOTOR YARD'}
 ];
 export const RAMPS=[{x:0,z:0,w:5,d:10,dir:-1,h:2.6},{x:-36,z:36,w:10,d:4.8,dir:1,axis:'x',h:2.2}];
 export function dist(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
 export function overlaps(x,z,r,b){return x+r>b.x-b.w/2&&x-r<b.x+b.w/2&&z+r>b.z-b.d/2&&z-r<b.z+b.d/2;}
 export function blocked(x,z,r=.9,boxes=BLOCKS){return Math.abs(x)>LIMIT-r||Math.abs(z)>LIMIT-r||boxes.some(b=>b.active!==false&&overlaps(x,z,r,b));}
 export function visible(a,b,boxes=BLOCKS){const n=Math.ceil(dist(a,b)/1.5);for(let i=1;i<n;i++)if(boxes.some(box=>overlaps(a.x+(b.x-a.x)*i/n,a.z+(b.z-a.z)*i/n,.03,box)))return false;return true;}
-export function closestRoad(p){let best=null;for(const n of ROAD)for(const q of [{x:clamp(p.x,-54,54),z:n},{x:n,z:clamp(p.z,-54,54)}])if(!best||dist(p,q)<dist(p,best))best=q;return best;}
-function linksFor(p){const q=closestRoad(p),result=[];ROAD.forEach((x,i)=>ROAD.forEach((z,j)=>{if(Math.abs(q.x-x)<.01||Math.abs(q.z-z)<.01)result.push({id:i*4+j,cost:Math.abs(q.x-x)+Math.abs(q.z-z)});}));return{q,links:result};}
+export function closestRoad(p){let best=null;for(const n of ROAD)for(const q of [{x:clamp(p.x,ROAD[0],ROAD.at(-1)),z:n},{x:n,z:clamp(p.z,ROAD[0],ROAD.at(-1))}])if(!best||dist(p,q)<dist(p,best))best=q;return best;}
+function linksFor(p){const q=closestRoad(p),result=[];ROAD.forEach((x,i)=>ROAD.forEach((z,j)=>{if(Math.abs(q.x-x)<.01||Math.abs(q.z-z)<.01)result.push({id:i*ROAD.length+j,cost:Math.abs(q.x-x)+Math.abs(q.z-z)});}));return{q,links:result};}
 export function route(a,b){
  const sa=linksFor(a),sb=linksFor(b);if((Math.abs(sa.q.x-sb.q.x)<.01||Math.abs(sa.q.z-sb.q.z)<.01)&&visible(sa.q,sb.q))return [sa.q,sb.q,{x:b.x,z:b.z}];
- const costs=Array(16).fill(Infinity),prev=Array(16).fill(-1),done=new Set();for(const l of sa.links)costs[l.id]=l.cost;
- for(let n=0;n<16;n++){let u=-1;for(let i=0;i<16;i++)if(!done.has(i)&&(u<0||costs[i]<costs[u]))u=i;if(u<0||!Number.isFinite(costs[u]))break;done.add(u);const ix=Math.floor(u/4),iz=u%4;for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const x=ix+dx,z=iz+dz;if(x<0||x>3||z<0||z>3)continue;const v=x*4+z;if(costs[v]>costs[u]+36){costs[v]=costs[u]+36;prev[v]=u;}}}
+ const width=ROAD.length,totalNodes=width*width,costs=Array(totalNodes).fill(Infinity),prev=Array(totalNodes).fill(-1),done=new Set();for(const l of sa.links)costs[l.id]=l.cost;
+ for(let n=0;n<totalNodes;n++){let u=-1;for(let i=0;i<totalNodes;i++)if(!done.has(i)&&(u<0||costs[i]<costs[u]))u=i;if(u<0||!Number.isFinite(costs[u]))break;done.add(u);const ix=Math.floor(u/width),iz=u%width;for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const x=ix+dx,z=iz+dz;if(x<0||x>=width||z<0||z>=width)continue;const v=x*width+z;if(costs[v]>costs[u]+36){costs[v]=costs[u]+36;prev[v]=u;}}}
  let end=-1,total=Infinity;for(const l of sb.links)if(costs[l.id]+l.cost<total){end=l.id;total=costs[l.id]+l.cost;}
- const points=[];while(end>=0){points.push({x:ROAD[Math.floor(end/4)],z:ROAD[end%4]});end=prev[end];}return[sa.q,...points.reverse(),sb.q,{x:b.x,z:b.z}].filter((p,i,arr)=>!i||dist(p,arr[i-1])>.1);
+ const points=[];while(end>=0){points.push({x:ROAD[Math.floor(end/width)],z:ROAD[end%width]});end=prev[end];}return[sa.q,...points.reverse(),sb.q,{x:b.x,z:b.z}].filter((p,i,arr)=>!i||dist(p,arr[i-1])>.1);
 }
 export function rampHeight(p){for(const r of RAMPS){if(Math.abs(p.x-r.x)<r.w/2&&Math.abs(p.z-r.z)<r.d/2){const length=r.axis==='x'?r.w:r.d,along=r.axis==='x'?p.x-r.x:p.z-r.z;return(r.dir*along/length+.5)*r.h;}}return 0;}
 export function createCar(config=CARS.van,x=HOME.x,z=HOME.z,heading=Math.PI/2){return{x,z,heading,vx:0,vz:0,y:0,vy:0,ground:0,health:config.health,nitro:100,config,impact:0,airtime:0,landed:false,speed:0,drifting:false,steering:0,yawRate:0,acceleration:0,wheelTravel:0,braking:false,reverseDelay:0};}

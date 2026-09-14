@@ -1,6 +1,6 @@
 import * as THREE from './assets/three.module.js';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {BLOCKS,ROAD,RAMPS} from './driving.mjs?v=3';
+import {BLOCKS,ROAD,RAMPS,LIMIT} from './driving.mjs?v=6';
 
 const ASSETS=[...'abcdefghijklmn'].map(c=>'building-'+c).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','detail-parasol-a','detail-parasol-b']);
 const models=new Map();
@@ -31,11 +31,11 @@ export function buildCity(world){
   wrap.updateMatrixWorld(true);return{root:wrap,box:new THREE.Box3().setFromObject(wrap),scale};
  }
  // A continuous road grid with raised curbs and clearly marked junctions.
- ground(360,360,'#375d80',0,0,-.7);block(136,.8,136,'#36516b',0,-.42,0);ground(134,134,'#27394c',0,0,.005);
- for(const road of ROAD){ground(134,11.8,'#2b3c50',0,road,.015);ground(11.8,134,'#2b3c50',road,0,.016);
-  for(let n=-63;n<66;n+=4.5)if(ROAD.every(v=>Math.abs(v-n)>7)){ground(2.1,.13,'#e9d8a2',n,road,.028);ground(.13,2.1,'#e9d8a2',road,n,.029);}
+ ground(500,500,'#234e67',0,0,-.7);block(208,.8,208,'#36516b',0,-.42,0);ground(206,206,'#27394c',0,0,.005);ground(208,43,'#516c78',0,-124,-.03);ground(43,250,'#516c78',124,-12,-.03);
+ for(const road of ROAD){ground(206,11.8,'#2b3c50',0,road,.015);ground(11.8,206,'#2b3c50',road,0,.016);
+  for(let n=-99;n<102;n+=4.5)if(ROAD.every(v=>Math.abs(v-n)>7)){ground(2.1,.13,'#e9d8a2',n,road,.028);ground(.13,2.1,'#e9d8a2',road,n,.029);}
  }
- for(const x of [-36,0,36])for(const z of [-36,0,36]){
+ for(const x of [-72,-36,0,36,72])for(const z of [-72,-36,0,36,72]){
   block(29.8,.24,29.8,'#87949f',x,.015,z);block(30,.2,.22,'#b7c2c9',x,.17,z-14.95);block(30,.2,.22,'#b7c2c9',x,.17,z+14.95);block(.22,.2,29.8,'#b7c2c9',x-14.95,.17,z);block(.22,.2,29.8,'#b7c2c9',x+14.95,.17,z);
   for(let n=-14;n<15;n+=2.5){ground(.027,29.5,'#677b8a',x+n,z,.14);ground(29.5,.027,'#677b8a',x,z+n,.141);}
  }
@@ -44,7 +44,7 @@ export function buildCity(world){
  for(const x of ROAD)for(const z of ROAD){
   for(const side of [-1,1])for(let n=-2;n<=2;n++){ground(.7,2.45,'#d7dfe0',x+n*1.17,z+side*4.8,.038);ground(2.45,.7,'#d7dfe0',x+side*4.8,z+n*1.17,.039);}
   for(const side of [-1,1]){ground(5.4,.19,'#e1e5de',x,z+side*6.6,.04);ground(.19,5.4,'#e1e5de',x+side*6.6,z,.041);}
-  if(x!==-54&&x!==54&&z!==-54&&z!==54)for(const side of [-1,1]){
+  if(x!==ROAD[0]&&x!==ROAD.at(-1)&&z!==ROAD[0]&&z!==ROAD.at(-1))for(const side of [-1,1]){
    const px=x+side*4.1,pz=z+side*4.1;pole(.075,3.6,'#314255',px,1.8,pz);block(.43,1,.32,'#17283b',px,3.7,pz);
    const red=block(.22,.22,.035,'#7c454e',px,3.98,pz+.18,stage,{emissive:'#ff5573',emissiveIntensity:.12});const green=block(.22,.22,.035,'#437b6e',px,3.46,pz+.18,stage,{emissive:'#76f6be',emissiveIntensity:1.3});signals.push({red:red.material.clone(),green:green.material.clone(),phase:(x+z)/36});red.material=signals.at(-1).red;green.material=signals.at(-1).green;
   }
@@ -63,7 +63,14 @@ export function buildCity(world){
   {models:['e','d','c','a'],wall:'#cdd3e6',neon:'#90f9d1',height:10}
  ];
  BLOCKS.forEach((b,i)=>{
-  const theme=designs[i],group=new THREE.Group();group.name=b.name;stage.add(group);
+  const theme=designs[i]||{models:b.district==='east'?['skyscraper-a','l','m','f']:b.district==='docks'?['e','j','k','n']:['a','g','i','c'],wall:b.color,neon:b.district==='docks'?'#a3ece9':b.district==='north'?'#ffdb91':'#ffd0a3',height:b.h},group=new THREE.Group();group.name=b.name;stage.add(group);
+  if(b.park){
+   block(b.w,.26,b.d,'#355f53',b.x,.2,b.z,group);ground(b.w-1.2,b.d-1.2,'#548465',b.x,b.z,.35,group);
+   ground(3,b.d,'#c0b89b',b.x,b.z,.37,group);ground(b.w,3,'#c0b89b',b.x,b.z,.38,group);
+   block(7,.5,7,'#8ea9a4',b.x,.55,b.z,group);block(6,.08,6,'#55a9b0',b.x,.83,b.z,group,{roughness:.22,metalness:.12});block(1.2,1.4,1.2,'#b7c4b1',b.x,1.1,b.z,group);
+   for(const dx of [-8,8])for(const dz of [-8,8]){tree(b.x+dx,b.z+dz,4.5+(dx+dz)/25,group);block(3,.22,.7,'#c29b70',b.x+dx,.78,b.z+dz/2,group);for(const sign of [-1,1])block(.14,.7,.55,'#354956',b.x+dx+sign,.4,b.z+dz/2,group);}
+   label(b.name,12,1.1,b.x,1.9,b.z+b.d/2+.2,'#d0edb8','#263e39',0,group);finishBlock(group);return;
+  }
   // The solid podium marks the original collision footprint while the roofline varies.
   block(b.w,.25,b.d,'#4a6171',b.x,.25,b.z,group);
   const cols=b.w<10?1:2,rows=b.d<13?1:2,lw=b.w/cols,ld=b.d/rows,frontRoofs=[];
@@ -73,12 +80,13 @@ export function buildCity(world){
   }
   const front=b.z+b.d/2+.22,back=b.z-b.d/2-.22,signWidth=Math.min(b.w-1,16),height=i===10?3.8:3.4;
   for(const [z,rot]of [[front,0],[back,Math.PI]]){
-   // A shared shopfront visually fills each block edge without changing its road bounds.
-   block(b.w-.6,3.4,.38,'#25364b',b.x,1.92,z,group);
-   for(let offset=-b.w/2+2;offset<b.w/2-1;offset+=3.3){block(2.65,1.65,.055,'#7195a8',b.x+offset,1.64,z+(rot===0?.22:-.22),group,{emissive:'#527593',emissiveIntensity:.27,roughness:.35});block(.12,2.75,.45,'#a7b5bf',b.x+offset-1.45,1.6,z,group);}
-   label(b.name,signWidth,1.12,b.x,height+.1,z+(rot===0?.25:-.25),theme.neon,'#1a2a3c',rot,group);
-   const awningZ=z+(rot===0?.8:-.8);for(let j=0;j<Math.floor(signWidth/.8);j++)block(.77,.15,1.15,j%2?theme.neon:'#e3e2cb',b.x-signWidth/2+.4+j*.8,height-.65,awningZ,group);
+   const direction=rot===0?1:-1;
+   block(signWidth+.3,1.2,.34,'#213246',b.x,height+.1,z,group);
+   label(b.name,signWidth,1.03,b.x,height+.1,z+direction*.19,theme.neon,'#1a2a3c',rot,group);
+   for(const side of [-1,1])block(.2,height+.4,.2,'#d4c7ad',b.x+side*(signWidth/2),height/2,z,group);
+   if(!['east','docks'].includes(b.district)){const awningZ=z+direction*.7;for(let j=0;j<Math.floor(signWidth/.8);j++)block(.77,.15,1.1,j%2?theme.neon:'#e3e2cb',b.x-signWidth/2+.4+j*.8,height-.65,awningZ,group);}
   }
+  if([3,5,6,7].includes(i)||b.district==='docks'){const side=b.x<0?-1:1;label(b.name,Math.min(b.d-2,13),1.2,b.x+side*(b.w/2+.2),4.8,b.z,theme.neon,'#1d2e40',side*Math.PI/2,group);}
   const fenceZ=b.z+b.d/2+1.05;for(const side of [-1,1])tree(b.x+side*(b.w/2-1.25),fenceZ,3+(i%3)*.35,group);
   if([2,7,9].includes(i)){
    for(const side of [-1,1])model('detail-parasol-'+(i===9?'b':'a'),b.x+side*3.4,b.z+b.d/2+1.05,2.6,2.6,3.2,0,group);
@@ -90,8 +98,7 @@ export function buildCity(world){
    for(const x of [b.x-3,b.x+3]){const roof=frontRoofs.find(box=>x>=box.min.x&&x<=box.max.x)||frontRoofs[0],bottom=roof.max.y-.25,top=y-.6;block(.16,top-bottom,.16,'#3b5066',x,(top+bottom)/2,roofZ,group);}
   }
   if([2,3,5,9,10].includes(i)){const light=new THREE.PointLight(theme.neon,23,13,2);light.position.set(b.x,3,front+2);stage.add(light);landmarkLights.push(light);}
-  group.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(group);
-  batch(group);const copies=new Map();group.traverse(o=>{if(!o.isMesh)return;const unique=m=>{if(!copies.has(m)){const c=m.clone();c.transparent=true;copies.set(m,c);}return copies.get(m);};o.material=Array.isArray(o.material)?o.material.map(unique):unique(o.material);});buildings.push({group,box:bounds,materials:[...copies.values()]});
+  finishBlock(group);
  });
  // Last Exit's garage door, repair canopy, and apron create a recognisable home base.
  block(8,3.5,.22,'#101f32',36,1.9,45.1);for(let n=0;n<8;n++)block(7.7,.045,.05,'#526b80',36,.45+n*.43,45.24);
@@ -99,17 +106,30 @@ export function buildCity(world){
  label('REPAIRS / CASH OUT',9,.7,36,4.2,45.5,'#a4fadc');ground(9,7,'#405c67',36,49,.145);
  for(const x of [31.5,40.5])ground(.16,8.5,'#acdfc8',x,49.6,.16);for(let n=0;n<5;n++)ground(.85,.15,'#d9d893',32+n*2,53.1,.161);
  // Street lamps sit on the pavement; their pools stay clear of route arrows.
- for(const x of [-50,-22,14,50])for(const z of [-46,-26,10,46]){
+ for(const x of [-86,-50,-22,14,50,86])for(const z of [-82,-46,-26,10,46,82]){
   pole(.075,4.8,'#3b5267',x,2.4,z);block(.95,.1,.12,'#40566e',x+.4,4.82,z);block(.72,.12,.42,'#b0c1c9',x+.62,4.73,z);block(.6,.025,.33,'#ffeab7',x+.62,4.65,z,stage,{emissive:'#ffe2a1',emissiveIntensity:1.3});
   const glow=new THREE.Mesh(new THREE.CircleGeometry(2.5,20),new THREE.MeshBasicMaterial({color:'#ffe3a7',transparent:true,opacity:.065,depthWrite:false}));glow.rotation.x=-Math.PI/2;glow.position.set(x+.7,.17,z);stage.add(glow);
  }
- for(const x of [-62,62])for(let z=-42;z<=43;z+=7){ground(3,.12,'#91a7bb',x,z,.04);ground(.12,3,'#91a7bb',x+(x<0?-1.5:1.5),z+1.5,.04);}
+ for(const x of [-98,98])for(let z=-84;z<=85;z+=7){ground(3,.12,'#91a7bb',x,z,.04);ground(.12,3,'#91a7bb',x+(x<0?-1.5:1.5),z+1.5,.04);}
  // A distant skyline and waterfront replace the empty background plane.
- for(let i=0;i<13;i++){const x=-91+i*15;model('building-skyscraper-'+['a','b','c'][i%3],x,-86,11,12,26+(i*7%19),i%2?Math.PI:0,stage,['#becfe5','#b5b6d2','#e3c3c5'][i%3]);}
- for(let i=0;i<6;i++)model('building-'+['f','l','n'][i%3],85,-48+i*21,13,15,20+(i%3)*4,-Math.PI/2,stage,'#aebed5');
- for(let i=0;i<25;i++){block(.16,1.15,.16,'#7493a8',-67.3,.65,-64+i*5.3);if(i<24)block(.1,.12,5.3,'#7493a8',-67.3,1.12,-61.35+i*5.3);}
- ground(6,137,'#78909c',-69.9,0,-.01);for(let i=0;i<5;i++)ground(2,13,'#719bbc',-80-i*11,-42+i*19,-.675,stage,{transparent:true,opacity:.22});
+ for(let i=0;i<15;i++){const x=-105+i*15;model('building-skyscraper-'+['a','b','c'][i%3],x,-126,11,12,26+(i*7%19),i%2?Math.PI:0,stage,['#becfe5','#b5b6d2','#e3c3c5'][i%3]);}
+ for(let i=0;i<10;i++)model('building-'+['f','l','n'][i%3],126,-90+i*21,13,15,20+(i%3)*4,-Math.PI/2,stage,'#aebed5');
+ for(let i=0;i<39;i++){block(.16,1.15,.16,'#7493a8',-103.3,.65,-100+i*5.3);if(i<38)block(.1,.12,5.3,'#7493a8',-103.3,1.12,-97.35+i*5.3);}
+ ground(6,209,'#78909c',-105.9,0,-.01);for(let i=0;i<5;i++)ground(2,13,'#719bbc',-116-i*11,-42+i*19,-.675,stage,{transparent:true,opacity:.22});
  for(const r of RAMPS){const hw=r.w/2,hd=r.d/2,a=(1-r.dir)*r.h/2,b=(1+r.dir)*r.h/2;const points=r.axis==='x'?[[-hw,0,-hd],[-hw,0,hd],[hw,r.h,hd],[hw,r.h,-hd]]:[[-hw,a,-hd],[hw,a,-hd],[hw,b,hd],[-hw,b,hd]],v=[];for(const i of [0,1,2,0,2,3])v.push(...points[i]);const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,mat('#d2a26c',{side:THREE.DoubleSide}));m.position.set(r.x,.08,r.z);m.receiveShadow=true;stage.add(m);}
+ // The outer map adds a waterfront promenade, docks, and a lit arcade gateway.
+ for(const z of [-75,-24,27,78]){
+  block(18,.65,4.4,'#8d8972',-114,-.1,z);for(let n=0;n<12;n++)ground(.045,4.3,'#5a685f',-122+n*1.45,z,.235);
+  for(const x of [-121,-113])for(const edge of [-1,1])pole(.2,2.1,'#41595b',x,.4,z+edge*2.4);
+  for(const x of [-117,-111]){block(3,.7,2.4,'#425569',x,.55,z);block(2.5,.18,2,'#ca9f6c',x,1,z);}
+ }
+ for(const z of [-86,-50,-14,22,58,94]){tree(-99,z,3.9);block(.65,1.35,.65,'#c6dacc',-101,1,z,stage,{emissive:'#fce4ab',emissiveIntensity:.6});}
+ for(const x of [-4.4,4.4]){block(.24,7.6,.28,'#374866',x,3.8,-9);block(.13,6.2,.31,'#c291ff',x,4,-9,stage,{emissive:'#a674ff',emissiveIntensity:.75});}
+ block(9,1,.38,'#362749',0,7.6,-9);label('NEON ROW',8.6,.82,0,7.6,-8.79,'#e1b7ff','#362749');
+ for(let n=0;n<9;n++){const x=26+n*2.5;block(.24,.3,.24,n%2?'#ffeea5':'#b0f8db',x,4.8,-48.5,stage,{emissive:n%2?'#ffd279':'#76e8c3',emissiveIntensity:1});}
+ label('STARLIGHT',14,2.1,36,5.7,-84.8,'#ffe0a0','#63354e',Math.PI);
+ for(const x of [28.7,43.3])for(let y=4.8;y<7;y+=.5)block(.16,.16,.12,'#fff0b9',x,y,-84.9,stage,{emissive:'#ffc879',emissiveIntensity:1});
+ function finishBlock(group){group.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(group);batch(group);const copies=new Map();group.traverse(o=>{if(!o.isMesh)return;const unique=m=>{if(!copies.has(m)){const c=m.clone();c.transparent=true;copies.set(m,c);}return copies.get(m);};o.material=Array.isArray(o.material)?o.material.map(unique):unique(o.material);});buildings.push({group,box:bounds,materials:[...copies.values()]});}
  // Batch only fixed meshes. Signals and each fading block keep their own materials.
  stage.updateMatrixWorld(true);
  function batch(parent){

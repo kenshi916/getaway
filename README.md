@@ -1,12 +1,12 @@
 # GETAWAY — The Night Shift
 
-A self-contained solo arcade driving game. Serve `dist/` over HTTP. All models, fonts, and libraries are local; no installation or build is required.
+A self-contained solo arcade driving game. Serve `dist/` over HTTP. The website opens at `/`, the game at `/play/`, and the guide at `/docs/`. All models, fonts, and libraries are local; no installation or build is required.
 
 ## Play
 
 WASD / arrow keys drive and reverse. Space is the handbrake; Shift is nitro. C switches camera. J chooses a job. Tab routes to the garage. E banks the haul when stopped there. R recovers a stuck car. Mobile uses simultaneous touch steering, pedals, drift, and nitro.
 
-Eight pickup spots generate jobs with three risk levels and six destinations. Stop in a pickup ring to board, then stop at a hideout to deliver. Deliveries pay arcade credits, add time, and increase the streak multiplier. Police pursue and search last-seen positions; roadblocks, destructible props, traffic, and ramps create escape opportunities. Return to the garage and bank to finish a run. Losing forfeits the unbanked haul.
+Twelve pickup spots generate jobs with three risk levels and ten destinations. Stop in a pickup ring to board, then stop at a hideout to deliver. Deliveries pay arcade credits, add time, and increase the streak multiplier. Police pursue and search last-seen positions; roadblocks, destructible props, traffic, and ramps create escape opportunities. Return to the garage and bank to finish a run. Losing forfeits the unbanked haul.
 
 The garage has three cars with distinct speed, acceleration, handling, capacity, and durability, plus four paint colors. Banked credits, cars, paint, and preferences are stored locally on the device. No shared account, multiplayer, wallet, or real-money payouts are connected.
 
@@ -16,11 +16,11 @@ The garage has three cars with distinct speed, acceleration, handling, capacity,
 
 Models: Kenney Blocky Characters, Car Kit, City Kit Roads, and City Kit Commercial (CC0), plus RGS_Dev vehicles (CC0). Three.js 0.170.0 (MIT). Space Mono and Silkscreen (SIL Open Font License). Credits and licenses are included in the app and `dist/assets/LICENSES.txt`.
 
-Validation: all 135 road route pairs clear collision bounds; police driving simulations reach all eight pickups; each car accelerates, reverses, steers, and uses nitro; ramps launch and land; pickup/capacity/delivery/banking, repeat settlement prevention, vehicle unlocks, and profile reload checked. A Node simulation with a renderer stub runs the application pickup-to-bank flow. These checks do not constitute a browser rendering or physical-device test.
+Validation: road routes clear collision bounds; police driving simulations reach all twelve pickups; each car accelerates, reverses, steers, and uses nitro; ramps launch and land; pickup/capacity/delivery/banking, repeat settlement prevention, vehicle unlocks, and profile reload checked. A Node simulation with a renderer stub runs the application pickup-to-bank flow. These checks do not constitute a browser rendering or physical-device test.
 
 ## Visual and handling update
 
-The interface uses Silkscreen pixel lettering, raised square buttons, bordered navy panels, segmented gauges, a square minimap, and actual rendered car previews. Anti-aliasing, sky reflections, dusk lighting, and a closer chase/showcase camera improve the 3D presentation. Original character models are retained, with eight residents now walking the sidewalks.
+The interface uses Silkscreen pixel lettering, raised square buttons, bordered navy panels, segmented gauges, a square minimap, and actual rendered car previews. Anti-aliasing, sky reflections, dusk lighting, and a closer chase/showcase camera improve the 3D presentation. Original character models are retained, with twelve residents now walking the sidewalks.
 
 Vehicle input now uses progressive steering, speed-sensitive turning, a single acceleration model, stronger braking with a brief delay before reverse, controlled handbrake slip and automatic traction recovery. Nitro speed tapers after release; wheels rotate by distance travelled and brake lights reflect braking. Existing saved credits and unlocks remain compatible.
 
@@ -32,6 +32,14 @@ The original RGS_Dev 21-vehicle FBX pack is saved at `dist/assets/packs/rgsdev-v
 
 ## Downtown update
 
-Kenney City Kit Commercial supplies 36 fitted buildings across the original eleven collision blocks, plus a distant skyline. Colorful awnings, lit storefronts, rooftop signs, crossings, traffic signals, planters, a waterfront, and a garage entrance give each district detail. The 19 selected models are self-contained GLBs with the original palette baked to vertex colors. Licenses and conversion notes are in `dist/assets/models/city/`.
+Kenney City Kit Commercial supplies 92 fitted buildings across 25 building blocks, plus two parks, plus a distant skyline. Colorful awnings, lit storefronts, rooftop signs, crossings, traffic signals, planters, a waterfront, and a garage entrance give each district detail. The 19 selected models are self-contained GLBs with the original palette baked to vertex colors. Licenses and conversion notes are in `dist/assets/models/city/`.
 
 The city is batched by equivalent materials while each block keeps isolated fade materials for camera visibility. The app simulation checks the actual city and vehicle GLBs, building footprints, finite geometry, independent block fading, walking residents, and the complete pickup-to-bank flow. Driving, navigation, progression, and source/asset checks pass; no browser or physical-device visual test was performed.
+
+## Expanded map and gaming website
+
+The playable boundary grew from ±66 to ±102, giving approximately 2.39 times the area. Six roads per axis create 36 junctions. Outer districts add docks, parks, a cinema, a station, and southern motor yards. Navigation scales with the road grid, and the minimap and police use the expanded bounds. There are 12 pickups and 10 destinations.
+
+The new responsive homepage features original blocky key art, the actual 3D city, working district view buttons, and previews of the real vehicle models. The docs cover controls, jobs, pursuit, upgrades, saves, and current capabilities. Footer settings live in `dist/site-config.js`: X currently redirects to `https://x.com/`; the project profile and contract have not been supplied. CA remains “COMING AT LAUNCH” until a real address is configured, when its copy button becomes available.
+
+Validation includes complete gameplay and website simulations, all pickup/destination route pairs, HTML routes/anchors, asset references, and JavaScript syntax. Browser graphics and physical-device layouts were not tested.
