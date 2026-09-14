@@ -1,0 +1,91 @@
+export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+export const ROAD=[-54,-18,18,54],LIMIT=66;
+export const HOME={x:36,z:54,name:'LAST EXIT GARAGE'};
+export const CARS={
+ van:{id:'van',name:'THE WORKHORSE',model:'getaway-van',price:0,speed:21,accel:15,grip:8.5,steer:1.95,seats:3,health:120,scale:1.7,description:'Three seats. Built to take a hit.'},
+ coupe:{id:'coupe',name:'NIGHT RUNNER',model:'coupe',price:6000,speed:25,accel:19,grip:9,steer:2.3,seats:2,health:100,scale:1.7,description:'Quick off the line. Easy in the corners.'},
+ racer:{id:'racer',name:'REDLINE',model:'racer',price:14000,speed:30,accel:23,grip:10,steer:2.55,seats:1,health:90,scale:1.65,description:'One seat. Ridiculous speed.'}
+};
+export const PAINTS=['#f0c779','#a3d6b5','#e49487','#a9bce4'];
+export const BLOCKS=[
+ {x:-36,z:-36,w:26,d:25,h:10,color:'#919984',name:'UNION TRUST'},
+ {x:0,z:-36,w:27,d:25,h:14,color:'#938880',name:'THE REGENT'},
+ {x:36,z:-36,w:25,d:26,h:8,color:'#6c8986',name:'NIGHT MARKET'},
+ {x:-36,z:0,w:25,d:27,h:13,color:'#ad8c7a',name:'MOTEL 86'},
+ {x:-9,z:0,w:8,d:25,h:8,color:'#78958a',name:'RECORDS'},
+ {x:9,z:0,w:8,d:25,h:9,color:'#b1977e',name:'ARCADE'},
+ {x:36,z:0,w:26,d:25,h:16,color:'#838894',name:'GRAND HOTEL'},
+ {x:-36,z:28,w:25,d:10,h:9,color:'#9a9277',name:'PAWN SHOP'},
+ {x:-36,z:44,w:25,d:10,h:7,color:'#79968c',name:'LAUNDROMAT'},
+ {x:0,z:36,w:26,d:26,h:12,color:'#a48e85',name:'24H DINER'},
+ {x:36,z:35,w:25,d:19,h:6,color:'#6d8984',name:'LAST EXIT'}
+];
+export const STOPS=[
+ {id:'bank',x:-36,z:-54,name:'UNION TRUST',type:3},
+ {id:'hotel',x:0,z:-54,name:'THE REGENT',type:2},
+ {id:'market',x:36,z:-54,name:'NIGHT MARKET',type:1},
+ {id:'motel',x:-54,z:0,name:'MOTEL 86',type:2},
+ {id:'arcade',x:18,z:0,name:'ARCADE ALLEY',type:1},
+ {id:'grand',x:54,z:0,name:'GRAND HOTEL',type:3},
+ {id:'pawn',x:-54,z:36,name:'PAWN SHOP',type:2},
+ {id:'diner',x:0,z:54,name:'24H DINER',type:1}
+];
+export const DESTS=[
+ {id:'west',x:-54,z:-36,name:'WESTSIDE LOCKUP'},
+ {id:'north',x:18,z:-36,name:'NORTHSIDE LOFT'},
+ {id:'east',x:54,z:36,name:'EASTSIDE HIDEOUT'},
+ {id:'south',x:-18,z:36,name:'SOUTHERN SAFEHOUSE'},
+ {id:'bay',x:-36,z:18,name:'LOADING BAY'},
+ {id:'loft',x:36,z:-18,name:'ROOFTOP LOFT'}
+];
+export const RAMPS=[{x:0,z:0,w:5,d:10,dir:-1,h:2.6},{x:-36,z:36,w:10,d:4.8,dir:1,axis:'x',h:2.2}];
+export function dist(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
+export function overlaps(x,z,r,b){return x+r>b.x-b.w/2&&x-r<b.x+b.w/2&&z+r>b.z-b.d/2&&z-r<b.z+b.d/2;}
+export function blocked(x,z,r=.9,boxes=BLOCKS){return Math.abs(x)>LIMIT-r||Math.abs(z)>LIMIT-r||boxes.some(b=>b.active!==false&&overlaps(x,z,r,b));}
+export function visible(a,b,boxes=BLOCKS){const n=Math.ceil(dist(a,b)/1.5);for(let i=1;i<n;i++)if(boxes.some(box=>overlaps(a.x+(b.x-a.x)*i/n,a.z+(b.z-a.z)*i/n,.03,box)))return false;return true;}
+export function closestRoad(p){let best=null;for(const n of ROAD)for(const q of [{x:clamp(p.x,-54,54),z:n},{x:n,z:clamp(p.z,-54,54)}])if(!best||dist(p,q)<dist(p,best))best=q;return best;}
+function linksFor(p){const q=closestRoad(p),result=[];ROAD.forEach((x,i)=>ROAD.forEach((z,j)=>{if(Math.abs(q.x-x)<.01||Math.abs(q.z-z)<.01)result.push({id:i*4+j,cost:Math.abs(q.x-x)+Math.abs(q.z-z)});}));return{q,links:result};}
+export function route(a,b){
+ const sa=linksFor(a),sb=linksFor(b);if((Math.abs(sa.q.x-sb.q.x)<.01||Math.abs(sa.q.z-sb.q.z)<.01)&&visible(sa.q,sb.q))return [sa.q,sb.q,{x:b.x,z:b.z}];
+ const costs=Array(16).fill(Infinity),prev=Array(16).fill(-1),done=new Set();for(const l of sa.links)costs[l.id]=l.cost;
+ for(let n=0;n<16;n++){let u=-1;for(let i=0;i<16;i++)if(!done.has(i)&&(u<0||costs[i]<costs[u]))u=i;if(u<0||!Number.isFinite(costs[u]))break;done.add(u);const ix=Math.floor(u/4),iz=u%4;for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const x=ix+dx,z=iz+dz;if(x<0||x>3||z<0||z>3)continue;const v=x*4+z;if(costs[v]>costs[u]+36){costs[v]=costs[u]+36;prev[v]=u;}}}
+ let end=-1,total=Infinity;for(const l of sb.links)if(costs[l.id]+l.cost<total){end=l.id;total=costs[l.id]+l.cost;}
+ const points=[];while(end>=0){points.push({x:ROAD[Math.floor(end/4)],z:ROAD[end%4]});end=prev[end];}return[sa.q,...points.reverse(),sb.q,{x:b.x,z:b.z}].filter((p,i,arr)=>!i||dist(p,arr[i-1])>.1);
+}
+export function rampHeight(p){for(const r of RAMPS){if(Math.abs(p.x-r.x)<r.w/2&&Math.abs(p.z-r.z)<r.d/2){const length=r.axis==='x'?r.w:r.d,along=r.axis==='x'?p.x-r.x:p.z-r.z;return(r.dir*along/length+.5)*r.h;}}return 0;}
+export function createCar(config=CARS.van,x=HOME.x,z=HOME.z,heading=Math.PI/2){return{x,z,heading,vx:0,vz:0,y:0,vy:0,ground:0,health:config.health,nitro:100,config,impact:0,airtime:0,landed:false,speed:0,drifting:false};}
+export function drive(car,input,dt,boxes=BLOCKS){
+ dt=clamp(dt,0,.05);car.impact=0;car.landed=false;const config=car.config,forward={x:Math.sin(car.heading),z:Math.cos(car.heading)},right={x:Math.cos(car.heading),z:-Math.sin(car.heading)};
+ let longitudinal=car.vx*forward.x+car.vz*forward.z,lateral=car.vx*right.x+car.vz*right.z;const throttle=clamp(input.throttle||0,-1,1),steer=clamp(input.steer||0,-1,1),air=car.y>car.ground+.15;
+ const boosting=throttle>0&&input.boost&&car.nitro>1&&!air;car.boosting=boosting;car.nitro=clamp(car.nitro+(boosting?-32:9)*dt,0,100);
+ let acceleration=config.accel;if(throttle<0&&longitudinal>1)acceleration=30;longitudinal+=throttle*acceleration*(boosting?1.4:1)*dt;
+ if(!throttle)longitudinal*=Math.exp(-dt*.85);else longitudinal*=Math.exp(-dt*.06);
+ longitudinal=clamp(longitudinal,-config.speed*.36,config.speed*(boosting?1.38:1));
+ car.heading-=steer*config.steer*clamp(Math.abs(longitudinal)/8,.05,1)*Math.sign(longitudinal||1)*(input.brake?1.35:1)*(air?.35:1)*dt;
+ const slip=input.brake&&Math.abs(longitudinal)>5;car.drifting=slip&&Math.abs(steer)>.1;
+ if(input.brake)longitudinal*=Math.exp(-dt*.7);
+ lateral*=Math.exp(-dt*(air?.2:slip?1.1:config.grip));
+ const tx=Math.sin(car.heading)*longitudinal+Math.cos(car.heading)*lateral,tz=Math.cos(car.heading)*longitudinal-Math.sin(car.heading)*lateral;
+ const grip=1-Math.exp(-dt*(air?1:slip?2.4:12));car.vx+=(tx-car.vx)*grip;car.vz+=(tz-car.vz)*grip;
+ // Brake/reverse must remain responsive even when steering is released.
+ if(throttle!==0&&!slip){car.vx+=forward.x*throttle*acceleration*dt*(1-grip);car.vz+=forward.z*throttle*acceleration*dt*(1-grip);}
+ const velocity=Math.hypot(car.vx,car.vz),cap=config.speed*(boosting?1.42:1.03);if(velocity>cap){car.vx*=cap/velocity;car.vz*=cap/velocity;}
+ const steps=Math.max(1,Math.ceil(Math.hypot(car.vx,car.vz)*dt/.42));
+ for(let i=0;i<steps;i++){
+  const clear=(x,z)=>[-1.05,0,1.05].every(offset=>!blocked(x+Math.sin(car.heading)*offset,z+Math.cos(car.heading)*offset,.85,boxes));
+  let nx=car.x+car.vx*dt/steps;if(clear(nx,car.z))car.x=nx;else{car.impact=Math.max(car.impact,Math.abs(car.vx));car.vx*=-.24;car.vz*=.86;}
+  let nz=car.z+car.vz*dt/steps;if(clear(car.x,nz))car.z=nz;else{car.impact=Math.max(car.impact,Math.abs(car.vz));car.vz*=-.24;car.vx*=.86;}
+ }
+ const ground=rampHeight(car);const speed=Math.hypot(car.vx,car.vz);
+ if(car.ground-ground>1&&car.y>=car.ground-.15&&speed>7&&car.vy===0)car.vy=3.6+speed*.17;
+ if(car.y>ground+.05||car.vy!==0){car.vy-=17*dt;car.y+=car.vy*dt;car.airtime+=dt;if(car.y<=ground){car.y=ground;car.vy=0;car.landed=car.airtime>.4;car.airtime=0;}}
+ else car.y=ground;car.ground=ground;car.speed=Math.hypot(car.vx,car.vz);return car;
+}
+export function defaultProfile(){return{credits:0,best:0,runs:0,deliveries:0,unlocked:['van'],selected:'van',paint:0,muted:false,camera:'chase'};}
+export function cleanProfile(raw){const p=defaultProfile();if(!raw||typeof raw!=='object')return p;for(const k of ['credits','best','runs','deliveries'])if(Number.isFinite(raw[k]))p[k]=clamp(Math.floor(raw[k]),0,1e9);p.unlocked=['van',...['coupe','racer'].filter(k=>Array.isArray(raw.unlocked)&&raw.unlocked.includes(k))];if(p.unlocked.includes(raw.selected))p.selected=raw.selected;p.paint=Number.isInteger(raw.paint)?clamp(raw.paint,0,PAINTS.length-1):0;p.muted=raw.muted===true;p.camera=raw.camera==='high'?'high':'chase';return p;}
+export function buyCar(profile,id){const c=CARS[id];if(!c||profile.unlocked.includes(id)||profile.credits<c.price)return false;profile.credits-=c.price;profile.unlocked.push(id);profile.selected=id;return true;}
+export function createRun(){return{phase:'driving',time:150,haul:0,deliveries:0,combo:1,wanted:0,heat:0,escape:0,passengers:[],pickups:0,nearMisses:0,crashes:0,airJumps:0,drift:0,style:0,busted:0,banked:false,elapsed:0,roadblockCount:0};}
+export function makeJob(stop,index=0,rng=Math.random){const pool=DESTS.filter(d=>dist(stop,d)>48);const dest=pool[Math.floor(rng()*pool.length)%pool.length];const level=stop.type;return{id:stop.id+'-'+index,stopId:stop.id,name:['','LATE SHIFT','HOT PICKUP','BIG SCORE'][level],level,value:[0,850,1450,2100][level],dest:{...dest},picked:false,cooldown:0};}
+export function pickup(run,job,config){if(run.phase!=='driving'||job.picked||job.cooldown>0||run.passengers.length>=config.seats)return false;job.picked=true;run.passengers.push({...job});run.pickups++;run.time=Math.min(180,run.time+10);run.wanted=clamp(run.wanted+job.level-1+(job.level===1?.4:0),0,5);return true;}
+export function deliver(run,id){if(run.phase!=='driving')return null;const index=run.passengers.findIndex(p=>p.id===id);if(index<0)return null;const [p]=run.passengers.splice(index,1);const payment=Math.round(p.value*run.combo);run.haul+=payment;run.deliveries++;run.combo=Math.min(3,1+run.deliveries*.25);run.time=Math.min(180,run.time+40);return{payment,passenger:p};}
+export function settleRun(run,profile,success){if(run.banked||run.phase==='banked'||run.phase==='busted')return false;run.phase=success?'banked':'busted';run.banked=true;profile.runs++;profile.deliveries+=run.deliveries;if(success){const total=Math.floor(run.haul+run.style);profile.credits+=total;profile.best=Math.max(profile.best,total);run.total=total;}else run.total=0;return true;}

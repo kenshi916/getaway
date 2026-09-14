@@ -1,7 +1,7 @@
 {
-  "name": "heist-retro",
-  "version": "0.1.0",
+  "name": "getaway",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "A static Three.js bank heist game. No build step required."
+  "description": "A complete solo arcade driving game built with Three.js. Static files; no build required."
 }
