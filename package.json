@@ -1,0 +1,7 @@
+{
+  "name": "heist-retro",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A static Three.js bank heist game. No build step required."
+}
