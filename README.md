@@ -4,11 +4,13 @@ A self-contained solo arcade driving game. Serve `dist/` over HTTP. The website 
 
 ## Play
 
-WASD / arrow keys drive and reverse. Space is the handbrake; Shift is nitro. C switches camera. J chooses a job. Tab routes to the garage. E banks the haul when stopped there. R recovers a stuck car. Mobile uses simultaneous touch steering, pedals, drift, and nitro.
+Start inside your apartment. WASD / arrow keys walk; E interacts with the laptop, wardrobe, bedside save, and entry door. The first-night tutorial leads into your first pickup, delivery, and banked shift.
+
+In the car, WASD / arrow keys drive and reverse. Space is the handbrake; Shift is nitro. C switches camera. J chooses a job. Tab routes to the garage. E banks the haul when stopped there. R recovers a stuck car. Mobile uses simultaneous touch steering, pedals, drift, and nitro.
 
 Twelve pickup spots generate jobs with three risk levels and ten destinations. Stop in a pickup ring to board, then stop at a hideout to deliver. Deliveries pay arcade credits, add time, and increase the streak multiplier. Police pursue and search last-seen positions; roadblocks, destructible props, traffic, and ramps create escape opportunities. Return to the garage and bank to finish a run. Losing forfeits the unbanked haul.
 
-The garage has three cars with distinct speed, acceleration, handling, capacity, and durability, plus four paint colors. Banked credits, cars, paint, and preferences are stored locally on the device. No shared account, multiplayer, wallet, or real-money payouts are connected.
+The garage has three cars with distinct speed, acceleration, handling, capacity, and durability, plus four paint colors. Banked credits, cars, paint, preferences, tutorial progress, apartment position, and an unfinished shift are stored locally on the device. Autosave runs every three seconds during play and on page exit. Save & return home suspends the active shift; the door resumes its car, timer, passengers, heat, and haul. No shared account, multiplayer, wallet, or real-money payouts are connected.
 
 ## Implementation
 
@@ -43,3 +45,11 @@ The playable boundary grew from ±66 to ±102, giving approximately 2.39 times t
 The new responsive homepage features original blocky key art, the actual 3D city, working district view buttons, and previews of the real vehicle models. The docs cover controls, jobs, pursuit, upgrades, saves, and current capabilities. Footer settings live in `dist/site-config.js`: X currently redirects to `https://x.com/`; the project profile and contract have not been supplied. CA remains “COMING AT LAUNCH” until a real address is configured, when its copy button becomes available.
 
 Validation includes complete gameplay and website simulations, all pickup/destination route pairs, HTML routes/anchors, asset references, and JavaScript syntax. Browser graphics and physical-device layouts were not tested.
+
+## Apartment and saved-shift update
+
+`apartment.js` builds a separate furnished cutaway room rendered with the existing renderer. It uses the existing animated character and Kenney furniture assets, collision-aware walking, interactive markers, and a camera that fits the room around the tutorial and controls. The six-step first-night guide saves its place; old credit and vehicle saves remain compatible.
+
+`progress.mjs` serializes and validates resumable shifts. `getaway.js` coordinates apartment entry, laptop briefing, wardrobe garage, bedside save, door departure, tutorial dispatch, and return home. Banking clears the checkpoint and saves earned credits in one storage write. Saves remain local to this browser, with visible feedback if storage is unavailable. Police and traffic vehicles regenerate when resuming; the player's wanted level persists.
+
+Validation covers reachable furniture, collision boundaries, all tutorial steps, doorway transition, first fare, suspended timer, full application reload with a saved shift, retained passengers and car state, bank settlement, corrupt checkpoints, unavailable storage, and existing driving / website behavior. DOM and WebGL renderer are simulated in Node; no browser or physical-device QA was performed.
