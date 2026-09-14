@@ -2,23 +2,23 @@ export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const ROAD=[-54,-18,18,54],LIMIT=66;
 export const HOME={x:36,z:54,name:'LAST EXIT GARAGE'};
 export const CARS={
- van:{id:'van',name:'THE WORKHORSE',model:'getaway-van',price:0,speed:21,accel:15,grip:8.5,steer:1.95,seats:3,health:120,scale:1.7,description:'Three seats. Built to take a hit.'},
- coupe:{id:'coupe',name:'NIGHT RUNNER',model:'coupe',price:6000,speed:25,accel:19,grip:9,steer:2.3,seats:2,health:100,scale:1.7,description:'Quick off the line. Easy in the corners.'},
- racer:{id:'racer',name:'REDLINE',model:'racer',price:14000,speed:30,accel:23,grip:10,steer:2.55,seats:1,health:90,scale:1.65,description:'One seat. Ridiculous speed.'}
+ van:{id:'van',name:'THE WORKHORSE',model:'getaway-van',price:0,speed:22,accel:18,grip:11,steer:2.35,seats:3,health:120,scale:1.7,description:'Three seats. Built to take a hit.'},
+ coupe:{id:'coupe',name:'NIGHT RUNNER',model:'coupe',price:6000,speed:26,accel:22,grip:12,steer:2.55,seats:2,health:100,scale:1.7,description:'Quick off the line. Easy in the corners.'},
+ racer:{id:'racer',name:'REDLINE',model:'racer',price:14000,speed:31,accel:26,grip:13,steer:2.65,seats:1,health:90,scale:1.65,description:'One seat. Ridiculous speed.'}
 };
-export const PAINTS=['#f0c779','#a3d6b5','#e49487','#a9bce4'];
+export const PAINTS=['#ffc23d','#21cbbb','#ed5949','#6494ff'];
 export const BLOCKS=[
- {x:-36,z:-36,w:26,d:25,h:10,color:'#919984',name:'UNION TRUST'},
- {x:0,z:-36,w:27,d:25,h:14,color:'#938880',name:'THE REGENT'},
- {x:36,z:-36,w:25,d:26,h:8,color:'#6c8986',name:'NIGHT MARKET'},
- {x:-36,z:0,w:25,d:27,h:13,color:'#ad8c7a',name:'MOTEL 86'},
- {x:-9,z:0,w:8,d:25,h:8,color:'#78958a',name:'RECORDS'},
- {x:9,z:0,w:8,d:25,h:9,color:'#b1977e',name:'ARCADE'},
- {x:36,z:0,w:26,d:25,h:16,color:'#838894',name:'GRAND HOTEL'},
- {x:-36,z:28,w:25,d:10,h:9,color:'#9a9277',name:'PAWN SHOP'},
- {x:-36,z:44,w:25,d:10,h:7,color:'#79968c',name:'LAUNDROMAT'},
- {x:0,z:36,w:26,d:26,h:12,color:'#a48e85',name:'24H DINER'},
- {x:36,z:35,w:25,d:19,h:6,color:'#6d8984',name:'LAST EXIT'}
+ {x:-36,z:-36,w:26,d:25,h:10,color:'#547786',name:'UNION TRUST'},
+ {x:0,z:-36,w:27,d:25,h:14,color:'#6b748f',name:'THE REGENT'},
+ {x:36,z:-36,w:25,d:26,h:8,color:'#358b96',name:'NIGHT MARKET'},
+ {x:-36,z:0,w:25,d:27,h:13,color:'#b06a63',name:'MOTEL 86'},
+ {x:-9,z:0,w:8,d:25,h:8,color:'#4d818f',name:'RECORDS'},
+ {x:9,z:0,w:8,d:25,h:9,color:'#976a93',name:'ARCADE'},
+ {x:36,z:0,w:26,d:25,h:16,color:'#596e89',name:'GRAND HOTEL'},
+ {x:-36,z:28,w:25,d:10,h:9,color:'#89795f',name:'PAWN SHOP'},
+ {x:-36,z:44,w:25,d:10,h:7,color:'#508b88',name:'LAUNDROMAT'},
+ {x:0,z:36,w:26,d:26,h:12,color:'#ba7564',name:'24H DINER'},
+ {x:36,z:35,w:25,d:19,h:6,color:'#385d78',name:'LAST EXIT'}
 ];
 export const STOPS=[
  {id:'bank',x:-36,z:-54,name:'UNION TRUST',type:3},
@@ -53,28 +53,48 @@ export function route(a,b){
  const points=[];while(end>=0){points.push({x:ROAD[Math.floor(end/4)],z:ROAD[end%4]});end=prev[end];}return[sa.q,...points.reverse(),sb.q,{x:b.x,z:b.z}].filter((p,i,arr)=>!i||dist(p,arr[i-1])>.1);
 }
 export function rampHeight(p){for(const r of RAMPS){if(Math.abs(p.x-r.x)<r.w/2&&Math.abs(p.z-r.z)<r.d/2){const length=r.axis==='x'?r.w:r.d,along=r.axis==='x'?p.x-r.x:p.z-r.z;return(r.dir*along/length+.5)*r.h;}}return 0;}
-export function createCar(config=CARS.van,x=HOME.x,z=HOME.z,heading=Math.PI/2){return{x,z,heading,vx:0,vz:0,y:0,vy:0,ground:0,health:config.health,nitro:100,config,impact:0,airtime:0,landed:false,speed:0,drifting:false};}
+export function createCar(config=CARS.van,x=HOME.x,z=HOME.z,heading=Math.PI/2){return{x,z,heading,vx:0,vz:0,y:0,vy:0,ground:0,health:config.health,nitro:100,config,impact:0,airtime:0,landed:false,speed:0,drifting:false,steering:0,yawRate:0,acceleration:0,wheelTravel:0,braking:false,reverseDelay:0};}
 export function drive(car,input,dt,boxes=BLOCKS){
- dt=clamp(dt,0,.05);car.impact=0;car.landed=false;const config=car.config,forward={x:Math.sin(car.heading),z:Math.cos(car.heading)},right={x:Math.cos(car.heading),z:-Math.sin(car.heading)};
- let longitudinal=car.vx*forward.x+car.vz*forward.z,lateral=car.vx*right.x+car.vz*right.z;const throttle=clamp(input.throttle||0,-1,1),steer=clamp(input.steer||0,-1,1),air=car.y>car.ground+.15;
- const boosting=throttle>0&&input.boost&&car.nitro>1&&!air;car.boosting=boosting;car.nitro=clamp(car.nitro+(boosting?-32:9)*dt,0,100);
- let acceleration=config.accel;if(throttle<0&&longitudinal>1)acceleration=30;longitudinal+=throttle*acceleration*(boosting?1.4:1)*dt;
- if(!throttle)longitudinal*=Math.exp(-dt*.85);else longitudinal*=Math.exp(-dt*.06);
- longitudinal=clamp(longitudinal,-config.speed*.36,config.speed*(boosting?1.38:1));
- car.heading-=steer*config.steer*clamp(Math.abs(longitudinal)/8,.05,1)*Math.sign(longitudinal||1)*(input.brake?1.35:1)*(air?.35:1)*dt;
- const slip=input.brake&&Math.abs(longitudinal)>5;car.drifting=slip&&Math.abs(steer)>.1;
- if(input.brake)longitudinal*=Math.exp(-dt*.7);
- lateral*=Math.exp(-dt*(air?.2:slip?1.1:config.grip));
- const tx=Math.sin(car.heading)*longitudinal+Math.cos(car.heading)*lateral,tz=Math.cos(car.heading)*longitudinal-Math.sin(car.heading)*lateral;
- const grip=1-Math.exp(-dt*(air?1:slip?2.4:12));car.vx+=(tx-car.vx)*grip;car.vz+=(tz-car.vz)*grip;
- // Brake/reverse must remain responsive even when steering is released.
- if(throttle!==0&&!slip){car.vx+=forward.x*throttle*acceleration*dt*(1-grip);car.vz+=forward.z*throttle*acceleration*dt*(1-grip);}
- const velocity=Math.hypot(car.vx,car.vz),cap=config.speed*(boosting?1.42:1.03);if(velocity>cap){car.vx*=cap/velocity;car.vz*=cap/velocity;}
+ dt=clamp(dt,0,.05);car.impact=0;car.landed=false;if(!dt)return car;
+ const config=car.config,oldSpeed=car.speed,oldHeading=car.heading;
+ const throttle=clamp(input.throttle||0,-1,1),steer=clamp(input.steer||0,-1,1),air=car.y>car.ground+.15;
+ let longitudinal=car.vx*Math.sin(oldHeading)+car.vz*Math.cos(oldHeading);
+ let lateral=car.vx*Math.cos(oldHeading)-car.vz*Math.sin(oldHeading);
+ // Keyboard and touch inputs feed the same progressive steering rack.
+ car.steering+=(steer-car.steering)*(1-Math.exp(-dt*(steer?12:17)));
+ const boosting=throttle>0&&!!input.boost&&car.nitro>1&&!air;
+ car.boosting=boosting;car.nitro=clamp(car.nitro+(boosting?-30:10)*dt,0,100);
+ car.braking=throttle<0&&longitudinal>.15;
+ if(throttle<0&&longitudinal>0){longitudinal=Math.max(0,longitudinal-38*dt);car.reverseDelay=.2;}
+ else if(throttle<0){car.reverseDelay=Math.max(0,car.reverseDelay-dt);if(car.reverseDelay===0)longitudinal-=config.accel*.7*dt;}
+ else if(throttle>0){car.reverseDelay=0;longitudinal+=config.accel*(boosting?1.55:longitudinal<0?1.5:1)*dt;}
+ else {car.reverseDelay=0;const loss=(1.8+Math.abs(longitudinal)*.16)*dt;longitudinal=Math.sign(longitudinal)*Math.max(0,Math.abs(longitudinal)-loss);}
+ const slip=!!input.brake&&Math.abs(longitudinal)>5&&!air;
+ if(input.brake)longitudinal*=Math.exp(-dt*(slip?.42:2.8));
+ const cap=config.speed*(boosting?1.4:1);
+ // Boost tapers back to cruising speed instead of snapping on release.
+ if(longitudinal>cap)longitudinal=Math.max(cap,longitudinal-18*dt);
+ longitudinal=Math.max(-config.speed*.32,longitudinal);
+ const speedRatio=clamp(Math.abs(longitudinal)/5,0,1);
+ const stability=1/(1+Math.pow(Math.abs(longitudinal)/25,2)*.46);
+ const desiredYaw=-car.steering*config.steer*speedRatio*stability*Math.sign(longitudinal)*(slip?1.45:1)*(air?.2:1);
+ car.yawRate+=(desiredYaw-car.yawRate)*(1-Math.exp(-dt*(slip?9:15)));
+ car.heading+=car.yawRate*dt;
+ // Retain momentum through the corner; tire grip brings the rear into line.
+ const turn=car.heading-oldHeading,c=Math.cos(turn),sn=Math.sin(turn);
+ const f=longitudinal*c+lateral*sn;
+ lateral=(lateral*c-longitudinal*sn)*Math.exp(-dt*(air?.15:slip?2.1:config.grip));
+ longitudinal=f;
+ car.vx=Math.sin(car.heading)*longitudinal+Math.cos(car.heading)*lateral;
+ car.vz=Math.cos(car.heading)*longitudinal-Math.sin(car.heading)*lateral;
+ car.drifting=slip&&Math.abs(car.steering)>.16;
+ car.acceleration=(Math.hypot(car.vx,car.vz)-oldSpeed)/dt;
+ car.wheelTravel+=longitudinal*dt;
  const steps=Math.max(1,Math.ceil(Math.hypot(car.vx,car.vz)*dt/.42));
  for(let i=0;i<steps;i++){
   const clear=(x,z)=>[-1.05,0,1.05].every(offset=>!blocked(x+Math.sin(car.heading)*offset,z+Math.cos(car.heading)*offset,.85,boxes));
-  let nx=car.x+car.vx*dt/steps;if(clear(nx,car.z))car.x=nx;else{car.impact=Math.max(car.impact,Math.abs(car.vx));car.vx*=-.24;car.vz*=.86;}
-  let nz=car.z+car.vz*dt/steps;if(clear(car.x,nz))car.z=nz;else{car.impact=Math.max(car.impact,Math.abs(car.vz));car.vz*=-.24;car.vx*=.86;}
+  let nx=car.x+car.vx*dt/steps;if(clear(nx,car.z))car.x=nx;else{car.impact=Math.max(car.impact,Math.abs(car.vx));car.vx*=-.12;car.vz*=.94;}
+  let nz=car.z+car.vz*dt/steps;if(clear(car.x,nz))car.z=nz;else{car.impact=Math.max(car.impact,Math.abs(car.vz));car.vz*=-.12;car.vx*=.94;}
  }
  const ground=rampHeight(car);const speed=Math.hypot(car.vx,car.vz);
  if(car.ground-ground>1&&car.y>=car.ground-.15&&speed>7&&car.vy===0)car.vy=3.6+speed*.17;
