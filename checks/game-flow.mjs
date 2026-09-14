@@ -1,8 +1,9 @@
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 import * as RealThree from '../dist/assets/three.module.js';
 import {mergeGeometries} from '../dist/assets/BufferGeometryUtils.js';
-import {makeVehicle,animateVehicle} from '../dist/vehicles.js';
+import {makeVehicle,animateVehicle,loadVehiclePack} from '../dist/vehicles.js';
 import * as core from '../dist/driving.mjs';
+import {GLTFLoader as RealGLTFLoader} from '../dist/assets/GLTFLoader.js';
 const ids=new Map();let document;
 const canvasContext=new Proxy({createLinearGradient:()=>({addColorStop(){}}),createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)})},{get:(o,k)=>o[k]||(()=>{})});
 class Element{
@@ -14,8 +15,8 @@ class Element{
 }
 new Element('div','game');new Element('div','ui');document={getElementById:id=>{assert(ids.has(id),'DOM element '+id);return ids.get(id)},createElement:tag=>new Element(tag),addEventListener(){},querySelectorAll:s=>[...ids.values()].flatMap(e=>e.querySelectorAll(s))};
 class Renderer{constructor(){this.domElement=new Element('canvas');this.shadowMap={}}setPixelRatio(){}setSize(){}render(s,c){s.updateMatrixWorld();c.updateMatrixWorld()}getRenderTarget(){return this.target}setRenderTarget(t){this.target=t}readRenderTargetPixels(){}}
-class Loader{async loadAsync(){const scene=new RealThree.Group();const mesh=new RealThree.Mesh(new RealThree.BoxGeometry(.3,.6,.3),new RealThree.MeshStandardMaterial());mesh.name='body';scene.add(mesh);return{scene,animations:[new RealThree.AnimationClip('idle',1,[])]}}}
-const saved=new Map();let callback;const context={...core,THREE:{...RealThree,WebGLRenderer:Renderer,Clock:class{getDelta(){return 1/60}}},GLTFLoader:Loader,mergeGeometries,makeVehicle,animateVehicle,document,localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},matchMedia:()=>({matches:false}),devicePixelRatio:1,innerWidth:1280,innerHeight:800,addEventListener(){},requestAnimationFrame:f=>{callback=f},setTimeout(){},console,AbortController,Uint8Array,Uint8ClampedArray};context.window=context;vm.createContext(context);
+class Loader{async loadAsync(url){if(url.includes("/rgsdev/")){const b=fs.readFileSync(new URL("../dist"+url,import.meta.url));return new RealGLTFLoader().parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),"");}const scene=new RealThree.Group();const mesh=new RealThree.Mesh(new RealThree.BoxGeometry(.3,.6,.3),new RealThree.MeshStandardMaterial());mesh.name='body';scene.add(mesh);return{scene,animations:[new RealThree.AnimationClip('idle',1,[])]}}}
+const saved=new Map();let callback;const context={...core,THREE:{...RealThree,WebGLRenderer:Renderer,Clock:class{getDelta(){return 1/60}}},GLTFLoader:Loader,mergeGeometries,makeVehicle,animateVehicle,loadVehiclePack,document,localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},matchMedia:()=>({matches:false}),devicePixelRatio:1,innerWidth:1280,innerHeight:800,addEventListener(){},requestAnimationFrame:f=>{callback=f},setTimeout(){},console,AbortController,Uint8Array,Uint8ClampedArray};context.window=context;vm.createContext(context);
 const source=fs.readFileSync(new URL('../dist/getaway.js',import.meta.url),'utf8').replace(/^import .*\n/gm,'');
 vm.runInContext(source+`;this.bridge={start:startRun,garage:showGarage,close:closeModal,pause:showPause,jobs:showJobs,bank,menu:returnMenu,route:toggleGarageRoute,get:()=>({ready,mode,paused,player,run,profile,bankReady,pickups}),teleport:(p)=>{Object.assign(player,{x:p.x,z:p.z,vx:0,vz:0,speed:0,y:0,vy:0,yawRate:0,steering:0});},fund:()=>{profile.credits=20000}}`,context);
 await new Promise(resolve=>setImmediate(resolve));const b=context.bridge;assert(b.get().ready,'assets ready');
