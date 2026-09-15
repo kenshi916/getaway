@@ -1,22 +1,26 @@
 import * as THREE from './assets/three.module.js';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=17';
+import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=19';
 
 const ASSETS=[...'abcdefghijklmn'].map(c=>'building-'+c).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','detail-parasol-a','detail-parasol-b'],[...'abfgkqrt'].map(c=>'industrial/building-'+c),['water-tower','shipping-container-a','shipping-container-b','solar-panel-landscape-group','detail-tank'].map(n=>'industrial/'+n),[...'acfgkmoq'].map(c=>'suburban/building-type-'+c),['tree_oak','tree_detailed','tree_palmDetailedTall','plant_bushDetailed','flower_redA'].map(n=>'nature/'+n));
 const models=new Map();
 export async function loadCityPack(loader){await Promise.all(ASSETS.map(async name=>{const g=await loader.loadAsync('/assets/models/city/'+name+'.glb');g.scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});models.set(name,g.scene);}));}
 export function buildCity(world){
  const stage=new THREE.Group();stage.name='Downtown';world.add(stage);
- const buildings=[],signals=[],materials=new Map(),buildingBounds=[],landmarkLights=[],fountainRings=[],usedAssets=new Set();
+ const buildings=[],signals=[],materials=new Map(),buildingBounds=[],landmarkLights=[],fountainRings=[],usedAssets=new Set(),signMaterials=new Map();
  function mat(color,extra={}){const key=color+JSON.stringify(Object.fromEntries(Object.entries(extra).map(([k,v])=>[k,v?.isTexture?v.uuid:v])));if(!materials.has(key))materials.set(key,new THREE.MeshStandardMaterial({color,roughness:.88,...extra}));return materials.get(key);}
  function block(w,h,d,color,x,y,z,parent=stage,extra={}){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,extra));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
  function ground(w,d,color,x,z,y=.025,parent=stage,extra={}){const geo=new THREE.PlaneGeometry(w,d);if(extra.map){const uv=geo.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*w/6,uv.getY(i)*d/6);}const m=new THREE.Mesh(geo,mat(color,{side:THREE.DoubleSide,...extra}));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.receiveShadow=true;parent.add(m);return m;}
  function pole(radius,height,color,x,y,z,parent=stage){const m=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,height,6),mat(color));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m;}
  function label(text,w,h,x,y,z,ink='#ffe59b',bg='#1b2941',rotation=0,parent=stage){
-  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=Math.max(128,Math.round(1024*h/w));const c=canvas.getContext('2d');c.fillStyle=bg;c.fillRect(0,0,canvas.width,canvas.height);c.strokeStyle=ink;c.lineWidth=3;c.strokeRect(14,14,996,canvas.height-28);c.textAlign='center';c.textBaseline='middle';c.fillStyle=ink;c.font=`700 ${Math.min(canvas.height*.62,1250/Math.max(1,text.length))}px PixelArcade,monospace`;c.fillText(text,512,canvas.height/2,952);
-  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.magFilter=THREE.LinearFilter;
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:texture,emissiveMap:texture,emissive:'#ffffff',emissiveIntensity:.45,roughness:.75,side:THREE.DoubleSide}));m.position.set(x,y,z);m.rotation.y=rotation;parent.add(m);return m;
+  const key=[text,Math.round(w/h*2),ink,bg].join('|');let material=signMaterials.get(key);
+  if(!material){const canvas=document.createElement('canvas');canvas.width=512;canvas.height=Math.max(64,Math.round(512*h/w));const c=canvas.getContext('2d');c.fillStyle=bg;c.fillRect(0,0,canvas.width,canvas.height);c.strokeStyle=ink;c.lineWidth=2;c.strokeRect(7,7,498,canvas.height-14);c.textAlign='center';c.textBaseline='middle';c.fillStyle=ink;c.font=`700 ${Math.min(canvas.height*.62,720/Math.max(1,text.length))}px PixelArcade,monospace`;c.fillText(text,256,canvas.height/2,476);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.magFilter=THREE.LinearFilter;material=new THREE.MeshStandardMaterial({map:texture,emissiveMap:texture,emissive:'#ffffff',emissiveIntensity:.45,roughness:.75,side:THREE.DoubleSide});signMaterials.set(key,material);}
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),material);m.position.set(x,y,z);m.rotation.y=rotation;parent.add(m);return m;
  }
+ function lamp(x,z,parent){pole(.065,4.65,'#304751',x,2.33,z,parent);block(.9,.11,.15,'#304751',x+.34,4.68,z,parent);block(.72,.14,.4,'#ced3bb',x+.56,4.57,z,parent);block(.57,.026,.29,'#fff0bd',x+.56,4.49,z,parent,{emissive:'#ffe3a0',emissiveIntensity:1.5});}
+ function blockSeed(x,z){let v=(Math.imul(Math.round(x/36)+193,73856093)^Math.imul(Math.round(z/36)+397,19349663))>>>0;v=Math.imul(v^(v>>>16),0x45d9f3b);return (v^(v>>>16))>>>0;}
+ function bin(x,z,parent){block(.58,.82,.58,'#2d5753',x,.81,z,parent);block(.66,.08,.66,'#668979',x,1.26,z,parent);block(.3,.15,.02,'#122f36',x,1.06,z+.3,parent);}
+ function roofDetail(box,seed,parent){const x=(box.min.x+box.max.x)/2,z=(box.min.z+box.max.z)/2,w=box.max.x-box.min.x,d=box.max.z-box.min.z;if(w<4||d<4)return;const y=box.max.y;block(1.9,.7,1.1,'#769099',x,y+.35,z,parent);block(2,.1,1.2,'#b6c2b7',x,y+.75,z,parent);for(let n=0;n<5;n++)block(.04,.45,1.12,'#3e5a62',x-.73+n*.36,y+.35,z,parent);if(seed%3===0){pole(.035,2.8,'#71858b',x+w*.23,y+1.4,z,parent);for(const dy of [.8,1.4,2])block(1.2,.04,.04,'#869ca1',x+w*.23,y+dy,z,parent);}else if(seed%3===1&&w>6){const prop=model('industrial/water-tower',x-w*.2,z+d*.15,2.3,2.3,2.7,0,parent);prop.root.position.y=y+.05;}else if(seed%3===2&&w>6){const prop=model('industrial/solar-panel-landscape-group',x-w*.2,z+d*.15,2.7,2.3,1.1,0,parent);prop.root.position.y=y+.05;}}
  function tree(x,z,height=4,parent=stage,palm=false){
   block(2,.35,2,'#a8a698',x,.28,z,parent);block(1.72,.06,1.72,'#49473b',x,.48,z,parent);
   const name=palm?'tree_palmDetailedTall':Math.abs(Math.round(x+z))%2?'tree_oak':'tree_detailed';
@@ -52,7 +56,7 @@ export function buildCity(world){
   const root=source.clone(true),wrap=new THREE.Group();wrap.add(root);root.rotation.y=rotation;
   root.updateMatrixWorld(true);const original=new THREE.Box3().setFromObject(root),size=original.getSize(new THREE.Vector3()),center=original.getCenter(new THREE.Vector3());
   const scale=Math.min(width/size.x,depth/size.z,maxHeight/size.y);root.scale.setScalar(scale);root.position.set(-center.x*scale,-original.min.y*scale,-center.z*scale);wrap.position.set(x,.22,z);parent.add(wrap);
-  const copies=new Map();root.traverse(o=>{if(!o.isMesh)return;const convert=m=>{if(copies.has(m))return copies.get(m);const c=m.clone();if(c.name==='wall')c.color.set(tint);if(c.name==='glass'){c.emissive.set(Math.abs(Math.round(x+z))%3?'#eac390':'#709bab');c.emissiveIntensity=.22;c.roughness=.28;}if(c.name==='leafsGreen')c.color.set('#63946e');if(c.name==='woodBark')c.color.set('#795947');copies.set(m,c);return c;};o.material=Array.isArray(o.material)?o.material.map(convert):convert(o.material);});
+  const copies=new Map();root.traverse(o=>{if(!o.isMesh)return;const convert=m=>{if(copies.has(m))return copies.get(m);const c=m.clone();if(c.name==='wall'){c.color.set(tint);c.userData.facadeKind=name.includes('skyscraper')?2:1;}if(c.name==='glass'){c.emissive.set(Math.abs(Math.round(x+z))%3?'#eac390':'#709bab');c.emissiveIntensity=.22;c.roughness=.28;}if(c.name==='leafsGreen')c.color.set('#63946e');if(c.name==='woodBark')c.color.set('#795947');copies.set(m,c);return c;};o.material=Array.isArray(o.material)?o.material.map(convert):convert(o.material);});
   wrap.updateMatrixWorld(true);return{root:wrap,box:new THREE.Box3().setFromObject(wrap),scale};
  }
  // A continuous road grid with raised curbs and clearly marked junctions.
@@ -73,7 +77,7 @@ export function buildCity(world){
   for(const side of [-1,1]){ground(5.4,.19,'#e1e5de',x,z+side*6.6,.04);ground(.19,5.4,'#e1e5de',x+side*6.6,z,.041);}
   if(x!==ROAD[0]&&x!==ROAD.at(-1)&&z!==ROAD[0]&&z!==ROAD.at(-1))for(const side of [-1,1]){
    const px=x+side*4.1,pz=z+side*4.1;pole(.075,3.6,'#314255',px,1.8,pz);block(.43,1,.32,'#17283b',px,3.7,pz);
-   const red=block(.22,.22,.035,'#7c454e',px,3.98,pz+.18,stage,{emissive:'#ff5573',emissiveIntensity:.12});const green=block(.22,.22,.035,'#437b6e',px,3.46,pz+.18,stage,{emissive:'#76f6be',emissiveIntensity:1.3});signals.push({red:red.material.clone(),green:green.material.clone(),phase:(x+z)/36});red.material=signals.at(-1).red;green.material=signals.at(-1).green;
+   signals.push({x:px,z:pz,phase:(x+z)/36,go:null});
   }
  }
  const designs=[
@@ -92,15 +96,29 @@ export function buildCity(world){
  BLOCKS.forEach((b,i)=>{
   const theme=designs[i]||{models:b.district==='east'?['skyscraper-a','l','m','f']:b.district==='docks'?['e','j','k','n']:['a','g','i','c'],wall:b.color,neon:b.district==='docks'?'#a3ece9':b.district==='north'?'#ffdb91':'#ffd0a3',height:b.h},group=new THREE.Group();group.name=b.name;stage.add(group);
   if(b.outer){
-   const area=districtAt(b),v=Math.abs(b.x/36+b.z/36),names=area.type==='industrial'?['industrial/building-a','industrial/building-f','industrial/building-k','industrial/building-r']:area.type==='residential'||area.type==='garden'?['suburban/building-type-a','suburban/building-type-f','suburban/building-type-m','suburban/building-type-q']:['building-skyscraper-a','building-skyscraper-b','building-l','building-m'];
-   block(b.w,.24,b.d,b.park?'#557951':area.type==='industrial'?'#697878':'#808e89',b.x,.23,b.z,group);
-   if(b.park){for(const dx of [-7,7])for(const dz of [-7,7])tree(b.x+dx,b.z+dz,6,group,true);}
-   else {
-    const count=area.type==='commercial'?2:1;
-    for(let k=0;k<count;k++){const built=model(names[(v+k)%names.length],b.x+(count===2?(k-.5)*13:0),b.z,count===2?12:23,23,b.h,k?Math.PI:0,group,b.color);buildingBounds.push({name:names[(v+k)%names.length],bounds:built.box,block:b});}
-    if(v%2===0)tree(b.x+10,b.z+10,4.5,group,area.type==='garden');
+   const area=districtAt(b),v=blockSeed(b.x,b.z),industrial=area.type==='industrial',residential=['residential','garden'].includes(area.type),palette=industrial?['#738d94','#a9937e','#648181','#899a9d']:residential?['#d8c5a5','#a4bfaa','#c0c7d2','#cb9b87']:['#d9bea3','#b8c9ce','#d0ac9e','#c1c3af'],wall=palette[v%palette.length];
+   const names=industrial?[...'abfgkqrt'].map(n=>'industrial/building-'+n):residential?[...'acfgkmoq'].map(n=>'suburban/building-type-'+n):(v%4===0?['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c']:['building-j','building-f','building-l','building-m','building-i','building-k','building-n','building-b']);
+   block(b.w,.24,b.d,b.park?'#526d48':residential?'#688457':industrial?'#626f74':'#7f8780',b.x,.23,b.z,group);
+   if(b.park){
+    ground(2.3,25,'#d0c4a2',b.x,b.z,.39,group);ground(25,2.3,'#d0c4a2',b.x,b.z,.4,group);
+    for(const dx of [-8.5,8.5])for(const dz of [-8.5,8.5]){tree(b.x+dx,b.z+dz,5+(v%4),group,area.type==='garden');model('nature/plant_bushDetailed',b.x+dx*.65,b.z+dz,2.6,1.9,1.5,0,group);}
+    bench(b.x-4,b.z+3,0,group);bench(b.x+4,b.z-3,Math.PI,group);pole(1.3,.42,'#a9b2a1',b.x,.6,b.z,group);pole(1.1,.07,'#76adb0',b.x,.86,b.z,group);
+   }else if(residential){
+    for(let k=0;k<2;k++){const cx=b.x+(k-.5)*12.2,cz=b.z-1.6,name=names[(v+k*3)%names.length],built=model(name,cx,cz,10.3,17,7.2+(v%3)*.7,0,group,palette[(v+k)%4]);buildingBounds.push({name,bounds:built.box,block:b});ground(1.35,Math.max(1,12-(built.box.max.z-b.z)),'#d2c4a9',cx,(built.box.max.z+b.z+12)/2,.39,group);model('nature/plant_bushDetailed',cx-3.5,b.z+9.7,3.2,1.4,1.05,0,group);for(const side of [-1,1]){block(3.4,.64,.13,'#ded3b5',cx+side*2.5,.7,b.z+12,group);for(let n=0;n<5;n++)block(.1,.87,.17,'#e8dfc6',cx+side*2.5-1.4+n*.7,.85,b.z+12,group);}label(String(200+(v%600)+k),.72,.37,cx,1.6,built.box.max.z+.06,'#ffdfa4','#314a49',0,group);}
+    tree(b.x-10.9,b.z-10.5,5.3,group,area.type==='garden');
+   }else if(industrial){
+    for(let k=0;k<2;k++){const cx=b.x+(k-.5)*12.2,name=names[(v+k*3)%names.length],built=model(name,cx,b.z-3.8,11.5,16.3,7.5+(v%3),0,group,wall);buildingBounds.push({name,bounds:built.box,block:b});label(k?'SERVICE BAY':'MOTOR WORKS',8,.8,cx,3,built.box.max.z+.08,'#f8dfaa','#334b52',0,group);if(k===0)roofDetail(built.box,v,group);}
+    const cargo=model('industrial/shipping-container-'+(v%2?'a':'b'),b.x-5,b.z+9.6,6.2,2.7,2.6,0,group);if(v%3===0){const second=model('industrial/shipping-container-b',b.x-4.7,b.z+9.6,6.2,2.7,2.6,0,group);second.root.position.y=cargo.box.max.y+.05;}
+    for(let n=0;n<5;n++){ground(.12,4.3,'#cfb577',b.x+2+n*1.7,b.z+9.5,.39,group);block(.17,.8,.17,'#e3b553',b.x-11+n*.7,.75,b.z+12,group);}bin(b.x+10.8,b.z-10.5,group);
+   }else{
+    const count=v%4===0?2:4,cols=2,rows=count/2,local={neon:['#ffd6a3','#b2f1df','#ffb699','#b8d3ff'][v%4],awning:['#925a48','#446c62','#a16b58','#4c667e'][v%4],sign:'#243c46'};
+    for(let k=0;k<count;k++){const col=k%2,row=Math.floor(k/2),cx=b.x+(col-.5)*12.7,cz=b.z+(rows===1?0:(row-.5)*12.4),name=names[(v+k*5)%names.length],built=model(name,cx,cz,12.1,rows===1?22.7:11.7,rows===1?23+(v%10):10+(v%7)+(k%3)*3,rows===2&&row===0?Math.PI:0,group,palette[(v+k)%4]);buildingBounds.push({name,bounds:built.box,block:b});
+     storefront(built.box,['NIGHT COFFEE','CORNER MART','VINYL & TAPES','NOODLE HOUSE','LATE CHECKOUT','MOTOR SUPPLY','BLUE ROOM','OPEN LATE'][(v+k)%8],local,rows===1||row===1,group,v+k);if(rows===1)storefront(built.box,'DAY & NIGHT',local,false,group,v+k);roofDetail(built.box,v+k,group);
+    }
    }
-   if(b.x===area.x&&b.z===area.z)label(area.name,18,1.5,b.x,3.8,b.z-13.1,area.color,'#172b37',Math.PI,group);
+   // Street furniture stays inside the sidewalk walking lane at ±14.1.
+   lamp(b.x-11.8,b.z+11.8,group);if(v%3===0){bench(b.x+7,b.z+12.15,0,group);bin(b.x+10.9,b.z+12.1,group);}else if(v%3===1&&!industrial)model('nature/plant_bushDetailed',b.x+10.6,b.z-11.4,2.5,1.35,1.1,0,group);
+   if(b.x===area.x&&b.z===area.z){for(const dx of [-4.2,4.2])pole(.055,2.9,'#3f5962',b.x+dx,1.65,b.z-13.04,group);label(area.name,9,.72,b.x,2.85,b.z-13.12,area.color,'#172b37',Math.PI,group);}
    finishBlock(group);return;
   }
   const industrial=[10,11,16,18,19,24,25].includes(i),residential=[21,22,23,26].includes(i);
@@ -133,9 +151,9 @@ export function buildCity(world){
     const front=row!==0,z=front?built.box.max.z+.13:built.box.min.z-.13,rot=front?0:Math.PI,signY=Math.min(built.box.max.y-.4,3.4);
     label(col===0?b.name:['LOADING / 02','SERVICE BAY'][row%2],Math.min(lw-1,9),.8,cx,signY,z,'#f7dba4','#3e5359',rot,group);
    }else{
+    roofDetail(built.box,i+k,group);
     storefront(built.box,col===0?b.name:['LATE NIGHT COFFEE','VINYL & TAPES','CORNER STORE','NOODLE HOUSE'][(i+row)%4],theme,row!==0,group,i+k);
     if(rows===1)storefront(built.box,col===0?b.name:'OPEN LATE',theme,true,group,i+k);
-    if((i+k)%3===0&&built.box.max.x-built.box.min.x>5){const roof=model('industrial/'+((i+k)%2?'water-tower':'solar-panel-landscape-group'),cx,cz,3,3,2.8,0,group);roof.root.position.y=built.box.max.y+.05;}
    }
   }
   const front=b.z+b.d/2+.22,back=b.z-b.d/2-.22,signWidth=Math.min(b.w-1,16),height=i===10?3.8:3.4;
@@ -211,9 +229,9 @@ export function buildCity(world){
  function batch(parent){
   const entries=new Map(),inverse=parent.matrixWorld.clone().invert();
   parent.traverse(o=>{
-   if(!o.isMesh||o.material.map||o.material.normalMap||o.material.transparent||Array.isArray(o.material)||signals.some(s=>s.red===o.material||s.green===o.material))return;
+   if(!o.isMesh||o.isInstancedMesh||o.material.map||o.material.normalMap||o.material.transparent||Array.isArray(o.material)||signals.some(s=>s.red===o.material||s.green===o.material))return;
    const material=o.material,roughness=material.roughness>=.8?.9:material.roughness;
-   const key=JSON.stringify([material.type,material.emissive?.toArray(),material.emissiveIntensity,roughness,material.metalness,material.side,material.flatShading,material.depthWrite,material.depthTest]);
+   const key=JSON.stringify([material.type,material.emissive?.toArray(),material.emissiveIntensity,roughness,material.metalness,material.side,material.flatShading,material.depthWrite,material.depthTest,material.userData.facadeKind||0]);
    const a=entries.get(key)||{material,roughness,objects:[],geos:[]};
    const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(inverse.clone().multiply(o.matrixWorld));for(const key of Object.keys(g.attributes))if(!['position','normal','color'].includes(key))g.deleteAttribute(key);
    const count=g.attributes.position.count,original=material.vertexColors?g.getAttribute('color'):null,colors=new Float32Array(count*3);
@@ -228,7 +246,15 @@ export function buildCity(world){
   }
  }
 
+ const signalGeometry=new THREE.BoxGeometry(.22,.22,.035),redSignals=new THREE.InstancedMesh(signalGeometry,new THREE.MeshBasicMaterial({color:'#ffffff',toneMapped:false}),signals.length),greenSignals=new THREE.InstancedMesh(signalGeometry,new THREE.MeshBasicMaterial({color:'#ffffff',toneMapped:false}),signals.length),signalStamp=new THREE.Object3D();
+ signals.forEach((s,i)=>{signalStamp.position.set(s.x,3.98,s.z+.18);signalStamp.updateMatrix();redSignals.setMatrixAt(i,signalStamp.matrix);signalStamp.position.y=3.46;signalStamp.updateMatrix();greenSignals.setMatrixAt(i,signalStamp.matrix);redSignals.setColorAt(i,new THREE.Color('#402934'));greenSignals.setColorAt(i,new THREE.Color('#76f6be'));});stage.add(redSignals,greenSignals);
  // Imported block geometry remains individually fadeable; shared static street meshes batch together.
  batch(stage);
- return{buildings,buildingBounds,stage,landmarkLights,usedAssets,update(time,focus){if(focus)for(const b of buildings){const c=b.box;const x=(c.min.x+c.max.x)/2,z=(c.min.z+c.max.z)/2;b.group.visible=Math.hypot(x-focus.x,z-focus.z)<195;}for(const s of signals){const go=Math.sin(time*.28+s.phase)>0;s.green.emissiveIntensity=go?1.5:.06;s.red.emissiveIntensity=go?.06:1.5;}for(const r of fountainRings){const p=(time*.32+r.phase)%1;r.mesh.scale.setScalar(.45+p*2.45);r.mesh.material.opacity=(1-p)*.32;}}};
+ const facadeMaterials=new Set();stage.traverse(o=>{if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])if(m.userData.facadeKind)facadeMaterials.add(m);});
+ for(const material of facadeMaterials){const kind=material.userData.facadeKind;material.customProgramCacheKey=()=>`getaway-masonry-${kind}`;material.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vMasonryPosition; varying vec3 vMasonryNormal;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\nvMasonryPosition=(modelMatrix*vec4(transformed,1.0)).xyz; vMasonryNormal=normalize(mat3(modelMatrix)*objectNormal);');shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vMasonryPosition; varying vec3 vMasonryNormal;').replace('#include <color_fragment>',`#include <color_fragment>
+ vec2 masonry=vec2(abs(vMasonryNormal.z)>abs(vMasonryNormal.x)?vMasonryPosition.x:vMasonryPosition.z,vMasonryPosition.y);
+ vec2 units=masonry*vec2(${kind===1?'1.75,3.6':'0.45,0.31'});units.x+=mod(floor(units.y),2.0)*${kind===1?'.5':'0.'};
+ vec2 seamWidth=max(fwidth(units)*1.25,vec2(${kind===1?'.025':'.012'}));vec2 edge=smoothstep(vec2(1.0)-seamWidth,vec2(1.0),fract(units));float seam=max(edge.x,edge.y);
+ float grain=fract(sin(dot(floor(units),vec2(12.9898,78.233)))*43758.5453);float tone=mix(.91+grain*.09,${kind===1?'.67':'.76'},seam);diffuseColor.rgb*=mix(tone,1.0,step(.65,abs(vMasonryNormal.y)));`);};}
+ return{buildings,buildingBounds,stage,landmarkLights,usedAssets,update(time,focus){if(focus)for(const b of buildings){const c=b.box;const x=(c.min.x+c.max.x)/2,z=(c.min.z+c.max.z)/2;b.group.visible=Math.hypot(x-focus.x,z-focus.z)<195;}let signalChanged=false;signals.forEach((s,i)=>{const go=Math.sin(time*.28+s.phase)>0;if(go!==s.go){s.go=go;greenSignals.setColorAt(i,new THREE.Color(go?'#76f6be':'#20392c'));redSignals.setColorAt(i,new THREE.Color(go?'#402934':'#ff5573'));signalChanged=true;}});if(signalChanged){redSignals.instanceColor.needsUpdate=true;greenSignals.instanceColor.needsUpdate=true;}for(const r of fountainRings){const p=(time*.32+r.phase)%1;r.mesh.scale.setScalar(.45+p*2.45);r.mesh.material.opacity=(1-p)*.32;}}};
 }

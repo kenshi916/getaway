@@ -107,3 +107,15 @@ Desktop and mobile browser checks cover garage entry, browsing, demo burn/equip,
 ## Phone app artwork
 
 The P-key phone uses nine original icons made with the built-in image_gen tool: Quests, Dispatch, City map, Garage, Home, My stats, Settings, Guide, and People. The three-column launcher, app title, and bottom navigation share these images. Phone-sized PNGs and the exact generation prompts are stored in `dist/assets/phone-apps/`.
+
+## Walkable garage and populated city
+
+The garage now opens on foot with the equipped driver. WASD / arrows, collision-aware floor clicks, and touch direction buttons move around the display, parked cars, and workshop. Approach the display and press E to browse and burn/equip; walking or Walk Around exits inspection. Clicking a parked car selects that car after reaching the display. Physical lift and street-exit markers return upstairs or resume/start driving. The camera follows the character across desktop, portrait, and landscape layouts. Saved shifts retain their original car and progress.
+
+The city now uses 546 fitted buildings with varied outer-district commercial blocks, houses, warehouses, shop awnings/windows, rooftop HVAC, antennas, water towers and solar panels, gardens, loading yards, lamps, and street furniture. Facade shaders add masonry/concrete joints. Traffic lights use two instanced meshes. Block batching and independent camera fading remain intact; the complete city has about 1,600 mesh objects and about 1.70 million triangles including signal instances.
+
+`city-residents.js` adds 424 ambient pedestrians across the nine districts, with twelve character models, varied heights and walking speeds, and sidewalk loops. Only the nearest 48 pedestrians animate/render on desktop (32 with touch controls); their route positions continue analytically while offscreen. Existing passenger missions remain separate.
+
+`checks/garage-walking.mjs` verifies actual-model obstacle navigation to all three interactions, keyboard directions, floor clicks, inspection transitions, and character framing across aspect ratios. The full gameplay simulation also checks resident variety and visibility caps, building footprints/material isolation, saved shifts, demo burns/equipment, phone functions, and the website city. Route review sampled 114,744 pedestrian positions without blocked paths.
+
+Desktop and touch-mobile Edge browser QA verifies garage keyboard/pointer movement, release handling, car inspection, upstairs transition, no horizontal overflow, and actual district shader compilation with no page/console errors. Inspected screenshots cover commercial, industrial, and garden districts and both garage modes. The tested city views draw 44–48 nearby pedestrians with 212–326 scene draw calls. Physical-device frame rates remain unmeasured.

@@ -1,19 +1,20 @@
-import {buildGarage} from './garage-scene.js?v=17';
-import {createCityAtlas} from './atlas.js?v=17';
-import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=17';
-import {createPassengerActor} from './passenger-actors.js?v=17';
-import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=18';
+import {createCityResidents,updateCityResidents} from './city-residents.js?v=19';
+import {buildGarage} from './garage-scene.js?v=19';
+import {createCityAtlas} from './atlas.js?v=19';
+import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=19';
+import {createPassengerActor} from './passenger-actors.js?v=19';
+import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=19';
 import * as THREE from './assets/three.module.js';
-import {makeVehicle,animateVehicle,loadVehiclePack} from './vehicles.js?v=17';
-import {loadCityPack,buildCity} from './city.js?v=17';
-import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=17';
-import {createCollectionUI} from './collection-ui.js?v=17';
-import {createBurnWallet} from './burn-wallet.mjs?v=17';
-import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=17';
-import {captureShift,restoreShift} from './progress.mjs?v=17';
+import {makeVehicle,animateVehicle,loadVehiclePack} from './vehicles.js?v=19';
+import {loadCityPack,buildCity} from './city.js?v=19';
+import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=19';
+import {createCollectionUI} from './collection-ui.js?v=19';
+import {createBurnWallet} from './burn-wallet.mjs?v=19';
+import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=19';
+import {captureShift,restoreShift} from './progress.mjs?v=19';
 import {GLTFLoader} from './assets/GLTFLoader.js';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=17';
+import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=19';
 
 const $=id=>document.getElementById(id),touch=matchMedia('(pointer:coarse)').matches;
 let profile=defaultProfile(),storageAvailable=true;
@@ -105,7 +106,7 @@ function setupActors(){
  for(const [x,z,rot]of [[0,-12,Math.PI/2],[-27,36,0],[48,-8,0]])addBreakable('barrier',x,z,8,rot);
  const paths=[[{x:-90,z:-90},{x:-90,z:90},{x:90,z:90},{x:90,z:-90}],[{x:-90,z:-54},{x:-90,z:54},{x:90,z:54},{x:90,z:-54}],[{x:-54,z:-54},{x:-54,z:54},{x:54,z:54},{x:54,z:-54}],[{x:-18,z:-54},{x:-18,z:54},{x:18,z:54},{x:18,z:-54}],[{x:54,z:18},{x:-54,z:18},{x:-54,z:-18},{x:54,z:-18}]];
  for(let i=0;i<10;i++){const path=paths[i%paths.length],index=(i+1)%4,start=path[i%4],cfg={...CARS.coupe,speed:9,accel:13,steer:2.8};const car=createCar(cfg,start.x,start.z);const view=carView(['hatchback','taxi','suv','coupe','getaway-van','racer'][i%6],1.55,PAINTS[i%4]);traffic.push({car,view,path,index,near:0});}
- for(const [a,b]of [[[-50,-44],[-50,-28]],[[-22,-43],[-22,-29]],[[14,-43],[14,-29]],[[50,-44],[50,-28]],[[-50,25],[-50,43]],[[-22,26],[-22,43]],[[14,27],[14,43]],[[50,25],[50,42]],[[-86,-44],[-86,-28]],[[86,-44],[86,-28]],[[-44,-86],[-28,-86]],[[28,86],[44,86]]]){const actor=createActor('suit',a[0],a[1],true);residents.push({...actor,a:{x:a[0],z:a[1]},b:{x:b[0],z:b[1]},direction:1});}
+ residents.push(...createCityResidents(templates,world));
  apartment=buildApartment(templates,profile.home,profile.homeLife);apartment.setCharacter(templates[activeDriver().model]);apartment.resize(innerWidth,innerHeight);if(profile.checkpoint&&!restoreShift(profile.checkpoint,{...profile,unlocked:Object.keys(CARS)}))profile.checkpoint=null;
  ready=true;$('playBtn').disabled=false;$('playText').textContent='START YOUR SHIFT';$('loadNote').classList.add('hidden');refreshMenu();returnHome();
 }
@@ -133,25 +134,31 @@ function showGarage(options={}){if(!ready||collectionUI?.isBusy())return;paused=
 
 function refreshGarageUI(){
  if(mode!=='garage'||!garageScene)return;reconcileCollection();const car=CARS[garageCarId],owned=profile.unlocked.includes(car.id),selected=owned&&profile.selected===car.id,live=burnWallet.state().live;
- garageScene.select(car.id,activeSkin(),PAINTS[profile.paint]);
- $('garageUI').innerHTML=`<header class="garage-header"><div><span>APARTMENT 04 / LOWER LEVEL</span><h1>YOUR GARAGE.</h1><p>Your cars. Your next escape.</p></div><button class="small-btn" id="garageUpstairs">BACK TO APARTMENT</button></header><div class="garage-message">${profile.checkpoint?'SHIFT SAVED · YOUR TIMER IS PAUSED':'NO TIMER · TAKE A LOOK AROUND'}</div><aside class="garage-info"><span>${selected?'EQUIPPED':owned?'IN YOUR COLLECTION':car.itemId?'BURN TO ACQUIRE':'EARN WITH CREDITS'} · ${String(Object.keys(CARS).indexOf(car.id)+1).padStart(2,'0')} / 06</span><h2>${car.name}</h2><p>${car.description}</p><div class="garage-specs"><span><b>${Math.round(car.speed*4.6)}</b> KM/H</span><span><b>${car.seats}</b> SEATS</span><span><b>${car.health}</b> INTEGRITY</span></div><button class="primary" id="garageAcquire" ${selected?'disabled':''}>${selected?'EQUIPPED FOR YOUR NEXT SHIFT':owned?'EQUIP THIS RIDE':car.itemId?live?'REVIEW GETAWAY BURN':'BURN '+car.cost.toLocaleString()+' DEMO TOKENS':'UNLOCK · '+car.price.toLocaleString()+' CR'}</button><button class="small-btn" id="garageSkins">CAR SKINS & DRIVERS</button><button class="small-btn" id="garageDriveOut" ${profile.tutorialStep<2?'disabled':''}>${profile.tutorialStep<2?'READ YOUR LAPTOP BRIEFING FIRST':profile.checkpoint?'RESUME SAVED SHIFT':'DRIVE OUT'}</button><p class="garage-disclaimer">${live?'GETAWAY · ROBINHOOD CHAIN':'Demo burns unlock playable cars here. Real GETAWAY burns open after the Pons token launch.'}${profile.checkpoint?' Your saved shift keeps its original car.':''}</p></aside><div class="garage-preview-tools"><button id="garagePrev" aria-label="Previous car">←</button><button id="garageSpin">${garageScene.auto?'PAUSE ROTATION':'ROTATE CAR'}</button><button id="garageNext" aria-label="Next car">→</button></div><span class="garage-help">DRAG THE CAR TO LOOK AROUND · ← → BROWSE</span><nav class="garage-carousel" aria-label="Getaway cars">${Object.values(CARS).map(c=>`<button class="garage-choice" data-garage-car="${c.id}" aria-pressed="${c.id===car.id}"><img src="${carThumbnail(c)}" alt="${c.name}"><span class="garage-lock">${profile.unlocked.includes(c.id)?'OWNED':c.itemId?'BURN':'CREDITS'}</span><strong>${c.name}</strong><small>${profile.unlocked.includes(c.id)?profile.selected===c.id?'EQUIPPED':'READY TO EQUIP':c.itemId?live?'GETAWAY BURN':c.cost.toLocaleString()+' DEMO':c.price.toLocaleString()+' CR'}</small></button>`).join('')}</nav>`;
- $('garageUpstairs').onclick=()=>{if(!collectionUI?.isBusy())returnHome();};
+ garageScene.select(car.id,activeSkin(),PAINTS[profile.paint]);garageScene.setCharacter(templates[activeDriver().model]);$('garageUI').classList.toggle('inspecting',garageScene.inspection);
+ $('garageUI').innerHTML=`<header class="garage-header"><div><span>APARTMENT 04 / LOWER LEVEL</span><h1>YOUR GARAGE.</h1><p>Walk the floor. Find your next ride.</p></div><div class="garage-header-actions"><button class="small-btn" id="garageWalk">WALK AROUND</button><button class="small-btn" id="garageUpstairs">GO UPSTAIRS</button></div></header><div class="garage-message">${profile.checkpoint?'SHIFT SAVED · YOUR TIMER IS PAUSED':'NO TIMER · TAKE A LOOK AROUND'}</div><aside class="garage-info"><span>${selected?'EQUIPPED':owned?'IN YOUR COLLECTION':car.itemId?'BURN TO ACQUIRE':'EARN WITH CREDITS'} · ${String(Object.keys(CARS).indexOf(car.id)+1).padStart(2,'0')} / 06</span><h2>${car.name}</h2><p>${car.description}</p><div class="garage-specs"><span><b>${Math.round(car.speed*4.6)}</b> KM/H</span><span><b>${car.seats}</b> SEATS</span><span><b>${car.health}</b> INTEGRITY</span></div><button class="primary" id="garageAcquire" ${selected?'disabled':''}>${selected?'EQUIPPED FOR YOUR NEXT SHIFT':owned?'EQUIP THIS RIDE':car.itemId?live?'REVIEW GETAWAY BURN':'BURN '+car.cost.toLocaleString()+' DEMO TOKENS':'UNLOCK · '+car.price.toLocaleString()+' CR'}</button><button class="small-btn" id="garageSkins">CAR SKINS & DRIVERS</button><button class="small-btn" id="garageDriveOut" ${profile.tutorialStep<2?'disabled':''}>${profile.tutorialStep<2?'READ YOUR LAPTOP BRIEFING FIRST':profile.checkpoint?'RESUME SAVED SHIFT':'DRIVE OUT'}</button><p class="garage-disclaimer">${live?'GETAWAY · ROBINHOOD CHAIN':'Demo burns unlock playable cars here. Real GETAWAY burns open after the Pons token launch.'}${profile.checkpoint?' Your saved shift keeps its original car.':''}</p></aside><div class="garage-preview-tools"><button id="garagePrev" aria-label="Previous car">←</button><button id="garageSpin">${garageScene.auto?'PAUSE ROTATION':'ROTATE CAR'}</button><button id="garageNext" aria-label="Next car">→</button></div><span class="garage-help">DRAG TO ROTATE · WASD TO WALK AGAIN</span><nav class="garage-carousel" aria-label="Getaway cars">${Object.values(CARS).map(c=>`<button class="garage-choice" data-garage-car="${c.id}" aria-pressed="${c.id===car.id}"><img src="${carThumbnail(c)}" alt="${c.name}"><span class="garage-lock">${profile.unlocked.includes(c.id)?'OWNED':c.itemId?'BURN':'CREDITS'}</span><strong>${c.name}</strong><small>${profile.unlocked.includes(c.id)?profile.selected===c.id?'EQUIPPED':'READY TO EQUIP':c.itemId?live?'GETAWAY BURN':c.cost.toLocaleString()+' DEMO':c.price.toLocaleString()+' CR'}</small></button>`).join('')}</nav><div class="garage-walk-hud"><span class="garage-walk-hint">WASD / ARROWS TO WALK · CLICK THE FLOOR TO MOVE</span><button id="garageInteract" class="primary" disabled>WALK TO A MARKER</button><button id="garageBrowse" class="small-btn">WALK TO CAR DISPLAY</button></div><div class="garage-touch" aria-label="Walk around garage"><button class="touch-btn" data-garage-walk="up" aria-label="Walk forward">▲</button><button class="touch-btn" data-garage-walk="left" aria-label="Walk left">◀</button><button class="touch-btn" data-garage-walk="down" aria-label="Walk backward">▼</button><button class="touch-btn" data-garage-walk="right" aria-label="Walk right">▶</button></div>`;
+ $('garageUpstairs').onclick=()=>{if(!collectionUI?.isBusy()){garageScene.walkTo('upstairs');$('garageUI').classList.remove('inspecting');}};
+ $('garageWalk').onclick=()=>{garageScene.setInspection(false);$('garageUI').classList.remove('inspecting');clearControls();};
+ $('garageInteract').onclick=()=>interactGarage();$('garageBrowse').onclick=()=>garageScene.walkTo('inspect');
+ document.querySelectorAll('[data-garage-walk]').forEach(b=>{const key=b.dataset.garageWalk;b.addEventListener('pointerdown',e=>{if(mode!=='garage'||paused)return;e.preventDefault();b.setPointerCapture?.(e.pointerId);mobile[key]=true;b.classList.add('active');});for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,()=>{mobile[key]=false;b.classList.remove('active');});});
  $('garagePrev').onclick=()=>browseGarage(-1);$('garageNext').onclick=()=>browseGarage(1);
  $('garageSpin').onclick=()=>{garageScene.setAuto();refreshGarageUI();};
- document.querySelectorAll('[data-garage-car]').forEach(b=>b.onclick=()=>{if(collectionUI?.isBusy())return;garageCarId=b.dataset.garageCar;refreshGarageUI();});
+ document.querySelectorAll('[data-garage-car]').forEach(b=>b.onclick=()=>{if(collectionUI?.isBusy())return;garageCarId=b.dataset.garageCar;garageScene.setInspection(true);refreshGarageUI();});
  $('garageAcquire').onclick=()=>{if(collectionUI?.isBusy())return;reconcileCollection();if(car.itemId?ownsCollectible(car):profile.unlocked.includes(car.id)){profile.selected=car.id;saveProfile();refreshGarageUI();}else showGarage({tab:'cars',selected:car.id,confirm:!!car.itemId});};
  $('garageSkins').onclick=()=>showGarage({tab:'skins',selected:profile.collection.skin});
  $('garageDriveOut').onclick=()=>{if(!collectionUI?.isBusy())leaveApartment();};
 }
-function browseGarage(step){if(mode!=='garage'||paused||collectionUI?.isBusy())return;const ids=Object.keys(CARS);garageCarId=ids[(ids.indexOf(garageCarId)+step+ids.length)%ids.length];refreshGarageUI();}
+function browseGarage(step){if(mode!=='garage'||paused||collectionUI?.isBusy())return;const ids=Object.keys(CARS);garageCarId=ids[(ids.indexOf(garageCarId)+step+ids.length)%ids.length];garageScene.setInspection(true);refreshGarageUI();}
 function enterGarage(){
- if(!ready||collectionUI?.isBusy())return;if(mode==='driving')saveProfile();closeModal();apartment?.stopActivity();if(!garageScene){garageScene=buildGarage(templates);garageScene.scene.environment=skyReflection;}mode='garage';garageCarId=profile.selected;
+ if(!ready||collectionUI?.isBusy())return;if(mode==='driving')saveProfile();closeModal();apartment?.stopActivity();if(!garageScene){garageScene=buildGarage(templates);garageScene.scene.environment=skyReflection;}mode='garage';garageCarId=profile.selected;garageScene.resetSpawn();
  ['menu','topbar','bottomBar','carPlaque','homeUI','hud'].forEach(id=>$(id).classList.add('hidden'));$('garageUI').classList.remove('hidden');garageScene.resize(innerWidth,innerHeight);clearControls();refreshGarageUI();saveProfile();
 }
-let garageDrag=null;
-renderer.domElement.addEventListener('pointerdown',e=>{if(mode==='garage'&&!paused){garageDrag=e.clientX;renderer.domElement.setPointerCapture?.(e.pointerId);}});
-renderer.domElement.addEventListener('pointermove',e=>{if(mode==='garage'&&!paused&&garageDrag!==null){garageScene.rotate(e.clientX-garageDrag);garageDrag=e.clientX;$('garageSpin').textContent='ROTATE CAR';}});
-for(const event of ['pointerup','pointercancel'])renderer.domElement.addEventListener(event,()=>{garageDrag=null;});
+function interactGarage(id=null){if(mode!=='garage'||paused||collectionUI?.isBusy())return;const spot=id?garageScene.hotspots.find(h=>h.id===id):garageScene.nearest();if(!spot||!garageScene.canInteract(spot.id))return;if(spot.id==='upstairs')returnHome();else if(spot.id==='drive'){if(profile.tutorialStep<2)toast('READ THE LAPTOP BRIEFING UPSTAIRS FIRST.','good');else leaveApartment();}else{garageCarId=garageScene.takeSelectedCar()||garageCarId;garageScene.setInspection(true);clearControls();refreshGarageUI();}}
+let garagePointer=null;
+renderer.domElement.addEventListener('pointerdown',e=>{if(mode==='garage'&&!paused){garagePointer={x:e.clientX,y:e.clientY,lastX:e.clientX,drag:false};renderer.domElement.setPointerCapture?.(e.pointerId);}});
+renderer.domElement.addEventListener('pointermove',e=>{if(mode==='garage'&&!paused&&garagePointer){if(Math.hypot(e.clientX-garagePointer.x,e.clientY-garagePointer.y)>8)garagePointer.drag=true;if(garageScene.inspection&&garagePointer.drag){garageScene.rotate(e.clientX-garagePointer.lastX);$('garageSpin').textContent='ROTATE CAR';}garagePointer.lastX=e.clientX;}});
+renderer.domElement.addEventListener('pointerup',e=>{if(mode==='garage'&&!paused&&garagePointer&&!garagePointer.drag&&!garageScene.inspection)garageScene.clickAt(e.clientX,e.clientY,innerWidth,innerHeight);garagePointer=null;});
+renderer.domElement.addEventListener('pointercancel',()=>{garagePointer=null;});
+
 function showPause(){if(mode==='apartment'){showHomeHelp();return;}if(mode!=='driving')return;paused=true;clearControls();modal(`<h2 id="dialogTitle">ENGINE IDLING.</h2><p>The city can wait. Your shift is paused.</p><button id="resumeBtn" class="primary">RESUME SHIFT <span>↗</span></button><div class="modal-secondary"><button id="recoverBtn" class="small-btn">RECOVER CAR</button><button id="cameraBtn" class="small-btn">CAMERA: ${profile.camera.toUpperCase()}</button><button id="pauseSound" class="small-btn">SOUND ${profile.muted?'OFF':'ON'}</button></div><div class="modal-secondary"><button id="restartBtn" class="small-btn">RESTART SHIFT</button><button id="quitBtn" class="small-btn">SAVE &amp; RETURN HOME</button></div><p class="note">Return home suspends this shift. Recover moves you to the nearest road; your wanted level stays.</p>`);$('resumeBtn').onclick=closeModal;$('recoverBtn').onclick=()=>{closeModal();recover();};$('cameraBtn').onclick=()=>{cycleCamera();$('cameraBtn').textContent='CAMERA: '+profile.camera.toUpperCase();};$('pauseSound').onclick=()=>{toggleSound();$('pauseSound').textContent='SOUND '+(profile.muted?'OFF':'ON');};$('restartBtn').onclick=startRun;$('quitBtn').onclick=returnMenu;}
 function showJobs(){if(mode==='driving')showPhone('dispatch');}
 
@@ -215,8 +222,8 @@ function bank(){if(mode!=='driving'||paused||!bankReady)return;finish(true);}
 function recover(){if(mode!=='driving'||time-lastRecovery<4)return;const road=closestRoad(player);player.x=road.x;player.z=road.z;player.y=0;player.vy=0;player.vx=0;player.vz=0;player.health=Math.max(1,player.health-8);lastRecovery=time;toast('Back on the road. −8 integrity.','bad');}
 addEventListener('keydown',e=>{
  if(e.code==='KeyG'&&mode==='apartment'&&!paused){e.preventDefault();if(!e.repeat)goHomeActivity('garage');return;}
- if(mode==='garage'&&e.code==='Escape'&&$('modalRoot').classList.contains('hidden')){e.preventDefault();returnHome();return;}
- if(mode==='garage'&&!paused&&['ArrowLeft','ArrowRight'].includes(e.code)){e.preventDefault();if(!e.repeat)browseGarage(e.code==='ArrowLeft'?-1:1);return;}
+ if(mode==='garage'&&e.code==='Escape'&&$('modalRoot').classList.contains('hidden')){e.preventDefault();if(garageScene.inspection){garageScene.setInspection(false);$('garageUI').classList.remove('inspecting');clearControls();}else returnHome();return;}
+ if(mode==='garage'&&!paused&&['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE'].includes(e.code)){e.preventDefault();if(e.code==='KeyE'&&!keys.KeyE)interactGarage();keys[e.code]=true;return;}
  if(e.code==='KeyM'&&ready){e.preventDefault();if(!e.repeat){if(atlasUI.isOpen())closeModal();else showAtlas();}return;}
  if(e.code==='KeyP'&&ready){e.preventDefault();if(!e.repeat){if(phoneUI?.isOpen())closeModal();else if($('modalRoot').classList.contains('hidden'))showPhone();}return;}
  if(e.code==='Tab'&&!$('modalRoot').classList.contains('hidden')){const focus=[...$('modalRoot').querySelectorAll('button:not([disabled]),a[href]')];if(!focus.length)return;const i=focus.indexOf(document.activeElement);e.preventDefault();focus[(i+(e.shiftKey?-1:1)+focus.length)%focus.length].focus();return;}
@@ -286,7 +293,7 @@ function breakProps(dt){for(const d of destructibles){if(d.broken)continue;const
 function tireTrail(){const geo=new THREE.PlaneGeometry(.15,.9),mat=new THREE.MeshBasicMaterial({color:'#263d44',transparent:true,opacity:.45,depthWrite:false});for(const sign of [-1,1]){const mesh=new THREE.Mesh(geo.clone(),mat.clone());mesh.rotation.set(-Math.PI/2,0,-player.heading);mesh.position.set(player.x+Math.cos(player.heading)*sign*.9-Math.sin(player.heading)*1.5,.15,player.z-Math.sin(player.heading)*sign*.9-Math.cos(player.heading)*1.5);world.add(mesh);trails.push({mesh,life:5});}geo.dispose();mat.dispose();}
 let trailTime=0,driftEarn=0;
 function effects(dt){
- updatePassengerSpeech();cityState?.update(time,player);for(const r of residents){const dest=r.direction>0?r.b:r.a,pos=r.group.position,dx=dest.x-pos.x,dz=dest.z-pos.z,length=Math.hypot(dx,dz);if(length<.16)r.direction*=-1;else{pos.x+=dx/length*dt*.85;pos.z+=dz/length*dt*.85;r.group.rotation.y=Math.atan2(dx,dz);}r.mixer.update(dt);}
+ updatePassengerSpeech();cityState?.update(time,player);updateCityResidents(residents,time,dt,player,touch?32:48);
  for(const p of pickups){p.marker.diamond.rotation.y+=dt;p.marker.diamond.position.y=3.6+Math.sin(time*2+p.stop.x)*.2;p.actor.update(dt,player);}
  for(const d of drops){d.marker.diamond.rotation.y+=dt*1.5;d.marker.mesh.material.opacity=.55+Math.sin(time*3)*.2;}
  garageMarker.diamond.rotation.y+=dt;garageMarker.mesh.material.opacity=.5+Math.sin(time*2)*.15;
@@ -352,7 +359,7 @@ function tick(){requestAnimationFrame(tick);const dt=Math.min(clock.getDelta(),.
    $('homeRoom').textContent=apartment.roomName.toUpperCase();const activity=apartment.activity,spot=apartment.nearest();$('homeActivity').classList.toggle('hidden',!activity);$('homeUI').classList.toggle('resting',activity?.id==='bed');
    if(activity){$('homeActivityTitle').textContent=activity.title;$('homeActivityHint').textContent=activity.seconds?'E OR MOVE TO CANCEL':'E OR MOVE TO STAND';$('homeActivityProgress').value=activity.seconds?activity.elapsed/activity.seconds:1;}
    $('homeInteract').disabled=!activity&&!spot;$('homeInteract').textContent=activity?(touch?'':'E · ')+(activity.id==='sofa'?'STAND UP':'STOP ACTIVITY'):spot?(spot.id==='door'&&profile.tutorialStep<2?'CHECK YOUR LAPTOP FIRST':(touch?'':'E · ')+(spot.id==='door'&&profile.checkpoint?'RESUME SAVED SHIFT':spot.label)):apartment.navigating?'WALKING…':'CLICK FURNITURE TO USE IT';
-  }else if(mode==='garage'){garageScene.update(dt);}else{effects(dt);cameraUpdate(dt);}
+  }else if(mode==='garage'){garageScene.update(dt,{up:keys.KeyW||keys.ArrowUp||mobile.up,down:keys.KeyS||keys.ArrowDown||mobile.down,left:keys.KeyA||keys.ArrowLeft||mobile.left,right:keys.KeyD||keys.ArrowRight||mobile.right},time);$('garageUI').classList.toggle('inspecting',garageScene.inspection);const arrival=garageScene.takeArrival();if(arrival)interactGarage(arrival);if(mode==='garage'){const near=garageScene.nearest();$('garageInteract').disabled=!near;$('garageInteract').textContent=near?(touch?'':'E · ')+near.label:garageScene.navigating?'WALKING…':'WALK TO A MARKER';}}else{effects(dt);cameraUpdate(dt);}
   autosaveTimer+=dt;if(autosaveTimer>=3){autosaveTimer=0;saveProfile();}
  }
  if(ready&&!['apartment','garage'].includes(mode))fadeObstructions(dt);updateAudio();renderer.render(mode==='apartment'?apartment.scene:mode==='garage'?garageScene.scene:scene,mode==='apartment'?apartment.camera:mode==='garage'?garageScene.camera:camera);

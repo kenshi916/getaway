@@ -1,4 +1,4 @@
-import {SKINS,DRIVERS,BURN_ITEMS,ownsItem,burnDemo} from './collection.mjs?v=17';
+import {SKINS,DRIVERS,BURN_ITEMS,ownsItem,burnDemo} from './collection.mjs?v=19';
 export function createCollectionUI(api){
  let tab='cars',selected='van',message='',pending=false,generation=0;
  const $=id=>document.getElementById(id),p=()=>api.profile(),w=()=>api.wallet.state();
