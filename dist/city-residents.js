@@ -1,6 +1,6 @@
 import * as THREE from './assets/three.module.js';
-import {BLOCKS} from './driving.mjs?v=20';
-import {PASSENGER_MODELS} from './passengers.mjs?v=20';
+import {BLOCKS} from './driving.mjs?v=21';
+import {PASSENGER_MODELS} from './passengers.mjs?v=21';
 export function residentRoutes(){
  const routes=[];for(const b of BLOCKS.filter(b=>b.outer)){const e=14.1;for(let n=0;n<2;n++)routes.push({points:[{x:b.x-e,z:b.z-e},{x:b.x+e,z:b.z-e},{x:b.x+e,z:b.z+e},{x:b.x-e,z:b.z+e}],district:b.district,outer:true,seed:routes.length,direction:n?-1:1});}
  const inner=[[[-50,-44],[-50,-28]],[[-22,-43],[-22,-29]],[[14,-43],[14,-29]],[[50,-44],[50,-28]],[[-50,25],[-50,43]],[[-22,26],[-22,43]],[[14,27],[14,43]],[[50,25],[50,42]],[[-86,-44],[-86,-28]],[[86,-44],[86,-28]],[[-44,-86],[-28,-86]],[[28,86],[44,86]]];

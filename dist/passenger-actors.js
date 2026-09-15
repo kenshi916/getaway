@@ -1,5 +1,5 @@
 import * as THREE from './assets/three.module.js';
-import {ROAD} from './driving.mjs?v=20';
+import {ROAD} from './driving.mjs?v=21';
 
 export function createPassengerActor(templates,person,stop,world){
  const source=templates['passenger-'+person.model],root=source.scene.clone(true),group=new THREE.Group();

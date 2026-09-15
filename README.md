@@ -127,3 +127,12 @@ The garage uses a new `garage-room.js` environment: concrete panels, inset shutt
 The website uses the existing original voxel key art, pixel typography, chunky green/gold buttons, framed vehicle cards, and persistent Play / World / Garage / Token / Docs navigation. World tabs still control the real 3D city view. The Token section explains the new GETAWAY launch planned through Pons on Robinhood Chain and links to the existing burn documentation. It identifies the demo shop and the disabled real-token burns. Mobile car cards scroll horizontally, and all five navigation tabs remain available on narrow screens. The docs share the website navigation and theme.
 
 Validation includes the existing full game simulation and garage navigation checks, desktop/touch-mobile game rendering, six model previews, interactive city views, docs navigation, token-state copy, and responsive layouts. A resource audit verified repeated car switching never disposes shared model resources and garage recoloring leaves source material colors unchanged.
+
+
+## Grass and street landscaping
+
+`city-landscape.js` adds textured lawns to all 10 parks and 71 housing blocks, 17,623 modeled grass tufts, 174 flower beds, 100 narrow commercial verges, small industrial weed patches, gravel path textures, and 49 street utility covers with occasional asphalt repairs. Scenery is deterministic and local. Grass receives light and shade but does not cast shadows; its material tag survives batching. Raised planting stays inside the existing sidewalk pads and clears paths, entrances, fountains, benches, and tree planters. Driving collisions and saved progress are unchanged.
+
+`node checks/city-landscape.mjs` checks all 17,797 raised placements against 424 pedestrian routes, 134 housing entry paths, the garage apron and cash-out area, sidewalk boundaries, and 75 residential tree planters. It also verifies finite bounds and retained grass shadow settings. The full game simulation and expanded-city navigation checks pass. The city remains within its existing geometry budget at 2,066 meshes and 1,827,992 triangles.
+
+Desktop and emulated touch-mobile Edge WebGL checks render park, housing, commercial, and industrial views without JavaScript or shader errors. Screenshots confirm the grass, flowers, paths, and weeds are visible from the driving camera. Tested views use 120–362 scene draw calls and retain the 48/32 resident visibility caps. Physical-device frame rates have not been measured.
