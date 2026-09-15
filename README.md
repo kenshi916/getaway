@@ -103,3 +103,7 @@ Browser QA passed on desktop (1440 × 960) and mobile (390 × 844) using Edge: a
 G / the apartment Garage button walks to the lower-level lift and enters a separate 3D showroom. Browse all six cars, rotate the model, review a demo burn, equip a ride, go upstairs, or drive out. Browsing and equipping preserve an unfinished shift; the shift resumes in its original car. The Alley Cat burn unlock uses the freely downloadable Car Concept by Eric Chadwick / Darmstadt Graphics Group GmbH (CC BY 4.0), with animated wheels and brake lights. Low-poly traffic retains the lightweight RGS models. Live token burns remain disabled pending GETAWAY and the unlock registry.
 
 Desktop and mobile browser checks cover garage entry, browsing, demo burn/equip, driving, and saved-shift preservation. Node renderer simulations use image bitmap placeholders; actual textures are checked in browser.
+
+## Phone app artwork
+
+The P-key phone uses nine original icons made with the built-in image_gen tool: Quests, Dispatch, City map, Garage, Home, My stats, Settings, Guide, and People. The three-column launcher, app title, and bottom navigation share these images. Phone-sized PNGs and the exact generation prompts are stored in `dist/assets/phone-apps/`.

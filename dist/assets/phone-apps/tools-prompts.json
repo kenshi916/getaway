@@ -1,0 +1,17 @@
+{
+  "mode": "built-in image_gen",
+  "prompts": [
+    {
+      "id": "stats",
+      "prompt": "Use case: logo-brand. Asset type: smartphone app icon for GETAWAY in-game phone. Create a square 1024x1024 full-bleed app-icon artwork. Subject: stats, represented by three ascending ivory and mint bars with a bold sweeping warm-gold rising arrow. Style: polished illustrated 3D emblem, bold dark navy contour, warm specular highlights, subtle grain, rich jewel gradient forest-green to emerald background. One large centered emblem occupying approximately 72 percent, generous 12 percent safe margin, flat frontal composition, readable at 60 pixels. No text, letters, numbers, watermarks, borders, or rounded corners baked into the image. This is one single icon, no grids or presentation mockups."
+    },
+    {
+      "id": "settings",
+      "prompt": "Use case: logo-brand. Asset type: smartphone app icon for GETAWAY in-game phone. Create a square 1024x1024 full-bleed app-icon artwork. Subject: settings, represented by one large machined warm-silver gear with a gold center ring and dark navy recess. Style: polished illustrated 3D emblem, bold dark navy contour, warm specular highlights, subtle grain, rich jewel gradient slate to deep-blue background. One large centered emblem occupying approximately 72 percent, generous 12 percent safe margin, flat frontal composition, readable at 60 pixels. No text, letters, numbers, watermarks, borders, or rounded corners baked into the image. This is one single icon, no grids or presentation mockups."
+    },
+    {
+      "id": "guide",
+      "prompt": "Use case: logo-brand. Asset type: smartphone app icon for GETAWAY in-game phone. Create a square 1024x1024 full-bleed app-icon artwork. Subject: guide, represented by an open ivory field-guide book with a single gold compass star centered across its pages and a tiny mint bookmark. Style: polished illustrated 3D emblem, bold dark navy contour, warm specular highlights, subtle grain, rich jewel gradient cobalt to blue background. One large centered emblem occupying approximately 72 percent, generous 12 percent safe margin, flat frontal composition, readable at 60 pixels. Blank ivory pages apart from the compass star; no text, letters, numbers, watermarks, borders, or rounded corners baked into the image. This is one single icon, no grids or presentation mockups."
+    }
+  ]
+}

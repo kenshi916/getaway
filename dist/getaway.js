@@ -2,7 +2,7 @@ import {buildGarage} from './garage-scene.js?v=17';
 import {createCityAtlas} from './atlas.js?v=17';
 import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=17';
 import {createPassengerActor} from './passenger-actors.js?v=17';
-import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=17';
+import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=18';
 import * as THREE from './assets/three.module.js';
 import {makeVehicle,animateVehicle,loadVehiclePack} from './vehicles.js?v=17';
 import {loadCityPack,buildCity} from './city.js?v=17';
