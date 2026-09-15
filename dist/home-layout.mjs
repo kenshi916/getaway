@@ -7,6 +7,8 @@ export const HOME_SPOTS=[
  {id:'bed',x:5.1,z:-1.35,label:'SAVE & REST',room:'Bedroom'},
  {id:'door',x:2.65,z:4.55,label:'HEAD DOWNSTAIRS',room:'Entry'},
  {id:'coffee',x:-1.05,z:-3.2,label:'MAKE COFFEE',room:'Kitchen'},
- {id:'tv',x:-5.7,z:-.25,label:'SWITCH TV',room:'Living room'}
+ {id:'tv',x:-5.7,z:-.25,label:'SWITCH TV',room:'Living room'},
+ {id:'sofa',x:-2.45,z:1.45,label:'SIT & WATCH TV',room:'Living room'},
+ {id:'shower',x:6.35,z:3.22,label:'TAKE A SHOWER',room:'Bathroom'}
 ];
 export function homeRoom(x,z){return x>4.5&&z>.85?'Bathroom':x>1.35&&z<.85?'Bedroom':x>1.35?'Entry':z<-2.65?'Kitchen':'Living room';}

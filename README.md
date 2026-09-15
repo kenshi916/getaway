@@ -4,7 +4,7 @@ A self-contained solo arcade driving game. Serve `dist/` over HTTP. The website 
 
 ## Play
 
-Start inside your apartment. WASD / arrow keys walk; E interacts with the laptop, wardrobe, bedside save, and entry door. The first-night tutorial leads into your first pickup, delivery, and banked shift.
+Start inside your apartment with a close, full-window camera. Click the floor to walk, click furniture to use it, or choose an item from Things to do. WASD / arrows walk; E uses or stops an activity. C opens the floor plan, the wheel or + / − controls zoom, and F requests browser full screen. The sofa plays the real seated animation and turns on the animated TV. Coffee, showers, and bed rest are timed, cancellable activities with saved completion state. The first-night tutorial leads into your first pickup, delivery, and banked shift.
 
 In the car, WASD / arrow keys drive and reverse. Space is the handbrake; Shift is nitro. C switches camera. J chooses a job. Tab routes to the garage. E banks the haul when stopped there. R recovers a stuck car. Mobile uses simultaneous touch steering, pedals, drift, and nitro.
 
@@ -48,7 +48,7 @@ Validation includes complete gameplay and website simulations, all pickup/destin
 
 ## Apartment and saved-shift update
 
-`apartment.js` builds a connected five-zone cutaway apartment (kitchen, living room, bedroom, bathroom, and entry hall) rendered with the existing renderer. It uses the existing animated character and Kenney furniture assets, collision-aware walking, interactive markers, and an overview camera that fits the rooms around the tutorial and controls. C toggles a closer follow camera with wall fading. The kitchen coffee maker and living-room TV are interactive. The interior uses 36 CC0 Kenney Furniture Kit models. Versioned apartment positions migrate old saves to the new entry point while preserving the tutorial, credits, collection, and suspended shift. The six-step first-night guide saves its place; old credit and vehicle saves remain compatible.
+`apartment.js` builds a connected five-zone cutaway apartment (kitchen, living room, bedroom, bathroom, and entry hall) rendered with the existing renderer. It uses the existing animated character and Kenney furniture assets, collision-aware walking, interactive markers, and an overview camera that fits the rooms around the tutorial and controls. The close camera is the default, with wall fading and adaptive framing. C toggles the floor plan. Click movement uses collision-aware pathfinding through the actual doorways; keyboard movement cancels a route. Activity saves record the valid approach position so reloads never leave the character trapped inside furniture. The kitchen coffee maker and living-room TV are interactive. The interior uses 36 CC0 Kenney Furniture Kit models. Versioned apartment positions migrate old saves to the new entry point while preserving the tutorial, credits, collection, and suspended shift. The six-step first-night guide saves its place; old credit and vehicle saves remain compatible.
 
 `progress.mjs` serializes and validates resumable shifts. `getaway.js` coordinates apartment entry, laptop briefing, wardrobe garage, bedside save, door departure, tutorial dispatch, and return home. Banking clears the checkpoint and saves earned credits in one storage write. Saves remain local to this browser, with visible feedback if storage is unavailable. Police and traffic vehicles regenerate when resuming; the player's wanted level persists.
 

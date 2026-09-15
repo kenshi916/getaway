@@ -2,7 +2,7 @@ import * as THREE from './assets/three.module.js';
 import {GLTFLoader} from './assets/GLTFLoader.js';
 import {loadCityPack,buildCity} from './city.js?v=6';
 import {loadVehiclePack,makeVehicle,animateVehicle} from './vehicles.js?v=8';
-import {CARS,PAINTS,createCar} from './driving.mjs?v=9';
+import {CARS,PAINTS,createCar} from './driving.mjs?v=10';
 const VIEWS={
  downtown:{eye:[145,148,175],target:[0,0,0],number:'01 / DOWNTOWN',title:'A BIGGER NIGHT OUT',text:'From the north station to the south motor yards. Twelve pickups and ten hideouts across the city.'},
  neon:{eye:[41,45,62],target:[0,3,0],number:'02 / NEON ROW',title:'BRIGHT LIGHTS. TIGHT TURNS.',text:'Find the arcade gateway, slip through the center alley, and take the ramp to shake the pursuit.'},
