@@ -4,3 +4,19 @@ Model and textures by Eric Chadwick. Copyright 2024 Darmstadt Graphics Group Gmb
 Creative Commons Attribution 4.0 International: https://creativecommons.org/licenses/by/4.0/
 Source: https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept
 Adaptations for GETAWAY: uniform scale, flattened/merged geometry, standardized body and wheel pivots, straightened front wheels, material names and brake lighting, blank license plate; source logo texture removed. No endorsement implied.
+
+Unity Fan concept cars (Night Runner, Redline, Night Cab and Ironhide playable models)
+Models and designs by "Unity Fan youtube channel" (https://sketchfab.com/unityfan777).
+Each model's author description states: "This is public domain (CC0), I'm as the author give it away to the World.
+This model and design can be used by anybody for anything. No attribution required." Sketchfab lists them under its
+free Standard licence (use worldwide, commercially or not, in all types of derivative works). Credited anyway.
+- concept-coupe.glb     <- FREE Concept Car 011  https://sketchfab.com/3d-models/free-concept-car-011-public-domain-cc0-099f72bca4494ef9af317e8d76cd99af
+- concept-hyper.glb     <- FREE Ai based ConceptCar 050  https://sketchfab.com/3d-models/free-ai-based-conceptcar-050-public-domain-cc0-3f7a98a53efe48068adddf0c0f3ddbae
+- concept-crossover.glb <- FREE Concept Car 005  https://sketchfab.com/3d-models/free-concept-car-005-public-domain-cc0-76f8be334c2b4bdb97d1c8f99ee02329
+- concept-suv.glb       <- FREE Concept Car 006  https://sketchfab.com/3d-models/free-concept-car-006-public-domain-cc0-a4e19bb6e6394c4a95d4319ef7d265ba
+Adaptations for GETAWAY: armature pose baked, ground shadow planes and stray helper geometry removed, seams welded and
+decimated to 97k-169k triangles, materials merged, textures capped at 1024 px, uniform scale to 2.8 units, four wheel
+pivots with game metadata, and named paint / rim / brake materials. Spare tyre and interiors retained.
+Original downloaded license notices are included as SOURCE-LICENSE-005/006/011/050.txt.
+Traffic variants reduce geometry to approximately 26,000 triangles and textures to 512 pixels.
+Workhorse uses Concept 005; Night Cab adds a taxi sign; the patrol coupe adds a red/blue light bar.

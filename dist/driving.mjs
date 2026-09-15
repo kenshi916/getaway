@@ -1,6 +1,6 @@
-import {passengerJob,startRide,rideStatus,scoreRide,cleanPassengerHistory} from './passengers.mjs?v=24';
-import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=24';
-import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=24';
+import {passengerJob,startRide,rideStatus,scoreRide,cleanPassengerHistory} from './passengers.mjs?v=26';
+import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=26';
+import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=26';
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const ROAD=Array.from({length:16},(_,i)=>-270+i*36),LIMIT=282;
 export const DISTRICTS=[
@@ -18,9 +18,9 @@ export const districtAt=p=>DISTRICTS[(p.z<-90?0:p.z>90?2:1)*3+(p.x<-90?0:p.x>90?
 export const LANDMARKS=DISTRICTS.filter(d=>d.id!=='downtown').map(d=>({id:'landmark-'+d.id,name:d.name,x:d.x,z:d.z-18,district:d.id}));
 export const HOME={x:36,z:54,name:'LAST EXIT GARAGE'};
 export const CARS={
- van:{id:'van',name:'THE WORKHORSE',model:'getaway-van',price:0,speed:22,accel:18,grip:11,steer:2.35,seats:3,health:120,scale:1.7,description:'Three seats. Built to take a hit.'},
- coupe:{id:'coupe',name:'NIGHT RUNNER',model:'coupe',price:6000,speed:26,accel:22,grip:12,steer:2.55,seats:2,health:100,scale:1.7,description:'Quick off the line. Easy in the corners.'},
- racer:{id:'racer',name:'REDLINE',model:'racer',price:14000,speed:31,accel:26,grip:13,steer:2.65,seats:1,health:90,scale:1.65,description:'One seat. Ridiculous speed.'},
+ van:{id:'van',name:'THE WORKHORSE',model:'concept-crossover',price:0,speed:22,accel:18,grip:11,steer:2.35,seats:3,health:120,scale:1.7,description:'Three seats. Built to take a hit.'},
+ coupe:{id:'coupe',name:'NIGHT RUNNER',model:'concept-coupe',price:6000,speed:26,accel:22,grip:12,steer:2.55,seats:2,health:100,scale:1.7,description:'Quick off the line. Easy in the corners.'},
+ racer:{id:'racer',name:'REDLINE',model:'concept-hyper',price:14000,speed:31,accel:26,grip:13,steer:2.65,seats:1,health:90,scale:1.7,description:'One seat. Ridiculous speed.'},
  ...BURN_CARS
 };
 export const PAINTS=['#ffc23d','#21cbbb','#ed5949','#6494ff'];

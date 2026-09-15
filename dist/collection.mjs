@@ -13,8 +13,8 @@ export const DRIVERS=[
 ];
 export const BURN_CARS={
  hatch:{id:'hatch',name:'ALLEY CAT',kind:'car',itemId:7,cost:2500,price:0,model:'concept-gt',speed:25,accel:24,grip:13,steer:2.85,seats:2,health:85,scale:1.7,description:'Low-slung concept coupe. Detailed interior. Quick through the backstreets.'},
- cab:{id:'cab',name:'NIGHT CAB',kind:'car',itemId:8,cost:4000,price:0,model:'taxi',speed:24,accel:19,grip:11.5,steer:2.45,seats:4,health:115,scale:1.7,description:'Four seats. More fares. The city’s hardest worker.'},
- suv:{id:'suv',name:'IRONHIDE',kind:'car',itemId:9,cost:6000,price:0,model:'suv',speed:23,accel:17,grip:12,steer:2.2,seats:3,health:165,scale:1.65,description:'Heavy armor for a rough night. Keep rolling.'}
+ cab:{id:'cab',name:'NIGHT CAB',kind:'car',itemId:8,cost:4000,price:0,model:'concept-cab',speed:24,accel:19,grip:11.5,steer:2.45,seats:4,health:115,scale:1.7,description:'Four seats. More fares. The city’s hardest worker.'},
+ suv:{id:'suv',name:'IRONHIDE',kind:'car',itemId:9,cost:6000,price:0,model:'concept-suv',speed:23,accel:17,grip:12,steer:2.2,seats:3,health:165,scale:1.65,description:'Heavy armor for a rough night. Keep rolling.'}
 };
 export const BURN_ITEMS=[...SKINS,...DRIVERS,...Object.values(BURN_CARS)].filter(i=>i.itemId>0);
 export const DEMO_START=25000;

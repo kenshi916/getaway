@@ -1,12 +1,14 @@
 import * as THREE from './assets/three.module.js';
-import {createCityLandscape} from './city-landscape.js?v=24';
+import {createCityFinish,addCitySky} from './city-finish.js?v=26';
+import {createCityLandscape} from './city-landscape.js?v=26';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=24';
+import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=26';
 
 const ASSETS=[...'abcdefghijklmn'].map(c=>'building-'+c).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','detail-parasol-a','detail-parasol-b'],[...'abfgkqrt'].map(c=>'industrial/building-'+c),['water-tower','shipping-container-a','shipping-container-b','solar-panel-landscape-group','detail-tank'].map(n=>'industrial/'+n),[...'acfgkmoq'].map(c=>'suburban/building-type-'+c),['tree_oak','tree_detailed','tree_palmDetailedTall','plant_bushDetailed','flower_redA'].map(n=>'nature/'+n));
 const models=new Map();
 export async function loadCityPack(loader){await Promise.all(ASSETS.map(async name=>{const g=await loader.loadAsync('/assets/models/city/'+name+'.glb');g.scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});models.set(name,g.scene);}));}
 export function buildCity(world){
+ if(world.parent?.isScene)addCitySky(world.parent);
  const stage=new THREE.Group();stage.name='Downtown';world.add(stage);
  const buildings=[],signals=[],materials=new Map(),buildingBounds=[],landmarkLights=[],fountainRings=[],usedAssets=new Set(),signMaterials=new Map();
  function mat(color,extra={}){const key=color+JSON.stringify(Object.fromEntries(Object.entries(extra).map(([k,v])=>[k,v?.isTexture?v.uuid:v])));if(!materials.has(key))materials.set(key,new THREE.MeshStandardMaterial({color,roughness:.88,...extra}));return materials.get(key);}
@@ -58,9 +60,10 @@ export function buildCity(world){
   root.updateMatrixWorld(true);const original=new THREE.Box3().setFromObject(root),size=original.getSize(new THREE.Vector3()),center=original.getCenter(new THREE.Vector3());
   const scale=Math.min(width/size.x,depth/size.z,maxHeight/size.y);root.scale.setScalar(scale);root.position.set(-center.x*scale,-original.min.y*scale,-center.z*scale);wrap.position.set(x,.22,z);parent.add(wrap);
   const copies=new Map();root.traverse(o=>{if(!o.isMesh)return;const convert=m=>{if(copies.has(m))return copies.get(m);const c=m.clone();if(c.name==='wall'){c.color.set(tint);c.userData.facadeKind=name.includes('skyscraper')?2:1;}if(c.name==='glass'){c.emissive.set(Math.abs(Math.round(x+z))%3?'#eac390':'#709bab');c.emissiveIntensity=.22;c.roughness=.28;}if(c.name==='leafsGreen')c.color.set('#63946e');if(c.name==='woodBark')c.color.set('#795947');copies.set(m,c);return c;};o.material=Array.isArray(o.material)?o.material.map(convert):convert(o.material);});
-  wrap.updateMatrixWorld(true);return{root:wrap,box:new THREE.Box3().setFromObject(wrap),scale};
+  wrap.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(wrap);finish.facade(bounds,name,blockSeed(x,z),parent);return{root:wrap,box:bounds,scale};
  }
  const landscape=createCityLandscape({block,ground});
+ const finish=createCityFinish({block,ground,model});
  // A continuous road grid with raised curbs and clearly marked junctions.
  const grain=new Uint8Array(64*64*4);let seed=31691;for(let i=0;i<grain.length;i+=4){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const v=215+(seed%30);grain.set([v,v,v,255],i);}const asphalt=new THREE.DataTexture(grain,64,64);asphalt.colorSpace=THREE.SRGBColorSpace;asphalt.wrapS=asphalt.wrapT=THREE.RepeatWrapping;asphalt.magFilter=THREE.LinearFilter;asphalt.needsUpdate=true;
  ground(1000,1000,'#2e6174',0,0,-.7);block(LIMIT*2+4,.8,LIMIT*2+4,'#3c5865',0,-.42,0);ground(LIMIT*2+2,LIMIT*2+2,'#303b46',0,0,.005);ground(LIMIT*2+4,43,'#6f7f83',0,-LIMIT-22,-.03);ground(43,LIMIT*2+46,'#6f7f83',LIMIT+22,-12,-.03);
@@ -123,7 +126,7 @@ export function buildCity(world){
    lamp(b.x-11.8,b.z+11.8,group);if(v%3===0){bench(b.x+7,b.z+12.15,0,group);bin(b.x+10.9,b.z+12.1,group);}else if(v%3===1&&!industrial)model('nature/plant_bushDetailed',b.x+10.6,b.z-11.4,2.5,1.35,1.1,0,group);
    if(b.x===area.x&&b.z===area.z){for(const dx of [-4.2,4.2])pole(.055,2.9,'#3f5962',b.x+dx,1.65,b.z-13.04,group);label(area.name,9,.72,b.x,2.85,b.z-13.12,area.color,'#172b37',Math.PI,group);}
    landscape.dress(b,group,b.park?'park':residential?'residential':industrial?'industrial':'commercial',v,buildingBounds.filter(item=>item.block===b).map(item=>item.bounds));
-   finishBlock(group);return;
+   finish.park(b,group,v);finishBlock(group);return;
   }
   const industrial=[10,11,16,18,19,24,25].includes(i),residential=[21,22,23,26].includes(i);
   const factoryModels=['a','b','f','g','k','q','r','t'],houseModels=['a','c','f','g','k','m','o','q'];
@@ -137,7 +140,7 @@ export function buildCity(world){
     model('nature/plant_bushDetailed',b.x+dx*.65,b.z+dz,2.4,1.7,1.4,0,group);
     for(let n=0;n<3;n++)model('nature/flower_redA',b.x+dx*.4+(n-1)*.5,b.z+dz*.9,.75,.75,.95,n,group);
    }
-   label(b.name,8,.8,b.x,1.2,b.z+b.d/2-.7,'#e3e6bd','#314d43',0,group);landscape.dress(b,group,'park',blockSeed(b.x,b.z));finishBlock(group);return;
+   label(b.name,8,.8,b.x,1.2,b.z+b.d/2-.7,'#e3e6bd','#314d43',0,group);landscape.dress(b,group,'park',blockSeed(b.x,b.z));finish.park(b,group,blockSeed(b.x,b.z));finishBlock(group);return;
   }
   // The solid podium marks the original collision footprint while the roofline varies.
   block(b.w,.25,b.d,residential?'#6c845b':industrial?'#72797a':'#797f7b',b.x,.25,b.z,group);if(residential)landscape.lawn(b,group);

@@ -1,1 +1,1 @@
-import './getaway.js?v=24';
+import './getaway.js?v=26';

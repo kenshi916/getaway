@@ -1,9 +1,9 @@
-import {createWalkingView} from './first-person.js?v=24';
+import {createWalkingView} from './first-person.js?v=26';
 import * as THREE from './assets/three.module.js';
-import {buildGarageRoom} from './garage-room.js?v=24';
-import {findWalkPath} from './walk-navigation.mjs?v=24';
-import {makeVehicle} from './vehicles.js?v=24';
-import {CARS,PAINTS} from './driving.mjs?v=24';
+import {buildGarageRoom} from './garage-room.js?v=26';
+import {findWalkPath} from './walk-navigation.mjs?v=26';
+import {makeVehicle} from './vehicles.js?v=26';
+import {CARS,PAINTS} from './driving.mjs?v=26';
 export function buildGarage(templates){
  const scene=new THREE.Scene();scene.background=new THREE.Color('#0c1115');scene.fog=new THREE.Fog('#0c1115',32,75);
  const camera=new THREE.PerspectiveCamera(41,1,.1,80);
@@ -11,11 +11,13 @@ export function buildGarage(templates){
  const key=new THREE.DirectionalLight('#ffedd0',2.45);key.position.set(-3,10,7);key.castShadow=true;key.shadow.mapSize.set(1024,1024);Object.assign(key.shadow.camera,{left:-13,right:13,top:13,bottom:-13,near:1,far:35});key.shadow.normalBias=.025;scene.add(key);
  for(const [color,intensity,x,y,z]of [['#ffe0a2',95,-7,4,-5],['#dceaf1',85,7,5,-4],['#fff2d5',125,0,5.6,1]]){const light=new THREE.PointLight(color,intensity,20,2);light.position.set(x,y,z);scene.add(light);}
  const {room,props,mat,box,sign}=buildGarageRoom(scene,templates);
- let display=null,angle=.3,auto=true,currentId=null,currentSkin=null;
+ let display=null,angle=.3,auto=true,currentId=null,currentSkin=null,lastSkin=null,lastPaint=PAINTS[0];
  const ghosts=[];
- for(const [id,x]of [['coupe',-7.55],['suv',7.55]]){const v=makeVehicle(CARS[id].model,1.65,id==='coupe'?'#a8afb0':'#686f5e');v.group.position.set(x,.035,-3.7);v.group.rotation.y=0;scene.add(v.group);v.group.userData.garageCar=id;ghosts.push(v);}
+ function parkGhost(id,x){const v=makeVehicle(CARS[id].model,1.65,id==='coupe'?'#a8afb0':'#686f5e');v.group.position.set(x,.035,-3.7);v.group.rotation.y=0;scene.add(v.group);v.group.userData.garageCar=id;v.group.userData.garageX=x;return v;}
+ for(const [id,x]of [['coupe',-7.55],['suv',7.55]])ghosts.push(parkGhost(id,x));
  function dispose(v){const gs=new Set(),ms=new Set();v.group.traverse(o=>{if(o.isMesh){if(!o.geometry.userData.shared)gs.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])ms.add(m)}});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());}
- function select(id,skin=null,paint=PAINTS[0]){if(!CARS[id])return;const k=skin?.id+':'+paint;if(currentId===id&&currentSkin===k)return;currentId=id;currentSkin=k;if(display){scene.remove(display.group);dispose(display);}display=makeVehicle(CARS[id].model,CARS[id].scale,paint,skin);display.group.position.set(0,.15,0);display.group.rotation.y=angle;scene.add(display.group);}
+ function select(id,skin=null,paint=PAINTS[0]){if(!CARS[id])return;const k=skin?.id+':'+paint;if(currentId===id&&currentSkin===k)return;currentId=id;currentSkin=k;lastSkin=skin;lastPaint=paint;if(display){scene.remove(display.group);dispose(display);}display=makeVehicle(CARS[id].model,CARS[id].scale,paint,skin);display.group.position.set(0,.15,0);display.group.rotation.y=angle;scene.add(display.group);}
+ function upgrade(model){ghosts.forEach((v,i)=>{if(v.standIn!==model)return;const id=v.group.userData.garageCar,x=v.group.userData.garageX;scene.remove(v.group);dispose(v);ghosts[i]=parkGhost(id,x);});if(display?.standIn===model){const id=currentId;currentId=null;select(id,lastSkin,lastPaint);}}
  const bounds={minX:-10.8,maxX:10.8,minZ:-7.7,maxZ:10.5},spawn={x:-4.9,z:7.5},colliders=[];
  room.updateMatrixWorld(true);for(const object of [...props,...ghosts.map(v=>v.group)]){object.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(object);if(b.max.y<.3||b.min.y>2)continue;colliders.push({minX:b.min.x-.32,maxX:b.max.x+.32,minZ:b.min.z-.32,maxZ:b.max.z+.32});}
  function blocked(x,z){return !Number.isFinite(x)||!Number.isFinite(z)||x<bounds.minX||x>bounds.maxX||z<bounds.minZ||z>bounds.maxZ||Math.hypot(x,z)<4.85||colliders.some(b=>x>b.minX&&x<b.maxX&&z>b.minZ&&z<b.maxZ);}
@@ -47,5 +49,5 @@ export function buildGarage(templates){
   if(!manual&&route.length){while(route.length&&Math.hypot(route[0].x-avatar.position.x,route[0].z-avatar.position.z)<.025)route.shift();if(route.length){dx=route[0].x-avatar.position.x;dz=route[0].z-avatar.position.z;distance=Math.min(distance,Math.hypot(dx,dz));}else{arrived=routeTarget;routeTarget=null;}}
   const before=avatar.position.clone(),length=Math.hypot(dx,dz);if(length){const sx=dx/length*distance,sz=dz/length*distance;if(!blocked(avatar.position.x+sx,avatar.position.z))avatar.position.x+=sx;if(!blocked(avatar.position.x,avatar.position.z+sz))avatar.position.z+=sz;avatar.rotation.y=Math.atan2(dx,dz);}play(before.distanceTo(avatar.position)>.0001?'walk':'idle');mixer?.update(dt);walkCamera(1-Math.exp(-dt*7));
  }else if(auto)angle+=dt*.12;if(display)display.group.rotation.y=angle;for(const h of hotspots){h.ring.visible=!inspection;h.ring.material.opacity=canInteract(h.id)?.7:.28+Math.sin(time*2)*.07;}}
- return {scene,camera,props,ghosts,avatar,walkingView,setFirstPerson,look:walkingView.look,colliders,hotspots,bounds,spawn,blocked,nearest,canInteract,walkTo,clickAt,setCharacter,resetSpawn,setInspection,select,resize,update,rotate(dx){auto=false;angle+=dx*.012;if(display)display.group.rotation.y=angle},setAuto(){auto=!auto;return auto},takeSelectedCar(){const id=pendingCar;pendingCar=null;return id;},takeArrival(){const id=arrived;arrived=null;return id;},get inspection(){return inspection},get navigating(){return route.length>0},get auto(){return auto},get display(){return display},get selected(){return currentId}};
+ return {upgrade,scene,camera,props,ghosts,avatar,walkingView,setFirstPerson,look:walkingView.look,colliders,hotspots,bounds,spawn,blocked,nearest,canInteract,walkTo,clickAt,setCharacter,resetSpawn,setInspection,select,resize,update,rotate(dx){auto=false;angle+=dx*.012;if(display)display.group.rotation.y=angle},setAuto(){auto=!auto;return auto},takeSelectedCar(){const id=pendingCar;pendingCar=null;return id;},takeArrival(){const id=arrived;arrived=null;return id;},get inspection(){return inspection},get navigating(){return route.length>0},get auto(){return auto},get display(){return display},get selected(){return currentId}};
 }

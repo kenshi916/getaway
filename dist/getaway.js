@@ -1,23 +1,23 @@
-import {homeRouteFromSearch} from './social-catalog.mjs?v=24';
-import {destinationQuest} from './destination-quests.mjs?v=24';
-import {buildDestination} from './destination-scene.js?v=24';
-import {createCityResidents,updateCityResidents} from './city-residents.js?v=24';
-import {buildGarage} from './garage-scene.js?v=24';
-import {createCityAtlas} from './atlas.js?v=24';
-import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=24';
-import {createPassengerActor} from './passenger-actors.js?v=24';
-import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=24';
+import {homeRouteFromSearch} from './social-catalog.mjs?v=26';
+import {destinationQuest} from './destination-quests.mjs?v=26';
+import {buildDestination} from './destination-scene.js?v=26';
+import {createCityResidents,updateCityResidents} from './city-residents.js?v=26';
+import {buildGarage} from './garage-scene.js?v=26';
+import {createCityAtlas} from './atlas.js?v=26';
+import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=26';
+import {createPassengerActor} from './passenger-actors.js?v=26';
+import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=26';
 import * as THREE from './assets/three.module.js';
-import {makeVehicle,animateVehicle,loadVehiclePack} from './vehicles.js?v=24';
-import {loadCityPack,buildCity} from './city.js?v=24';
-import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=24';
-import {createCollectionUI} from './collection-ui.js?v=24';
-import {createBurnWallet} from './burn-wallet.mjs?v=24';
-import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=24';
-import {captureShift,restoreShift} from './progress.mjs?v=24';
+import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded} from './vehicles.js?v=26';
+import {loadCityPack,buildCity} from './city.js?v=26';
+import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=26';
+import {createCollectionUI} from './collection-ui.js?v=26';
+import {createBurnWallet} from './burn-wallet.mjs?v=26';
+import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=26';
+import {captureShift,restoreShift} from './progress.mjs?v=26';
 import {GLTFLoader} from './assets/GLTFLoader.js';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=24';
+import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=26';
 
 const $=id=>document.getElementById(id),touch=matchMedia('(pointer:coarse)').matches;
 let profile=defaultProfile(),storageAvailable=true;
@@ -33,10 +33,10 @@ let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch(error){$('game').innerHTML='<div class="error-panel"><h2>GETAWAY needs 3D graphics</h2><p>Open this link in Safari or Chrome with hardware acceleration enabled to play.</p></div>';throw error;}
 renderer.setPixelRatio(Math.min(devicePixelRatio,touch?1.5:2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
 $('game').appendChild(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','GETAWAY. In your apartment, WASD to walk and E to interact. In the car, WASD to drive, Space to drift, Shift for nitro, E to bank at the garage.');
-const scene=new THREE.Scene();scene.background=new THREE.Color('#586f85');scene.fog=new THREE.Fog('#586f85',125,310);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#586f85');scene.fog=new THREE.Fog('#92a9aa',145,320);
 const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,360);
 scene.add(new THREE.HemisphereLight('#c5ddeb','#303a43',1.5));
-const sun=new THREE.DirectionalLight('#ffd3a1',2.75);sun.position.set(-40,75,50);sun.castShadow=true;sun.shadow.mapSize.set(touch?1024:2048,touch?1024:2048);Object.assign(sun.shadow.camera,{left:-120,right:120,top:120,bottom:-120,near:1,far:230});sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;scene.add(sun);
+const sun=new THREE.DirectionalLight('#ffd3a1',2.75);sun.position.set(-40,75,50);sun.castShadow=true;sun.shadow.mapSize.set(touch?1024:2048,touch?1024:2048);Object.assign(sun.shadow.camera,{left:-58,right:58,top:58,bottom:-58,near:1,far:230});sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;scene.add(sun);
 const fill=new THREE.DirectionalLight('#94c8eb',.65);fill.position.set(40,20,-30);scene.add(fill);
 // Soft sky reflections give the paint and glass a readable curved surface.
 const reflectionFaces=Array.from({length:6},()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,'#a8d5ff');g.addColorStop(.44,'#6189ad');g.addColorStop(.49,'#edf6ff');g.addColorStop(.58,'#3d5674');g.addColorStop(1,'#1b2739');x.fillStyle=g;x.fillRect(0,0,128,128);return c;});
@@ -87,6 +87,8 @@ $('ui').innerHTML=`<div class="vignette"></div><div class="scanlines"></div><div
 function prepareModel(g){g.scene.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;const convert=m=>{const mat=m.isMeshBasicMaterial?new THREE.MeshStandardMaterial({color:m.color,map:m.map,roughness:.8,flatShading:true,transparent:m.transparent,opacity:m.opacity,alphaTest:m.alphaTest}):m;mat.flatShading=true;if(mat.map){mat.map.magFilter=THREE.NearestFilter;mat.map.minFilter=THREE.LinearMipmapLinearFilter;}return mat;};o.material=Array.isArray(o.material)?o.material.map(convert):convert(o.material);});return g;}
 function prop(name,x,z,scale=1,rotation=0){if(!templates[name])return null;const root=templates[name].scene.clone(true),wrap=new THREE.Group(),bounds=new THREE.Box3().setFromObject(root),center=bounds.getCenter(new THREE.Vector3());root.position.set(-center.x,-bounds.min.y,-center.z);wrap.add(root);wrap.scale.setScalar(scale);wrap.position.set(x,.12,z);wrap.rotation.y=rotation;world.add(wrap);return wrap;}
 function carView(model,scale,paint=null,skin=null){const view=makeVehicle(model,scale,paint,skin);world.add(view.group);return view;}
+// A detailed car finished streaming: drop stale previews and swap any low-poly stand-in that is on screen.
+function upgradeVehicle(model){for(const key of [...carThumbnails.keys()]){const car=CARS[key.split(':')[0]];if(car?.model===model)carThumbnails.delete(key);}if(playerView?.standIn===model&&player){world.remove(playerView.group);disposeVehicle(playerView);playerView=carView(player.config.model,player.config.scale,PAINTS[profile.paint],activeSkin());animateCar(playerView,player,0);}garageScene?.upgrade?.(model);}
 function animateCar(view,car,dt){animateVehicle(view,car,dt);}
 const carThumbnails=new Map();
 function carThumbnail(config,skin=activeSkin()){
@@ -117,7 +119,7 @@ function setupActors(){
  apartment=buildApartment(templates,profile.home,profile.homeLife);apartment.setCharacter(templates[activeDriver().model]);apartment.resize(innerWidth,innerHeight);if(profile.checkpoint&&!restoreShift(profile.checkpoint,{...profile,unlocked:Object.keys(CARS)}))profile.checkpoint=null;
  ready=true;$('playBtn').disabled=false;$('playText').textContent='START YOUR SHIFT';$('loadNote').classList.add('hidden');refreshMenu();returnHome();
 }
-const loader=new GLTFLoader();const assetNames=['robber','suit','police-officer','traffic-cone','barrier','crate','streetlight','dumpster'];
+onVehicleLoaded(upgradeVehicle);const loader=new GLTFLoader();const assetNames=['robber','suit','police-officer','traffic-cone','barrier','crate','streetlight','dumpster'];
 Promise.all([...PASSENGER_MODELS.map(code=>loader.loadAsync('/assets/models/passengers/character-'+code+'.glb').then(g=>{templates['passenger-'+code]=prepareModel(g);})),loadCityPack(loader),document.fonts?.load('700 16px PixelArcade').catch(()=>{})||Promise.resolve(),loadVehiclePack(loader),...APARTMENT_ASSETS.map(name=>loader.loadAsync('/assets/models/interior/'+name+'.glb').then(g=>{templates['home-'+name]=prepareModel(g);})),...assetNames.map(name=>loader.loadAsync('/assets/models/'+name+'.glb').then(g=>{templates[name]=prepareModel(g);}))]).then(setupActors).catch(error=>{console.error(error);$('playText').textContent='RELOAD ASSETS';$('playBtn').disabled=false;$('loadNote').textContent='An asset could not load. Tap to retry.';$('playBtn').onclick=()=>location.reload();});
 
 function initAudio(){try{audioContext??=new(window.AudioContext||window.webkitAudioContext)();if(audioContext.state==='suspended')audioContext.resume();if(!engineOsc){engineOsc=audioContext.createOscillator();engineGain=audioContext.createGain();engineOsc.type='sawtooth';engineGain.gain.value=0;const filter=audioContext.createBiquadFilter();filter.type='lowpass';filter.frequency.value=420;engineOsc.connect(filter);filter.connect(engineGain);engineGain.connect(audioContext.destination);engineOsc.start();}}catch{}}
@@ -206,7 +208,7 @@ renderer.domElement.addEventListener('pointercancel',()=>{destinationPointer=nul
 function showPause(){if(mode==='apartment'){showHomeHelp();return;}if(mode!=='driving')return;paused=true;clearControls();modal(`<h2 id="dialogTitle">ENGINE IDLING.</h2><p>The city can wait. Your shift is paused.</p><button id="resumeBtn" class="primary">RESUME SHIFT <span>↗</span></button><div class="modal-secondary"><button id="recoverBtn" class="small-btn">RECOVER CAR</button><button id="cameraBtn" class="small-btn">CAMERA: ${profile.camera.toUpperCase()}</button><button id="pauseSound" class="small-btn">SOUND ${profile.muted?'OFF':'ON'}</button></div><div class="modal-secondary"><button id="restartBtn" class="small-btn">RESTART SHIFT</button><button id="quitBtn" class="small-btn">SAVE &amp; RETURN HOME</button></div><p class="note">Return home suspends this shift. Recover moves you to the nearest road; your wanted level stays.</p>`);$('resumeBtn').onclick=closeModal;$('recoverBtn').onclick=()=>{closeModal();recover();};$('cameraBtn').onclick=()=>{cycleCamera();$('cameraBtn').textContent='CAMERA: '+profile.camera.toUpperCase();};$('pauseSound').onclick=()=>{toggleSound();$('pauseSound').textContent='SOUND '+(profile.muted?'OFF':'ON');};$('restartBtn').onclick=startRun;$('quitBtn').onclick=returnMenu;}
 function showJobs(){if(mode==='driving')showPhone('dispatch');}
 
-function showCredits(){paused=true;clearControls();modal(`<button class="modal-close" data-close aria-label="Close credits">×</button><h2 id="dialogTitle">GOOD COMPANY.</h2><p>Animated characters and street props by <a href="https://kenney.nl" target="_blank" rel="noopener noreferrer">Kenney</a>, used under CC0.</p><p>Blocky Characters · City Kit Commercial · City Kit Roads · Furniture Kit. City design, driving, missions, and sound effects made for GETAWAY.</p><p>Vehicles by <a href="https://rgsdev.itch.io/free-low-poly-vehicles-pack" target="_blank" rel="noopener noreferrer">RGS_Dev</a> (CC0). <a href="/assets/packs/rgsdev-vehicles.zip" download>Download the original 21-vehicle pack</a>.</p><p>Alley Cat concept coupe: Car Concept by Eric Chadwick, © 2024 Darmstadt Graphics Group GmbH, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Adapted with game wheel pivots, materials, and a blank plate. <a href="https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept" target="_blank" rel="noopener noreferrer">Free original model</a>.</p><p>Three.js (MIT). Space Mono and Silkscreen (SIL Open Font License).</p><button class="primary" data-close>BACK TO THE NIGHT <span>↗</span></button>`);}
+function showCredits(){paused=true;clearControls();modal(`<button class="modal-close" data-close aria-label="Close credits">×</button><h2 id="dialogTitle">GOOD COMPANY.</h2><p>Animated characters and street props by <a href="https://kenney.nl" target="_blank" rel="noopener noreferrer">Kenney</a>, used under CC0.</p><p>Blocky Characters · City Kit Commercial · City Kit Roads · Furniture Kit. City design, driving, missions, and sound effects made for GETAWAY.</p><p>Vehicles by <a href="https://rgsdev.itch.io/free-low-poly-vehicles-pack" target="_blank" rel="noopener noreferrer">RGS_Dev</a> (CC0). <a href="/assets/packs/rgsdev-vehicles.zip" download>Download the original 21-vehicle pack</a>.</p><p>Night Runner, Redline, Night Cab and Ironhide: FREE Concept Cars 011, 050, 005 and 006 by <a href="https://sketchfab.com/unityfan777" target="_blank" rel="noopener noreferrer">Unity Fan</a>, released by the author as public domain (CC0) on Sketchfab. Optimised for GETAWAY with game wheel pivots, brake lights and paint.</p><p>Alley Cat concept coupe: Car Concept by Eric Chadwick, © 2024 Darmstadt Graphics Group GmbH, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Adapted with game wheel pivots, materials, and a blank plate. <a href="https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept" target="_blank" rel="noopener noreferrer">Free original model</a>.</p><p>Three.js (MIT). Space Mono and Silkscreen (SIL Open Font License).</p><button class="primary" data-close>BACK TO THE NIGHT <span>↗</span></button>`);}
 function toggleSound(){initAudio();profile.muted=!profile.muted;saveProfile();refreshMenu();updateAudio();}
 let lookPointer=null,driverLook={yaw:0,pitch:0},cameraUiState='';
 function walkingScene(){return mode==='apartment'?apartment:mode==='garage'?garageScene:mode==='destination'?destinationScene:null;}
@@ -403,7 +405,7 @@ function cameraUpdate(dt){if(mode==='driving'){sun.position.set(player.x-40,75,p
   cameraPosition.lerp(desired,1-Math.exp(-dt*3));camera.position.copy(cameraPosition);camera.lookAt(HOME.x,1.05,HOME.z);camera.fov=THREE.MathUtils.damp(camera.fov,portrait?40:35,5,dt);
   camera.setViewOffset(innerWidth,innerHeight,portrait?0:-innerWidth*.215,portrait?innerHeight*.22:0,innerWidth,innerHeight);camera.updateProjectionMatrix();
  }else if(profile.camera==='first'&&mode==='driving'){
-  camera.clearViewOffset();camera.near=.045;const heading=player.heading+driverLook.yaw,pitch=driverLook.pitch-.035,height={van:2,coupe:1.4,racer:1.15,hatch:1.2,cab:1.6,suv:1.9}[player.config.id]||1.6;camera.position.set(player.x,player.y+height,player.z);cameraPosition.copy(camera.position);camera.lookAt(player.x+Math.sin(heading)*30,player.y+height+Math.tan(pitch)*30,player.z+Math.cos(heading)*30);camera.fov=74;camera.updateProjectionMatrix();
+  camera.clearViewOffset();camera.near=.045;const heading=player.heading+driverLook.yaw,pitch=driverLook.pitch-.035,height={van:1.85,coupe:1.18,racer:1.02,hatch:1.2,cab:1.62,suv:1.58}[player.config.id]||1.6;camera.position.set(player.x,player.y+height,player.z);cameraPosition.copy(camera.position);camera.lookAt(player.x+Math.sin(heading)*30,player.y+height+Math.tan(pitch)*30,player.z+Math.cos(heading)*30);camera.fov=74;camera.updateProjectionMatrix();
  }else{
   camera.near=.1;camera.clearViewOffset();const difference=Math.atan2(Math.sin(player.heading-cameraHeading),Math.cos(player.heading-cameraHeading));cameraHeading+=difference*(1-Math.exp(-dt*(player.drifting?2.4:4.8)));
   cameraTarget.lerp(new THREE.Vector3(player.x,0,player.z),1-Math.exp(-dt*13));const high=profile.camera==='high',speedPull=clamp(player.speed/30,0,1)*2;

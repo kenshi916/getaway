@@ -1,8 +1,8 @@
 import * as THREE from './assets/three.module.js';
 import {GLTFLoader} from './assets/GLTFLoader.js';
-import {loadCityPack,buildCity} from './city.js?v=24';
-import {loadVehiclePack,makeVehicle,animateVehicle} from './vehicles.js?v=24';
-import {CARS,PAINTS,createCar} from './driving.mjs?v=24';
+import {loadCityPack,buildCity} from './city.js?v=26';
+import {loadVehiclePack,makeVehicle,animateVehicle,vehicleReady} from './vehicles.js?v=26';
+import {CARS,PAINTS,createCar} from './driving.mjs?v=26';
 const VIEWS={
  gardens:{eye:[140,90,-9],target:[90,0,-72],number:'04 / NORTH GARDENS',title:'A GREENER SIDE OF THE CITY',text:'Walk the garden paths, take the quieter streets, and find Mina’s next stop among the flowers.'},
  downtown:{eye:[145,148,175],target:[0,0,0],number:'01 / DOWNTOWN',title:'A BIGGER NIGHT OUT',text:'Nine districts. 256 junctions. Nearly eight times the playable area. Keep driving beyond downtown into the harbor, gardens, and hills.'},
@@ -12,10 +12,11 @@ const VIEWS={
 export async function startShowcase(){
  const host=document.getElementById('cityScene'),loading=document.getElementById('cityLoading');
  const loader=new GLTFLoader();await Promise.all([loadCityPack(loader),loadVehiclePack(loader),document.fonts?.load('700 16px PixelArcade')||Promise.resolve()]);
- renderRides();
+ // The city starts with the lightweight pack; ride cards render once every detailed car has streamed in.
+ const rides=Promise.all(Object.values(CARS).map(config=>vehicleReady(config.model))).then(renderRides);
  let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'low-power'});}catch{loading.innerHTML='THE CITY IS WAITING<span>Open the game on a device with 3D graphics</span>';return;}
  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
- const scene=new THREE.Scene();scene.background=new THREE.Color('#586f85');scene.fog=new THREE.Fog('#586f85',165,420);
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#92a9aa');scene.fog=new THREE.Fog('#92a9aa',145,350);
  scene.add(new THREE.HemisphereLight('#c5ddeb','#303a43',1.5));const sun=new THREE.DirectionalLight('#ffd3a1',2.75);sun.position.set(-65,115,80);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-118,right:118,top:118,bottom:-118,near:1,far:300});sun.shadow.normalBias=.05;sun.shadow.bias=-.0001;scene.add(sun);
  const world=new THREE.Group();scene.add(world);const city=buildCity(world),camera=new THREE.PerspectiveCamera(42,1,.5,550),look=new THREE.Vector3(0,0,0);let active='downtown';camera.position.fromArray(VIEWS.downtown.eye);camera.lookAt(look);
  const cars=[];for(const [name,x,z,h]of [['coupe',18,37,0],['getaway-van',-54,27,0],['taxi',40,-54,Math.PI/2],['hatchback',-28,90,Math.PI/2],['suv',90,-44,0]]){const view=makeVehicle(name,1.65,PAINTS[cars.length%4]);world.add(view.group);cars.push({view,car:{...createCar(CARS.coupe,x,z,h),speed:7},initial:{x,z,h}});}
@@ -28,6 +29,7 @@ export async function startShowcase(){
   for(const item of cars){const {car,initial}=item,move=reduced?0:(elapsed*7)%140-70;car.x=initial.x+Math.sin(initial.h)*move;car.z=initial.z+Math.cos(initial.h)*move;if(Math.abs(car.x)>98||Math.abs(car.z)>98){item.view.group.visible=false;continue;}item.view.group.visible=true;car.wheelTravel=elapsed*7;animateVehicle(item.view,car,dt);}
   renderer.render(scene,camera);
  }requestAnimationFrame(frame);
+ await rides;
 }
 function renderRides(){
  let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});}catch{return;}
