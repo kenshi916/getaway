@@ -13,7 +13,7 @@ import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded} from './vehi
 import {loadCityPack,buildCity} from './city.js?v=29';
 import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=29';
 import {createCollectionUI} from './collection-ui.js?v=29';
-import {createBurnWallet} from './burn-wallet.mjs?v=29';
+import {createBurnWallet} from './burn-wallet.mjs?v=31';
 import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=29';
 import {captureShift,restoreShift} from './progress.mjs?v=29';
 import {GLTFLoader} from './assets/GLTFLoader.js';
