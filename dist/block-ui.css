@@ -1,0 +1,189 @@
+/* One material system for every in-game screen: turf, soil, stone, and paper. */
+:root{--game-ink:#211d15;--game-paper:#fff3cf;--game-muted:#e2d5b2;--game-grass:#79ba45;--game-grass-light:#bce576;--game-soil:#493323;--game-stone:#566a65;--game-gold:#f8d46b;--game-edge:#24241c;--game-body:Arial,Helvetica,sans-serif;--game-pixel:PixelArcade,monospace;--soil:linear-gradient(#382b24dd,#382b24ed),url('/assets/ui/soil.png');--panel-shadow:inset 3px 3px #ffffff1c,inset -3px -3px #0005,5px 5px 0 #171c20b3}
+body{background:#242f29}
+#ui{color:var(--game-paper);font-family:var(--game-body)}
+#ui *,#ui *::before,#ui *::after{border-radius:0!important;text-shadow:none;box-sizing:border-box}
+#ui .scanlines,#ui .vignette{display:none}
+#ui :is(h1,h2,h3,.brand,.hud-brand,.title,.garage-choice strong,.garage-specs b,.timer strong,.result-score,.home-place h1,.collection-item>strong){font-family:var(--game-pixel)!important;font-style:normal!important;font-weight:700;letter-spacing:-.5px!important;line-height:1.35;color:var(--game-paper)!important}
+#ui :is(p,.brief,.phone-copy){font-family:var(--game-body);font-size:16px;line-height:1.5;color:var(--game-paper)}
+#ui :is(small,.note,.collection-small,.garage-disclaimer,.garage-test-note,.home-card-top,.garage-lock,.destination-person small,.mission-unbanked,.phone-status,.barlabel,.controls-hint,.garage-help,.atlas-hint){font-size:12px!important;line-height:1.5!important;color:var(--game-muted)!important;letter-spacing:0!important}
+#ui button,#ui a.small-btn{border:3px solid var(--game-edge)!important;border-radius:0;background:#526658;color:#fff3cf;box-shadow:inset 3px 3px #ffffff3b,inset -3px -3px #0004,3px 3px 0 #181c1c!important;font-family:var(--game-pixel)!important;font-size:12px;font-weight:400!important;letter-spacing:0!important;line-height:1.55;text-shadow:none!important;transition:background .12s,transform .12s;min-height:42px}
+#ui button:hover:not(:disabled),#ui a.small-btn:hover{background:#6b875b;filter:brightness(1.08)}
+#ui button:active:not(:disabled){transform:translate(2px,2px);box-shadow:inset 2px 2px #0005!important}
+#ui button:focus-visible,#ui a:focus-visible,#ui input:focus-visible,#ui select:focus-visible{outline:3px solid #fbec96!important;outline-offset:4px}
+#ui button:disabled{opacity:.53;cursor:not-allowed}
+#ui :is(.primary,.bank-btn,.gas,.boost,button[aria-pressed=true],button.chosen){background:var(--game-grass)!important;color:var(--game-ink)!important;border-color:var(--game-edge)!important;box-shadow:inset 3px 3px #d3f58d,inset -3px -3px #4c782c,4px 4px 0 #20221c!important}
+#ui :is(.primary,.bank-btn):hover:not(:disabled){background:#98d75b!important}
+#ui :is(.secondary,.small-btn,.touch-btn,.icon-btn){background:#56675c;color:var(--game-paper);font-size:12px}
+#ui :is(.modal,.home-card,.home-activities,.home-activity,.garage-info,.destination-quest,.destination-header>div,.dispatch,.timer,.haul-card,.speed-card,.wanted,.stop-progress,.toast,.ride-talk,.collection-feature,.car-card,.world-panel){background-color:var(--game-soil)!important;background-image:var(--soil)!important;background-size:auto,256px!important;border:4px solid var(--game-edge)!important;border-top:9px solid var(--game-grass)!important;box-shadow:inset 0 3px #bce576,inset 3px 0 #af80582e,inset -3px -3px #0004,6px 6px 0 #111b1fab!important;backdrop-filter:none!important;color:var(--game-paper)!important}
+#ui .modal{padding:26px;max-height:93dvh}
+#ui .modal :is(p,li){color:var(--game-paper)!important}
+#ui .modal h2{font-size:clamp(20px,2.7vw,30px)!important}
+#ui .modal-close{background:#bc654c!important;color:#fff3cf!important;min-width:40px;min-height:40px;font-family:Arial,sans-serif!important;font-size:24px!important;right:10px;top:10px}
+#ui :is(.instruction,.result-stats,.mission-rewards,.collection-specs,.collection-notice,.token-launch-note,.job-option,.phone-card,.phone-quest,.phone-job,.phone-home-card,.phone-settings-row,.phone-profile,.phone-panel){background:#241f1aa6!important;border:2px solid #aa94726b!important;color:var(--game-paper)!important;box-shadow:inset 2px 2px #0003}
+#ui :is(.instruction b,.collection-specs b,.mission-rewards b,.phone-card strong){color:var(--game-gold)!important}
+#ui kbd{display:inline-block;background:#fff0c6;color:#332b22;border:2px solid #241f1a;box-shadow:2px 2px 0 #171b1b;font:12px/1.5 var(--game-pixel);padding:2px 4px}
+#ui .meter,#ui .escape-meter,#ui .home-step-track{height:10px;background:#25221b;border:2px solid #211e19;box-shadow:inset 1px 1px #0008}
+#ui .meter>div,#ui .home-step-track i,#ui .escape-meter>div{background:#98ce5a;box-shadow:inset 0 2px #d6f495;transition:width .15s}
+#ui .nitro>div{background:#70bed3}
+#ui .topbar .brand{background:#493426!important;border:3px solid #25241b;box-shadow:4px 4px 0 #16241c;padding:8px 12px;font-size:24px!important}
+#ui .topbar .tag{background:#e6d4a6;color:#302a1e;border:3px solid #25241b;padding:8px;font:12px/1.6 var(--game-pixel)}
+#ui .menu{background:linear-gradient(90deg,#192d29f5,transparent 90%)}
+#ui .menu-content{background:var(--soil);background-size:auto,256px;border:4px solid var(--game-edge);border-top:12px solid var(--game-grass);box-shadow:var(--panel-shadow);padding:25px;width:480px;max-width:calc(100vw - 40px)}
+#ui .title{font-size:clamp(30px,4.5vw,62px)!important;margin:10px 0;filter:none;text-shadow:4px 4px #1c251b!important}
+#ui .eyebrow,#ui .subtitle{font:12px/1.7 var(--game-pixel);color:var(--game-grass-light);letter-spacing:0}
+#ui .menu-meta{font-size:12px;line-height:1.5;flex-wrap:wrap;gap:8px}
+#ui .car-plaque{background:var(--soil);border:3px solid #27231c;border-top:8px solid #83bb53;box-shadow:var(--panel-shadow)}
+#ui .bottom-bar{font-size:12px;color:#fff3cf;background:#26372cdb;padding:10px 14px;border-top:3px solid #93bd5d}
+/* Garage: a workshop label, one grass-topped vehicle dossier, inventory slots. */
+#ui .garage-ui::before{background:linear-gradient(#112e26a8,transparent);height:180px}
+#ui .garage-header{left:24px;right:24px;top:20px}
+#ui .garage-header>div:first-child{padding:14px 18px;background:var(--soil);background-size:auto,256px;border:4px solid #24261e;border-top:8px solid var(--game-grass);box-shadow:var(--panel-shadow)}
+#ui .garage-header h1{font-size:clamp(24px,3vw,40px)!important;margin:6px 0}
+#ui .garage-header>div>span,#ui .garage-header p{font:12px/1.5 var(--game-body);letter-spacing:1px;color:#ecddb4}
+#ui .garage-message{left:24px;top:160px;border:3px solid #29281e;background:#ffdf89;color:#33271c;font:12px/1.6 var(--game-pixel);padding:6px 10px;max-width:390px}
+#ui .garage-info{right:24px;top:112px;width:340px;padding:20px;max-height:calc(100dvh - 325px)}
+#ui .garage-info h2{font-size:25px!important;line-height:1.4;margin:12px 0}
+#ui .garage-info>span{font:12px/1.5 var(--game-pixel);color:#d0eb9c}
+#ui .garage-info p{font-size:16px;line-height:1.5;color:#f2e2bd}
+#ui .garage-info .primary{font-size:13px;min-height:48px}
+#ui .garage-specs{border-block:2px solid #c8a8775c;display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:15px 0;margin:16px 0}
+#ui .garage-specs b{font-size:23px!important}
+#ui .garage-specs span{font:12px/1.6 var(--game-body);color:#d8c59d}
+#ui .garage-carousel{left:24px;right:24px;bottom:20px;gap:12px;align-items:stretch;padding:8px 8px 8px 0;overflow-x:auto}
+#ui .garage-choice{padding:0 12px 12px;min-height:158px;min-width:165px;background:var(--soil)!important;background-size:auto,256px!important;border:4px solid #26291f!important;border-top:8px solid #78a653!important;box-shadow:var(--panel-shadow)!important}
+#ui .garage-choice[aria-pressed=true]{border-color:#f3d574!important;border-top-color:#c0e985!important;box-shadow:0 0 0 3px #27291e,inset 3px 3px #ffffff22,5px 5px 0 #171c20b3!important;transform:translateY(-5px)}
+#ui .garage-choice img{height:88px;width:100%;object-fit:contain;margin:0 0 4px;image-rendering:auto;background:#92b78820}
+#ui .garage-choice strong{font-size:13px!important;line-height:1.5!important;color:#fceabd!important}
+#ui .garage-choice .garage-lock{right:4px;top:4px;background:#2a3626;padding:2px 5px;font:10px/1.5 var(--game-pixel)!important;color:#e7efbd!important}
+#ui .garage-preview-tools{bottom:215px;gap:10px}
+#ui .garage-help{bottom:267px;background:#283729;padding:6px 10px;left:24px}
+#ui .garage-walk-hint,#ui .home-action>span,#ui .destination-action span,#ui .controls-hint{background:#26382c;border:2px solid #b4ce83;padding:6px 10px;color:#f8edc9}
+#ui .garage-walk-hud{gap:12px}
+/* Apartment and driving HUD use the same kit at a smaller scale. */
+#ui .home-place h1{font-size:18px!important;background:#e5d0a1;color:#33271d!important;padding:8px 12px;border:3px solid #27261e;box-shadow:4px 4px 0 #15261e}
+#ui .home-card h2{font-size:16px!important}
+#ui .home-card{width:330px;padding:16px;top:147px}
+#ui .home-stats{background:#293b2e;border:3px solid #c6d89c;gap:20px;box-shadow:var(--panel-shadow)}
+#ui .home-dock{display:flex;gap:9px}
+#ui .home-quest-link{background:#e4cc94;color:#2f281d;margin-top:12px;width:100%}
+#ui .dispatch{width:300px;padding:14px 15px}
+#ui .dispatch strong{font-family:var(--game-pixel);font-size:15px;line-height:1.6;color:#fce3a6}
+#ui .dispatch p{font-size:14px;line-height:1.5}
+#ui .hud-brand{font-size:22px;color:#ffebba;background:#2a3a2df2;border:3px solid #98bd61;padding:5px 10px;width:max-content;margin-bottom:8px}
+#ui .timer strong,#ui .haul-card strong{font:24px/1.35 var(--game-pixel)!important}
+#ui .timer span,#ui .haul-card small{font:12px/1.6 var(--game-body);letter-spacing:0}
+#ui .timer.urgent{border-top-color:#f58358!important}
+#ui .speed-card{padding:12px;width:174px}
+#ui .speed-line strong{font:30px/1.4 var(--game-pixel)}
+#ui .wanted{padding:9px 12px}
+#ui .stars{color:#857863;letter-spacing:3px;text-shadow:none}
+#ui .stars .lit{color:#f5ce5c}
+#ui .passenger-list{background:#253a2ee8;border:3px solid #242a1f;box-shadow:var(--panel-shadow);padding:8px}
+#ui .passenger{border-bottom:2px solid #729258;color:#fff0c3}
+#ui .rider-name{font-family:var(--game-pixel);font-size:12px}
+#ui .rider-goal{color:#d7e3b1;font-size:12px}
+#ui .minimap{background:#bdd499;border:5px solid #292b1e;box-shadow:inset 0 5px #a6d362,6px 6px 0 #172621;width:174px;height:174px;overflow:visible}
+#ui .minimap canvas{border:4px solid #87a956;image-rendering:pixelated;width:100%;height:100%}
+#ui .map-open{font:10px/1.4 var(--game-pixel)!important;min-height:28px;padding:4px;top:4px;left:4px;max-width:calc(100% - 25px);background:#ffeca7;color:#252c1d;border-width:2px!important}
+#ui .route-btn{font-size:10px;min-height:40px;bottom:-48px;width:100%;background:#4e7047}
+#ui .north{color:#162d29;font-size:12px;top:9px;right:8px}
+#ui .toast{font:14px/1.6 var(--game-pixel);padding:14px 20px;max-width:min(590px,90vw)}
+#ui .style-pop{background:#f0ce70;border:4px solid #2d3122;color:#2e2919;padding:10px 20px;font:20px/1.4 var(--game-pixel);box-shadow:5px 5px #17251d}
+#ui .ride-talk{font-size:14px;padding:12px}
+#ui .perspective-controls button{font-size:11px;background:#354e38}
+/* The pocket phone is a chunky handheld, including every app and dialogue. */
+#ui .phone-shell{border:5px solid #252c21;background:#63765b;box-shadow:inset 5px 5px #93aa78,inset -5px -5px #35442e,8px 8px #11251caa;padding:10px;max-width:calc(100vw - 20px)}
+#ui .game-phone{border:3px solid #222e22;background:#2f402e;color:#fff0c8}
+#ui .phone-status,#ui .phone-header,#ui .phone-bottom{background:#263a28;border-color:#87ac58;color:#f9edc5}
+#ui .phone-header h2{font-size:17px!important}
+#ui .phone-body,#ui .phone-content,#ui .phone-screen{background:var(--soil);background-size:auto,256px;scrollbar-color:#9fbc70 #293823}
+#ui .phone-home{background:linear-gradient(#637b39d9,#263b29e8),url('/assets/ui/soil.png');background-size:auto,256px}
+#ui .phone-app{background:#dfd49e;color:#2b3422;border:3px solid #2a3421;padding:9px 4px;box-shadow:inset 2px 2px #fff8c7,3px 3px #172818}
+#ui .phone-app span{color:#292e20!important;font:11px/1.5 var(--game-pixel)!important}
+#ui .phone-app img{border:3px solid #2f3b25;box-shadow:2px 2px #1c2a1e;image-rendering:auto}
+#ui :is(.phone-tabs,.phone-nav,.phone-bottom-nav){background:#3b502f;border-top:3px solid #a8c778}
+#ui :is(.phone-quest,.phone-card,.phone-job,.phone-row,.phone-setting){border:2px solid #a28b60!important;background:#312b22!important;color:#ffedc5!important}
+#ui :is(.phone-quest p,.phone-card p,.phone-job p,.phone-row p){color:#e4d5b7!important;font-size:14px}
+#ui :is(.phone-wallet,.phone-contact,.phone-profile-hero,.phone-rider-job,.phone-rider-request,.phone-story-chapter,.phone-stat-grid>div,.phone-mini-stats>div,.phone-empty,.phone-guide,.phone-quest-preview){background:#2c3727!important;border:3px solid #a5b77575!important;box-shadow:inset 2px 2px #dcefa01a,3px 3px #1a261a!important;color:#f4e9c6}
+#ui :is(.phone-wallet strong,.phone-mini-stats strong,.phone-stat-grid strong){color:#d7eda2;font-family:var(--game-pixel);font-size:20px}
+#ui :is(.phone-wallet span,.phone-kicker,.phone-card-label,.phone-section-label,.phone-progress-label,.phone-risk,.phone-rider-meta,.phone-map-key){color:#e4dbb1}
+#ui .phone-primary{background:#8bbc51!important;color:#222e1b!important}
+#ui .phone-app-grid{gap:14px 10px}
+#ui .phone-app-grid>button{background:#435535;padding:10px 4px;gap:7px;font-size:10px!important}
+#ui .phone-app-grid>button>span:last-child{font:10px/1.7 var(--game-pixel)!important;color:#fff3ca}
+#ui .app-icon{width:63px;height:63px;border:3px solid #243222;box-shadow:3px 3px #1a2a1b;transform:none!important}
+#ui .phone-pause-note{background:#405631;border-block:2px solid #95b566;color:#e9f2c7;letter-spacing:0}
+#ui .phone-home-list>button{margin-bottom:8px;padding:12px;background:#3d5031}
+#ui .phone-message{background:#273723;border:2px solid #a9c17e;color:#f1f1c4}
+#ui :is(.phone-progress,.phone-meter){border:2px solid #181f17;background:#192819}
+#ui :is(.phone-progress>i,.phone-meter>i){background:#acd965}
+/* Collections, results, burns, quests and confirmation dialogs. */
+#ui .collection-item{background:#3c4630!important;border:3px solid #24281d!important;box-shadow:var(--panel-shadow)!important}
+#ui .collection-item.chosen{background:#5b723d!important;border-color:#d8e997!important}
+#ui .collection-preview,#ui .collection-item>div{background:#5a6f422b;border-color:#bea77a66}
+#ui .collection-item img{image-rendering:auto}
+#ui .collection-tabs{border-bottom:3px solid #a99163;gap:10px}
+#ui .collection-tabs button{font-size:12px}
+#ui .collection-feature h3{font-size:20px!important}
+#ui .collection-feature p{font-size:16px!important}
+#ui .collection-balance strong,#ui .burn-review strong{color:#c8eb89!important;font-family:var(--game-pixel)}
+#ui .collection-status{color:#d6f499!important}
+#ui .collection-footer,#ui .collection-ledger{border-color:#b0966755}
+#ui .burn-review>img{background:#54663d;border:3px solid #b0bf7a}
+#ui .destination-header h1{font-size:clamp(16px,2.1vw,27px)!important}
+#ui .destination-quest{padding:16px}
+#ui .destination-quest li{font-size:13px;line-height:1.5;color:#d6c7a8}
+#ui .destination-quest li.current{color:#fbe39c}
+#ui .destination-quest li.done{color:#bce37e}
+#ui .mission-stamp{background:#92c456;border:4px solid #202b1f;box-shadow:4px 4px #111f19;color:#26371c}
+#ui .mission-result .result-score{font-size:32px}
+#ui .mission-farewell{font-size:16px!important}
+#ui .mission-rewards span{font-size:11px}
+#ui .result-stats{gap:10px;padding:12px}
+/* Online neighborhoods and home improvements. */
+.world-button{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:19;pointer-events:auto;padding:8px 13px;font-size:11px!important;max-width:270px}
+.world-button[data-connected=true]{background:#80ad49!important;color:#202c1a!important}
+.world-home-door{position:fixed;right:22px;bottom:265px;z-index:10;pointer-events:auto;width:174px;min-height:55px;padding:10px;background:#d6c080!important;color:#2d3020!important}
+.world-dialog h2{padding-right:40px}.world-tabs{display:flex;gap:10px;margin:18px 0}.world-tabs button{flex:1;padding:10px}.world-banner{display:flex;justify-content:space-between;gap:20px;border:3px solid #b5cf82;background:#324831;padding:14px;margin:16px 0;font-size:16px;line-height:1.5}.world-banner strong{color:#d5eb9c}.world-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.world-card{border:3px solid #242a1f;background:#33412d;padding:16px;box-shadow:4px 4px #161f1a}.world-card h3{font-size:16px;margin:8px 0}.world-card p{font-size:14px!important}.world-card button{width:100%;padding:10px}.world-card img{display:block;width:100%;height:120px;object-fit:contain;background:#c7d895}.world-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:2px solid #bb9b6e44;padding:12px 0}.world-row span{min-width:0;overflow-wrap:anywhere}.world-row small{display:block;margin:5px 0}.world-row button{padding:8px 12px}.world-form{display:flex;align-items:end;gap:12px;margin:18px 0}.world-form label{flex:1;line-height:1.6;font-size:14px}.world-form input{display:block;width:100%;padding:13px;border:3px solid #252d1d;background:#f4e6b8;color:#2b3020;font-size:16px}.world-form button{padding:13px}.world-note{padding:12px;border-left:5px solid #a1c766;background:#283526;line-height:1.5;font-size:14px!important}.world-error{color:#ffd7bd!important;background:#603b2d;padding:12px;border:2px solid #df9a67}.world-target{position:fixed;top:235px;left:22px;z-index:8;pointer-events:auto;width:285px;padding:12px;background:var(--soil);background-size:auto,256px;border:4px solid #24291f;border-top:8px solid #8ebb53;box-shadow:var(--panel-shadow)}.world-target strong{font:13px/1.6 var(--game-pixel);display:block;color:#e6e8ac}.world-target small{display:block;padding:5px 0;color:#e6d6b0;font-size:12px}.world-target button{width:100%;font-size:11px!important;margin-top:7px}.world-empty{padding:25px;text-align:center;background:#33482d;border:3px dashed #a6bf78}.world-badge{color:#e7f4c2;font:12px/1.6 var(--game-pixel)}
+@media(max-width:900px){#ui .garage-info{width:295px;right:16px;padding:16px}#ui .garage-header{left:16px;right:16px}#ui .garage-carousel{left:16px;right:16px}#ui .garage-choice{min-width:154px}#ui .garage-message{left:16px}.world-grid{grid-template-columns:1fr 1fr}.world-button{left:auto;right:16px;top:72px;transform:none;max-width:205px}#ui .home-card{width:310px}}
+@media(max-width:650px){#ui .modal{padding:20px 16px;max-height:95dvh}#ui .modal h2{font-size:20px!important}#ui .menu-content{padding:20px;margin-bottom:55px}#ui .bottom-bar .district{display:none}#ui .garage-header{top:12px;left:12px;right:12px;gap:8px}#ui .garage-header>div:first-child{padding:9px;max-width:52%}#ui .garage-header h1{font-size:18px!important;margin:4px 0}#ui .garage-header p{display:none}#ui .garage-header>div>span{font-size:10px}#ui .garage-header-actions{flex-direction:column;gap:6px}#ui .garage-header-actions button{font-size:10px!important;padding:6px 9px;min-height:36px}#ui .garage-message{top:108px;left:12px;font-size:10px;max-width:calc(100% - 24px);padding:5px 7px}#ui .garage-info{left:12px;right:12px;top:auto;bottom:161px;width:auto;max-height:33dvh;padding:12px 15px}#ui .garage-info h2{font-size:19px!important;margin:7px 0}#ui .garage-info p{font-size:14px}#ui .garage-info>span{font-size:10px}#ui .garage-specs{padding:9px 0;margin:9px 0}#ui .garage-specs b{font-size:19px!important}#ui .garage-carousel{bottom:12px;left:12px;right:12px;gap:9px;padding-bottom:6px;display:flex}#ui .garage-choice{flex:0 0 143px;min-height:127px;padding:0 8px 8px}#ui .garage-choice img{height:65px}#ui .garage-choice strong{font-size:11px!important}#ui .garage-choice small{font-size:11px!important}#ui .garage-preview-tools{bottom:calc(33dvh + 177px);gap:7px}#ui .garage-preview-tools button{font-size:10px;padding:7px;min-height:35px}#ui .garage-help{display:none}#ui .home-place h1{font-size:15px!important}#ui .home-card{width:auto;top:190px;padding:12px}#ui .home-card h2{font-size:14px!important}#ui .home-card>p{font-size:14px;line-height:1.45}#ui .home-card-top{display:none}#ui .home-camera{top:143px}#ui .home-quest-link{margin-top:7px;min-height:33px;font-size:10px}#ui .home-dock button{padding:10px;font-size:11px}#ui .home-action .primary{font-size:12px}#ui .dispatch{width:180px;padding:10px}#ui .dispatch strong{font-size:12px}#ui .dispatch p{font-size:12px}#ui .timer{padding:7px;min-width:88px}#ui .timer strong,#ui .haul-card strong{font-size:18px!important}#ui .haul-card{min-width:110px;padding:7px}#ui .hud-brand{font-size:16px;padding:4px 7px}#ui .speed-card{width:130px;padding:9px}#ui .speed-line strong{font-size:25px}#ui .minimap{width:120px;height:120px}#ui .map-open{font-size:8px!important;line-height:1.6!important;padding:2px;min-height:25px}#ui .route-btn{font-size:9px;min-height:38px;bottom:-45px}#ui .wanted{padding:6px}#ui .controls-hint{display:none}#ui .phone-shell{height:calc(100dvh - 20px);max-height:calc(100dvh - 20px)}#ui .destination-quest{max-height:29dvh;overflow-y:auto;top:130px;padding:12px}#ui .destination-person h2{font-size:13px!important}#ui .destination-quest li{font-size:12px;line-height:1.4}#ui .destination-quest ol{display:block}#ui .destination-quest p{font-size:13px}#ui .destination-action>.primary{font-size:11px}#ui .destination-header h1{font-size:15px!important}.world-button{top:100px;right:12px;max-width:165px;font-size:9px!important;padding:7px}.world-grid{grid-template-columns:1fr}.world-form{display:block}.world-form button{margin-top:10px;width:100%}.world-banner{display:block}.world-banner strong{display:block}.world-target{top:248px;left:12px;width:180px;padding:9px}.world-target strong{font-size:11px}.world-target small{font-size:11px}.world-tabs{gap:6px}.world-tabs button{font-size:10px!important;padding:8px}.world-row{flex-wrap:wrap}.world-row button{font-size:10px!important}}
+@media(max-height:600px) and (min-width:651px){#ui .garage-info{top:85px;max-height:calc(100dvh - 252px);width:300px;padding:13px}#ui .garage-header h1{font-size:24px!important}#ui .garage-header p{display:none}#ui .garage-message{top:126px;font-size:10px}#ui .garage-choice{min-height:114px}#ui .garage-choice img{height:55px}#ui .garage-preview-tools{bottom:154px}#ui .garage-help{display:none}#ui .home-card{max-height:calc(100dvh - 235px);overflow:auto;top:124px}.world-button{top:17px;left:50%;right:auto}.world-target{top:213px;max-height:150px;overflow:auto}}
+/* Field-guide cartography, with a paper map in a green wooden frame. */
+#ui .atlas-shade{background:#152b22b8;backdrop-filter:blur(3px)}
+#ui .atlas-shade .modal.wide{width:min(1280px,calc(100vw - 28px));padding:23px}
+#ui .atlas-heading>span{font:12px/1.6 var(--game-pixel);color:#d0e59c}
+#ui .atlas-heading h2{font-size:27px!important;margin:8px 40px 4px 0!important}
+#ui .atlas-heading p{font-size:14px!important;color:#e9d9b7!important}
+#ui .atlas-layout{grid-template-columns:minmax(0,1fr) 290px;gap:22px}
+#ui .atlas-map-wrap{max-width:calc(94dvh - 295px);border:6px solid #394b2d;outline:2px solid #c4d496;background:#a5c5c3;box-shadow:inset 3px 3px #0004,5px 5px #1c261c;aspect-ratio:1}
+#ui .atlas-tools{gap:8px;align-items:center}
+#ui .atlas-tools button{min-height:40px;font-size:10px;padding:7px 12px}
+#ui .atlas-tools b{font:15px var(--game-pixel);color:#def0af}
+#ui .atlas-scale{display:flex;justify-content:space-between;gap:10px;font:11px/1.6 var(--game-pixel);color:#f5e6bd;margin:12px 0}
+#ui .atlas-legend{gap:10px 15px;font:12px var(--game-body);padding-top:4px;color:#eee0b9}
+#ui .atlas-legend span{display:flex;align-items:center;gap:5px}
+#ui .atlas-legend i{width:12px;height:12px;border:2px solid #2d3522;display:inline-block}
+#ui .atlas-hint{margin-top:9px!important}
+#ui .atlas-search label{font:11px/1.6 var(--game-pixel);color:#d0e59c}
+#ui .atlas-search>div{display:flex;gap:6px;margin:6px 0 12px}
+#ui .atlas-search input{min-width:0;width:100%;border:3px solid #2b3021;background:#f5e7bf;color:#2d3623;padding:10px;font:16px var(--game-body)}
+#ui .atlas-search button{font-size:10px;padding:8px}
+#ui .atlas-filters{flex-wrap:wrap;gap:6px;padding-bottom:12px}
+#ui .atlas-filters button{font-size:10px;flex:auto;padding:7px 9px;min-height:35px}
+#ui .atlas-places{max-height:28dvh;border:3px solid #282e1f;background:#2a3827;padding:6px}
+#ui .atlas-places button{position:relative;padding:12px 10px 12px 32px;margin-bottom:7px;min-height:61px;text-align:left;background:#455b3c}
+#ui .atlas-places button i{position:absolute;top:15px;left:10px;display:block;width:12px;height:12px;border:2px solid #2f3828}
+#ui .atlas-places span{font:11px/1.6 var(--game-pixel);color:inherit}
+#ui .atlas-places small{font:12px/1.5 var(--game-body);margin-top:5px;color:inherit!important}
+#ui .atlas-places button[aria-pressed=true] small{color:#28331d!important}
+#ui .atlas-selection{padding:13px;background:#292c22;border:3px solid #a58a5c;margin-top:12px}
+#ui .atlas-selection>span{font:10px var(--game-pixel);color:#d3eaa8}
+#ui .atlas-selection h3{font-size:15px!important;line-height:1.5;margin:8px 0}
+#ui .atlas-selection p{font-size:14px!important;margin:8px 0!important}
+#ui .atlas-selection b{font:11px/1.6 var(--game-body);color:#efdaad}
+#ui .atlas-selection button{font-size:11px;min-height:39px;padding:8px}
+#ui .atlas-empty{font-size:14px!important;padding:12px;line-height:1.6}
+@media(max-width:760px){#ui .atlas-shade{padding:6px}#ui .atlas-shade .modal.wide{width:100%;padding:15px;max-height:97dvh}#ui .atlas-heading h2{font-size:18px!important}#ui .atlas-layout{grid-template-columns:1fr;gap:18px}#ui .atlas-map-wrap{max-width:48dvh}#ui .atlas-tools button{font-size:9px;padding:6px 9px;min-height:34px}#ui .atlas-places{max-height:25dvh}#ui .atlas-selection h3{font-size:14px!important}#ui .atlas-heading p{font-size:12px!important}}
+@media(prefers-reduced-motion:reduce){#ui *,#ui *::before,#ui *::after{transition:none!important;animation:none!important}}
+@media(max-width:650px){.world-home-door{right:12px;bottom:305px;width:125px;font-size:10px!important}.world-target{top:260px}#ui .home-dock{max-width:calc(100vw - 24px);gap:6px}#ui .home-dock>button{font-size:10px!important;padding:9px}}

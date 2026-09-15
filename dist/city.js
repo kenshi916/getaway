@@ -1,8 +1,8 @@
 import * as THREE from './assets/three.module.js';
-import {createCityFinish,addCitySky} from './city-finish.js?v=27';
-import {createCityLandscape} from './city-landscape.js?v=27';
+import {createCityFinish,addCitySky} from './city-finish.js?v=29';
+import {createCityLandscape} from './city-landscape.js?v=29';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=27';
+import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=29';
 
 const ASSETS=[...'abcdefghijklmn'].map(c=>'building-'+c).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','detail-parasol-a','detail-parasol-b'],[...'abfgkqrt'].map(c=>'industrial/building-'+c),['water-tower','shipping-container-a','shipping-container-b','solar-panel-landscape-group','detail-tank'].map(n=>'industrial/'+n),[...'acfgkmoq'].map(c=>'suburban/building-type-'+c),['tree_oak','tree_detailed','tree_palmDetailedTall','plant_bushDetailed','flower_redA'].map(n=>'nature/'+n));
 const models=new Map();
@@ -107,7 +107,17 @@ export function buildCity(world){
    if(b.park||residential)landscape.lawn(b,group);
    if(b.park){
     ground(2.3,25,'#d0c4a2',b.x,b.z,.39,group,{map:landscape.pathTexture});ground(25,2.3,'#d0c4a2',b.x,b.z,.4,group,{map:landscape.pathTexture});
-    for(const dx of [-8.5,8.5])for(const dz of [-8.5,8.5]){tree(b.x+dx,b.z+dz,5+(v%4),group,area.type==='garden');model('nature/plant_bushDetailed',b.x+dx*.65,b.z+dz,2.6,1.9,1.5,0,group);}
+    for(const dx of [-8.5,8.5])for(const dz of [-8.5,8.5]){tree(b.x+dx,b.z+dz,5+(v%4),group,area.id==='gardens'||area.id==='boardwalk');model('nature/plant_bushDetailed',b.x+dx*.65,b.z+dz,2.6,1.9,1.5,0,group);}
+    if(Math.abs(b.x)>282||Math.abs(b.z)>282){
+     const ink=area.id==='pine'?'#c8eda1':area.id==='boardwalk'?'#b5edf0':'#ffe4b1';
+     label(area.name,8.2,.9,b.x,2.3,b.z+11.4,ink,'#324934',0,group);
+     for(const side of [-1,1]){pole(.12,2.5,'#6c5840',b.x+side*4.4,1.5,b.z+11.4,group);}
+     if(area.id==='boardwalk'){
+      for(const side of [-1,1]){model('detail-parasol-a',b.x+side*7,b.z-4,3.5,3.5,3.2,0,group);bench(b.x+side*7,b.z-3.7,0,group);}
+     }else if(area.id==='pine'){
+      for(const side of [-1,1]){block(3.2,.15,1.4,'#ab8854',b.x+side*7,1.05,b.z+5,group);for(const leg of [-1,1])block(.13,.75,.13,'#5b513a',b.x+side*7+leg*1.1,.7,b.z+5,group);}
+     }
+    }
     bench(b.x-4,b.z+3,0,group);bench(b.x+4,b.z-3,Math.PI,group);pole(1.3,.42,'#a9b2a1',b.x,.6,b.z,group);pole(1.1,.07,'#76adb0',b.x,.86,b.z,group);
    }else if(residential){
     for(let k=0;k<2;k++){const cx=b.x+(k-.5)*12.2,cz=b.z-1.6,name=names[(v+k*3)%names.length],built=model(name,cx,cz,10.3,17,7.2+(v%3)*.7,0,group,palette[(v+k)%4]);buildingBounds.push({name,bounds:built.box,block:b});ground(1.35,Math.max(1,12-(built.box.max.z-b.z)),'#d2c4a9',cx,(built.box.max.z+b.z+12)/2,.39,group);model('nature/plant_bushDetailed',cx-3.5,b.z+9.7,3.2,1.4,1.05,0,group);for(const side of [-1,1]){block(3.4,.64,.13,'#ded3b5',cx+side*2.5,.7,b.z+12,group);for(let n=0;n<5;n++)block(.1,.87,.17,'#e8dfc6',cx+side*2.5-1.4+n*.7,.85,b.z+12,group);}label(String(200+(v%600)+k),.72,.37,cx,1.6,built.box.max.z+.06,'#ffdfa4','#314a49',0,group);}
@@ -201,31 +211,31 @@ export function buildCity(world){
  }
  for(const x of [-98,98])for(let z=-84;z<=85;z+=7){ground(3,.12,'#91a7bb',x,z,.04);ground(.12,3,'#91a7bb',x+(x<0?-1.5:1.5),z+1.5,.04);}
  // A distant skyline and waterfront replace the empty background plane.
- for(let i=0;i<15;i++){const x=-265+i*38;model('building-skyscraper-'+['a','b','c'][i%3],x,-306,11,12,26+(i*7%19),i%2?Math.PI:0,stage,['#becfe5','#b5b6d2','#e3c3c5'][i%3]);}
- for(let i=0;i<10;i++)model('building-'+['f','l','n'][i%3],306,-252+i*56,13,15,20+(i%3)*4,-Math.PI/2,stage,'#aebed5');
- for(let i=0;i<107;i++){block(.16,1.15,.16,'#7493a8',-283.3,.65,-280+i*5.3);if(i<106)block(.1,.12,5.3,'#7493a8',-283.3,1.12,-277.35+i*5.3);}
- ground(6,569,'#78909c',-285.9,0,-.01);for(let i=0;i<5;i++)ground(2,13,'#719bbc',-296-i*11,-42+i*19,-.675,stage,{transparent:true,opacity:.22});
+ for(let i=0;i<15;i++){const x=-LIMIT+17+i*(LIMIT*2-34)/14;model('building-skyscraper-'+['a','b','c'][i%3],x,-LIMIT-24,11,12,26+(i*7%19),i%2?Math.PI:0,stage,['#becfe5','#b5b6d2','#e3c3c5'][i%3]);}
+ for(let i=0;i<10;i++)model('building-'+['f','l','n'][i%3],LIMIT+24,-LIMIT+30+i*(LIMIT*2-60)/9,13,15,20+(i%3)*4,-Math.PI/2,stage,'#aebed5');
+ for(let i=0;i<Math.ceil(LIMIT*2/5.3);i++){block(.16,1.15,.16,'#7493a8',-LIMIT-1.3,.65,-LIMIT+2+i*5.3);if(i<Math.ceil(LIMIT*2/5.3)-1)block(.1,.12,5.3,'#7493a8',-LIMIT-1.3,1.12,-LIMIT+4.65+i*5.3);}
+ ground(6,LIMIT*2+5,'#78909c',-LIMIT-3.9,0,-.01);for(let i=0;i<5;i++)ground(2,13,'#719bbc',-LIMIT-14-i*11,-42+i*19,-.675,stage,{transparent:true,opacity:.22});
  for(const r of RAMPS){const hw=r.w/2,hd=r.d/2,a=(1-r.dir)*r.h/2,b=(1+r.dir)*r.h/2;const points=r.axis==='x'?[[-hw,0,-hd],[-hw,0,hd],[hw,r.h,hd],[hw,r.h,-hd]]:[[-hw,a,-hd],[hw,a,-hd],[hw,b,hd],[-hw,b,hd]],v=[];for(const i of [0,1,2,0,2,3])v.push(...points[i]);const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(v,3));geo.computeVertexNormals();const m=new THREE.Mesh(geo,mat('#d2a26c',{side:THREE.DoubleSide}));m.position.set(r.x,.08,r.z);m.receiveShadow=true;stage.add(m);}
  // The outer map adds a waterfront promenade, docks, and a lit arcade gateway.
  for(const z of [-75,-24,27,78]){
-  block(18,.65,4.4,'#8d8972',-294,-.1,z);for(let n=0;n<12;n++)ground(.045,4.3,'#5a685f',-302+n*1.45,z,.235);
-  for(const x of [-301,-293])for(const edge of [-1,1])pole(.2,2.1,'#41595b',x,.4,z+edge*2.4);
-  for(const [n,x]of [-297,-291].entries()){
+  block(18,.65,4.4,'#8d8972',-LIMIT-12,-.1,z);for(let n=0;n<12;n++)ground(.045,4.3,'#5a685f',-LIMIT-20+n*1.45,z,.235);
+  for(const x of [-LIMIT-19,-LIMIT-11])for(const edge of [-1,1])pole(.2,2.1,'#41595b',x,.4,z+edge*2.4);
+  for(const [n,x]of [-LIMIT-15,-LIMIT-9].entries()){
    const container=model('industrial/shipping-container-'+(n?'b':'a'),x,z,5.2,3.2,2.5,0,stage);container.root.position.y=.27;
    if(n===0){const upper=model('industrial/shipping-container-b',x+.2,z,5.2,3.2,2.5,0,stage);upper.root.position.y=container.box.max.y+.08;}
   }
  }
- for(const z of [-86,-50,-14,22,58,94]){tree(-279,z,6,stage,true);block(.65,1.35,.65,'#c6dacc',-281,1,z,stage,{emissive:'#fce4ab',emissiveIntensity:.6});bench(-285.7,z,Math.PI/2);}
+ for(const z of [-86,-50,-14,22,58,94]){tree(-LIMIT+3,z,6,stage,true);block(.65,1.35,.65,'#c6dacc',-LIMIT+1,1,z,stage,{emissive:'#fce4ab',emissiveIntensity:.6});bench(-LIMIT-3.7,z,Math.PI/2);}
  // Dock cranes give the waterfront a different silhouette from the retail centre.
  for(const z of [-72,28]){
-  for(const side of [-1,1]){block(.48,13,.48,'#c49a56',-296+side*2.3,6.5,z);block(1.3,.5,2,'#465c65',-296+side*2.3,.25,z);}
-  block(6.3,.8,1,'#d3ae65',-296,12.8,z);block(13,.45,.55,'#cda969',-292.7,14,z);block(1.7,1.6,1.8,'#45646e',-298,13.8,z);
-  for(let n=0;n<5;n++){block(.15,.8,.15,'#e4c883',-297+n*2.5,13.5,z);}
-  pole(.032,6.5,'#3a4c55',-288,10.7,z);block(.2,.32,.35,'#e4c38a',-288,7.45,z);
-  const tank=model('industrial/detail-tank',-299,z+9,5.5,5.5,5.5,0,stage);tank.root.position.y=.12;
+  for(const side of [-1,1]){block(.48,13,.48,'#c49a56',-LIMIT-14+side*2.3,6.5,z);block(1.3,.5,2,'#465c65',-LIMIT-14+side*2.3,.25,z);}
+  block(6.3,.8,1,'#d3ae65',-LIMIT-14,12.8,z);block(13,.45,.55,'#cda969',-LIMIT-10.7,14,z);block(1.7,1.6,1.8,'#45646e',-LIMIT-16,13.8,z);
+  for(let n=0;n<5;n++){block(.15,.8,.15,'#e4c883',-LIMIT-15+n*2.5,13.5,z);}
+  pole(.032,6.5,'#3a4c55',-LIMIT-6,10.7,z);block(.2,.32,.35,'#e4c38a',-LIMIT-6,7.45,z);
+  const tank=model('industrial/detail-tank',-LIMIT-17,z+9,5.5,5.5,5.5,0,stage);tank.root.position.y=.12;
  }
  // Small highlights break up the flat water without adding real-time lights.
- for(let n=0;n<36;n++){const x=-292-(n%6)*8,z=-279+Math.floor(n/6)*37+(n%4)*2;ground(3+(n%3)*2,.13,'#8fafb1',x,z,-.678,stage,{transparent:true,opacity:.23,depthWrite:false});}
+ for(let n=0;n<36;n++){const x=-LIMIT-10-(n%6)*8,z=-LIMIT+3+Math.floor(n/6)*37+(n%4)*2;ground(3+(n%3)*2,.13,'#8fafb1',x,z,-.678,stage,{transparent:true,opacity:.23,depthWrite:false});}
  for(const x of [-4.4,4.4]){block(.24,7.6,.28,'#374866',x,3.8,-9);block(.13,6.2,.31,'#c291ff',x,4,-9,stage,{emissive:'#a674ff',emissiveIntensity:.75});}
  block(9,1,.38,'#362749',0,7.6,-9);label('NEON ROW',8.6,.82,0,7.6,-8.79,'#e1b7ff','#362749');
  for(let n=0;n<9;n++){const x=26+n*2.5;block(.24,.3,.24,n%2?'#ffeea5':'#b0f8db',x,4.8,-48.5,stage,{emissive:n%2?'#ffd279':'#76e8c3',emissiveIntensity:1});}

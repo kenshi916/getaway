@@ -1,11 +1,11 @@
 import * as THREE from './assets/three.module.js';
 import {GLTFLoader} from './assets/GLTFLoader.js';
-import {loadCityPack,buildCity} from './city.js?v=27';
-import {loadVehiclePack,makeVehicle,animateVehicle,vehicleReady} from './vehicles.js?v=27';
-import {CARS,PAINTS,createCar} from './driving.mjs?v=27';
+import {loadCityPack,buildCity} from './city.js?v=29';
+import {loadVehiclePack,makeVehicle,animateVehicle,vehicleReady} from './vehicles.js?v=29';
+import {CARS,PAINTS,createCar} from './driving.mjs?v=29';
 const VIEWS={
  gardens:{eye:[140,90,-9],target:[90,0,-72],number:'04 / NORTH GARDENS',title:'A GREENER SIDE OF THE CITY',text:'Walk the garden paths, take the quieter streets, and find Mina’s next stop among the flowers.'},
- downtown:{eye:[145,148,175],target:[0,0,0],number:'01 / DOWNTOWN',title:'A BIGGER NIGHT OUT',text:'Nine districts. 256 junctions. Nearly eight times the playable area. Keep driving beyond downtown into the harbor, gardens, and hills.'},
+ downtown:{eye:[145,148,175],target:[0,0,0],number:'01 / DOWNTOWN',title:'A BIGGER NIGHT OUT',text:'13 districts. 484 junctions. New neighborhoods beyond every side of downtown. Keep driving beyond downtown into the harbor, gardens, and hills.'},
  neon:{eye:[41,45,62],target:[0,3,0],number:'02 / NEON ROW',title:'BRIGHT LIGHTS. TIGHT TURNS.',text:'Find the arcade gateway, slip through the center alley, and take the ramp to shake the pursuit.'},
  garage:{eye:[79,49,101],target:[34,1,46],number:'03 / LAST EXIT',title:'BRING IT BACK IN ONE PIECE',text:'Home is the lit garage on the southeast road. Stop here to bank your haul and finish the shift.'}
 };
@@ -37,6 +37,6 @@ function renderRides(){
  const scene=new THREE.Scene();scene.background=new THREE.Color('#1a1e20');scene.add(new THREE.HemisphereLight('#e1f0ff','#243831',2.9));const sun=new THREE.DirectionalLight('#ffe4b2',4.2);sun.position.set(-3,7,5);scene.add(sun);
  const floor=new THREE.Mesh(new THREE.PlaneGeometry(16,16),new THREE.MeshStandardMaterial({color:'#1a1e20',roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.02;scene.add(floor);
  const camera=new THREE.PerspectiveCamera(34,640/365,.1,40);camera.position.set(3.9,2.7,5.2);camera.lookAt(0,.6,0);
- for(const [i,container]of [...document.querySelectorAll('[data-car-preview]')].entries()){const config=CARS[container.dataset.carPreview],vehicle=makeVehicle(config.model,1,['#cbb572','#b9bfc1','#ba4b35','#c4ae77','#d2b548','#667061'][i]);scene.add(vehicle.group);renderer.render(scene,camera);const image=new Image();image.src=renderer.domElement.toDataURL('image/png');image.alt=config.name+' — actual in-game vehicle';image.width=640;image.height=365;container.replaceChildren(image);scene.remove(vehicle.group);}
+ for(const [i,container]of [...document.querySelectorAll('[data-car-preview]')].entries()){const backdrop=['#e2efff','#e8dcfc','#ddf3df'][i%3];scene.background.set(backdrop);floor.material.color.set(backdrop);const config=CARS[container.dataset.carPreview],vehicle=makeVehicle(config.model,1,['#ffd45b','#94aecf','#dd6b60','#ffce52','#f3c84e','#72a791'][i]);scene.add(vehicle.group);renderer.render(scene,camera);const image=new Image();image.src=renderer.domElement.toDataURL('image/png');image.alt=config.name+' — actual in-game vehicle';image.width=640;image.height=365;container.replaceChildren(image);scene.remove(vehicle.group);}
  renderer.dispose();renderer.forceContextLoss();
 }

@@ -1,8 +1,8 @@
-import {passengerJob,startRide,rideStatus,scoreRide,cleanPassengerHistory} from './passengers.mjs?v=27';
-import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=27';
-import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=27';
+import {passengerJob,startRide,rideStatus,scoreRide,cleanPassengerHistory} from './passengers.mjs?v=29';
+import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=29';
+import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=29';
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-export const ROAD=Array.from({length:16},(_,i)=>-270+i*36),LIMIT=282;
+export const ROAD=Array.from({length:22},(_,i)=>-378+i*36),LIMIT=390;
 export const DISTRICTS=[
  {id:'harbor',name:'HARBOR WORKS',x:-180,z:-180,color:'#7aafba',type:'industrial',description:'Container yards and warehouses. Long roads for losing a tail.'},
  {id:'uptown',name:'CROWN HEIGHTS',x:0,z:-180,color:'#bcb9ed',type:'commercial',description:'Tall towers, station streets, and the northern skyline.'},
@@ -12,9 +12,13 @@ export const DISTRICTS=[
  {id:'east',name:'EAST EXCHANGE',x:180,z:0,color:'#85bde9',type:'commercial',description:'Glass towers, late-night offices, and wide intersections.'},
  {id:'docks',name:'SOUTH DOCKS',x:-180,z:180,color:'#83c9bd',type:'industrial',description:'A working port at the edge of the water.'},
  {id:'south',name:'MOTOR QUARTER',x:0,z:180,color:'#ef9f79',type:'industrial',description:'Service yards, garages, and warehouse streets.'},
- {id:'sunset',name:'SUNSET HILLS',x:180,z:180,color:'#d9a6c5',type:'residential',description:'Suburban streets and tree-lined blocks on the far side of town.'}
+ {id:'sunset',name:'SUNSET HILLS',x:180,z:180,color:'#d9a6c5',type:'residential',description:'Suburban streets and tree-lined blocks on the far side of town.'},
+ {id:'pine',name:'PINE RIDGE',x:0,z:-324,color:'#99bc67',type:'garden',description:'Woodland courtyards, picnic greens, and a long northern drive.'},
+ {id:'citrus',name:'CITRUS ESTATE',x:324,z:0,color:'#eac781',type:'residential',description:'Colorful houses, flower-filled front gardens, and room to settle in.'},
+ {id:'boardwalk',name:'SUNSHORE',x:0,z:324,color:'#8fd4ca',type:'garden',description:'Palm gardens, outdoor cafes, and the southern waterfront.'},
+ {id:'coast',name:'COASTAL COMMONS',x:-324,z:0,color:'#a5bfa4',type:'residential',description:'Seaside cottages and a promenade beside the working harbor.'}
 ];
-export const districtAt=p=>DISTRICTS[(p.z<-90?0:p.z>90?2:1)*3+(p.x<-90?0:p.x>90?2:1)];
+export const districtAt=p=>p.z<-282?DISTRICTS[9]:p.z>282?DISTRICTS[11]:p.x>282?DISTRICTS[10]:p.x<-282?DISTRICTS[12]:DISTRICTS[(p.z<-90?0:p.z>90?2:1)*3+(p.x<-90?0:p.x>90?2:1)];
 export const LANDMARKS=DISTRICTS.filter(d=>d.id!=='downtown').map(d=>({id:'landmark-'+d.id,name:d.name,x:d.x,z:d.z-18,district:d.id}));
 export const HOME={x:36,z:54,name:'LAST EXIT GARAGE'};
 export const CARS={
@@ -54,8 +58,8 @@ export const BLOCKS=[
  {x:36,z:72,w:25,d:25,h:10,color:'#c0b098',name:'FUEL STOP',district:'south'},
  {x:72,z:72,w:25,d:25,h:11,color:'#ce9778',name:'ROADHOUSE',district:'south'}
 ];
-// Preserve every original block and save coordinate; add 200 surrounding blocks.
-for(let x=-252;x<=252;x+=36)for(let z=-252;z<=252;z+=36){
+// Keep every existing address, route and save coordinate; extend the perimeter.
+for(let x=-360;x<=360;x+=36)for(let z=-360;z<=360;z+=36){
  if(Math.abs(x)<=72&&Math.abs(z)<=72)continue;
  const area=districtAt({x,z}),n=Math.abs(x/36)+Math.abs(z/36),park=area.type==='garden'&&n%3===0;
  BLOCKS.push({x,z,w:26,d:26,h:area.type==='commercial'?16+n%4*5:9,color:area.color,name:area.name,district:area.id,outer:true,park});
@@ -72,7 +76,11 @@ export const STOPS=[
  {id:'station',x:0,z:-90,name:'CENTRAL STATION',type:1},
  {id:'cinema',x:36,z:-90,name:'STARLIGHT CINEMA',type:2},
  {id:'docks',x:-90,z:-36,name:'PORT AUTHORITY',type:3},
- {id:'roadhouse',x:72,z:90,name:'ROADHOUSE',type:2}
+ {id:'roadhouse',x:72,z:90,name:'ROADHOUSE',type:2},
+ {id:'pine-stop',x:0,z:-342,name:'PINE RIDGE TRAILHEAD',type:1},
+ {id:'citrus-stop',x:342,z:0,name:'CITRUS CORNER STORE',type:1},
+ {id:'sunshore-stop',x:0,z:342,name:'SUNSHORE CAFE',type:1},
+ {id:'coast-stop',x:-342,z:0,name:'COASTAL COMMONS',type:2}
 ];
 export const DESTS=[
  {id:'west',x:-54,z:-36,name:'WESTSIDE APARTMENTS'},

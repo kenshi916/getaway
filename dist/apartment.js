@@ -1,7 +1,7 @@
-import {createWalkingView} from './first-person.js?v=27';
+import {createWalkingView} from './first-person.js?v=29';
 import * as THREE from './assets/three.module.js';
-import {HOME_SPAWN,HOME_SPOTS,HOME_BOUNDS,homeRoom} from './home-layout.mjs?v=27';
-export {HOME_SPAWN,HOME_SPOTS} from './home-layout.mjs?v=27';
+import {HOME_SPAWN,HOME_SPOTS,HOME_BOUNDS,homeRoom} from './home-layout.mjs?v=29';
+export {HOME_SPAWN,HOME_SPOTS} from './home-layout.mjs?v=29';
 export const APARTMENT_ASSETS=['bedDouble','cabinetBedDrawer','lampRoundTable','loungeDesignSofaCorner','loungeChairRelax','pillowBlue','tableCoffeeGlass','cabinetTelevision','televisionModern','books','laptop','desk','chairDesk','bookcaseClosedDoors','pottedPlant','plantSmall1','kitchenCabinetDrawer','kitchenSink','kitchenStove','kitchenFridge','hoodModern','kitchenCabinetUpperDouble','kitchenCoffeeMachine','tableRound','chairModernCushion','showerRound','toiletSquare','bathroomSinkSquare','bathroomMirror','washer','coatRackStanding','rugDoormat','lampRoundFloor','sideTable','trashcan','radio'];
 
 export function buildApartment(templates,position=HOME_SPAWN,life={}){
@@ -47,7 +47,7 @@ export function buildApartment(templates,position=HOME_SPAWN,life={}){
  // Bedroom partition and a real hallway door opening, with a low front wall for visibility.
  wall(.18,3.2,9.1,1.6,-3.45,'#b7c0b2');wall(.85,1.15,.18,2.025,1.1,'#b7c0b2');wall(6.15,1.15,.18,7.725,1.1,'#b7c0b2');
  function doorway(x,z,width,rotation=0,door=false){const group=new THREE.Group();group.position.set(x,0,z);group.rotation.y=rotation;room.add(group);for(const xx of [-width/2,width/2])box(.13,2.7,.22,'#e3d4b8',xx,1.62,0,{},group);box(width+.13,.15,.22,'#e3d4b8',0,3,0,{},group);box(width,.045,.28,'#c8a779',0,.32,0,{},group);if(door){const panel=box(width-.15,2.58,.12,'#2d4852',0,1.59,0,{},group);panel.userData.homeAction='door';panel.material=panel.material.clone();panel.material.transparent=true;occluders.push(panel);box(.07,.07,.15,'#d8b571',width*.31,1.45,.12,{metalness:.65,roughness:.35},group);}}
- doorway(3.55,1.1,2.2);wall(.18,1.2,2.3,6.6,2.25,'#90aba4');wall(.18,1.2,2.4,6.6,6.8,'#90aba4');doorway(6.6,4.5,2.2,Math.PI/2);doorway(3.8,7.96,1.8,0,true);label('04',.42,.3,3.8,2.24,8.05,0,'#e6c784','#2d4852');
+ doorway(3.55,1.1,2.2);wall(.18,1.2,2.3,6.6,2.25,'#90aba4');wall(.18,1.2,2.4,6.6,6.8,'#90aba4');doorway(6.6,4.5,2.2,Math.PI/2);doorway(3.8,7.96,1.8,0,true);const addressLabel=label('04',.75,.3,3.8,2.24,8.05,0,'#e6c784','#2d4852');
  // The apartment's garage lift changes to the downstairs car bay.
  for(const x of [-.78,1.18])box(.14,2.95,.2,'#6b9297',x,1.74,7.78);
  box(2.1,.16,.2,'#93d7c4',.2,3.24,7.78,{emissive:'#6dbba8',emissiveIntensity:.35});
@@ -152,6 +152,20 @@ export function buildApartment(templates,position=HOME_SPAWN,life={}){
   steam.visible=activity?.id==='coffee';steam.children.forEach((p,i)=>{p.position.y=1.98+((time*.3+i*.13)%.55);p.material.opacity=Math.max(0,.35-(p.position.y-1.98)*.5);});water.visible=activity?.id==='shower';water.children.forEach((p,i)=>{p.position.y=.7+((i*.091-time*1.65)%1.7+1.7)%1.7;});if(tvOn){for(const m of tvMaterials)m.emissiveIntensity=.8+Math.sin(time*2)*.15;const frame=Math.floor(time*8);if(frame!==tvFrame){tvFrame=frame;const c=tvContext;c.fillStyle='#142638';c.fillRect(0,0,512,256);c.fillStyle='#9be1cd';c.fillRect(0,0,512,44);c.font='bold 23px monospace';c.fillStyle='#182e36';c.fillText('LAST EXIT TV / LIVE',18,30);for(let i=0;i<16;i++){const h=25+(i*23%85);c.fillStyle=i%2?'#355667':'#456879';c.fillRect(i*34,200-h,28,h);}c.fillStyle='#ffe3a0';c.font='bold 32px monospace';c.fillText(['CITY AFTER DARK','TAKE THE LONG WAY','THE NIGHT IS YOURS'][Math.floor(time/6)%3],20,96);c.fillStyle='#c4e0d8';c.font='20px monospace';c.fillText('20:46  /  DOWNTOWN',20,237);c.fillStyle='#f3c68b';c.fillRect((time*55)%560-40,185,38,13);tvTexture.needsUpdate=true;}}
   return activity||before.y!==.36?0:moved;
  }
- return {scene,camera,avatar,walkingView,setFirstPerson,look:walkingView.look,colliders,hotspots,furniture,update,nearest,canInteract,setPosition,blocked,resize,setCharacter,toggleView,zoomBy,interact,walkTo,clickAt,stopActivity,
+ const homeLayers=[new THREE.Group(),new THREE.Group(),new THREE.Group()];
+ homeLayers.forEach((g,i)=>{g.name='Home upgrade '+(i+1);room.add(g);g.visible=false;});
+ const addUpgradeProp=(level,name,x,z,width,options={})=>{const p=prop(name,x,z,width,{...options,collision:false});homeLayers[level-1].add(p.group);};
+ const rug=box(7.84,.018,5.82,'#6c8c45',-6,.365,3.7,{},homeLayers[0]);
+ for(let n=0;n<10;n++)box(7.6,.006,.065,n%2?'#c5d98a':'#94b262',-6,.378,1.1+n*.57,{},homeLayers[0]);
+ addUpgradeProp(1,'pottedPlant',-10.12,5.65,.75,{height:1.65});addUpgradeProp(1,'pottedPlant',9.75,-6.8,.7,{height:1.5});
+ box(3.4,.13,.6,'#94693e',-6.5,2.35,7.65,{},homeLayers[1]);
+ addUpgradeProp(2,'books',-7.35,7.55,.5,{y:2.42});addUpgradeProp(2,'radio',-6.3,7.55,.6,{y:2.42});addUpgradeProp(2,'plantSmall1',-5.45,7.6,.45,{y:2.42});
+ box(3.25,.04,.09,'#ffdf87',-6.5,2.27,7.4,{emissive:'#ffd780',emissiveIntensity:1.4},homeLayers[1]);
+ box(2.1,2.65,.04,'#b69958',9.55,1.91,-7.87,{metalness:.28,roughness:.48},homeLayers[2]);
+ for(let n=0;n<8;n++)box(.045,2.65,.045,'#e0c77d',8.65+n*.25,1.91,-7.83,{},homeLayers[2]);
+ const trophy=new THREE.Mesh(new THREE.CylinderGeometry(.23,.17,.34,6),mat('#d9b456',{metalness:.65,roughness:.35}));trophy.position.set(-6.1,2.82,7.55);homeLayers[2].add(trophy);box(.46,.12,.4,'#2e4431',-6.1,2.49,7.55,{},homeLayers[2]);box(.09,.18,.09,'#d9b456',-6.1,2.61,7.55,{},homeLayers[2]);
+ let homeLevel=0;
+ function setHomeLevel(level,unit){homeLevel=Math.max(0,Math.min(3,Number(level)||0));homeLayers.forEach((g,i)=>g.visible=homeLevel>i);floor.material.color.set(homeLevel>=3?'#d6c4a7':'#a28161');if(unit){const c=addressLabel.material.map.image,ctx=c.getContext('2d');ctx.fillStyle='#2d4852';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#e6c784';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 80px monospace';ctx.fillText(String(unit).padStart(3,'0'),c.width/2,c.height/2,c.width-30);addressLabel.material.map.needsUpdate=true;}}
+ return {scene,camera,avatar,walkingView,setHomeLevel,homeLayers,get homeLevel(){return homeLevel;},setFirstPerson,look:walkingView.look,colliders,hotspots,furniture,update,nearest,canInteract,setPosition,blocked,resize,setCharacter,toggleView,zoomBy,interact,walkTo,clickAt,stopActivity,
   takeArrival(){const id=arrived;arrived=null;return id;},takeNotice(){const value=notice;notice=null;return value;},get activity(){return activity;},get navigating(){return routePoints.length>0;},get savedPosition(){return activity?{...activity.origin}:{x:avatar.position.x,z:avatar.position.z};},get lifeState(){return {tvOn,completed:[...completed]};},get viewMode(){return viewMode;},get roomName(){return homeRoom(avatar.position.x,avatar.position.z);}};
 }

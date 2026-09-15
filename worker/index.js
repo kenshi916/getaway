@@ -1,26 +1,30 @@
 import {HOMES,AVATARS,STATUSES} from '../dist/social-catalog.mjs';
+import {worldApi} from './world.js';
 const headers={'content-type':'application/json; charset=utf-8','cache-control':'private, no-store','x-content-type-options':'nosniff'};
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const publicProfile=p=>({id:p.id,name:p.name,avatar:p.avatar,status:p.status,note:p.note,homeId:p.home_id,online:Date.now()-p.last_seen<120000,lastSeen:p.last_seen});
 const code=()=>Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b%32]).join('');
-async function body(request){if(!request.headers.get('content-type')?.startsWith('application/json'))fail('Send JSON.',415);const text=await request.text();if(text.length>4096)fail('Request is too large.',413);try{return JSON.parse(text);}catch{fail('Invalid request.');}}
+async function body(request){if(!request.headers.get('content-type')?.startsWith('application/json'))fail('Send JSON.',415);const text=await request.text();if(text.length>4096)fail('Request is too large.',413);try{const value=JSON.parse(text);if(!value||typeof value!=='object'||Array.isArray(value))fail('Send a JSON object.');return value;}catch{fail('Invalid request.');}}
 async function api(request,env){
  const url=new URL(request.url),path=url.pathname,method=request.method;
  const owner=request.headers.get('oai-authenticated-user-id');if(!owner)fail('Sign in with ChatGPT to open your crew.',401);
  if(method!=='GET'&&(request.headers.get('origin')!==url.origin||request.headers.get('sec-fetch-site')==='cross-site'))fail('Open Crew on this site to make changes.',403);
  const db=env.DB;if(!db)fail('Crew is temporarily unavailable. Try again shortly.',503);
  const me=await db.prepare('SELECT * FROM profiles WHERE owner_id = ?').bind(owner).first();
+ if(path==='/api/world'||path.startsWith('/api/world/'))return worldApi(request,{db,me,body,json,fail,url});
  if(path==='/api/social'&&method==='GET'){
   if(!me)return json({profile:null,friends:[],incoming:[],outgoing:[]});
   const rows=await db.prepare(`SELECT f.id AS connection_id,f.status AS connection_status,f.from_id,p.* FROM friendships f JOIN profiles p ON p.id = CASE WHEN f.from_id = ? THEN f.to_id ELSE f.from_id END WHERE f.from_id = ? OR f.to_id = ? ORDER BY f.created_at DESC LIMIT 120`).bind(me.id,me.id,me.id).all();
-  const result={profile:{...publicProfile(me),friendCode:me.friend_code},friends:[],incoming:[],outgoing:[]};
+  const residence=await db.prepare('SELECT home_id,unit,level FROM residences WHERE profile_id=?').bind(me.id).first();
+  const result={profile:{...publicProfile(me),friendCode:me.friend_code,residence:residence?{homeId:residence.home_id,unit:residence.unit,level:residence.level}:null},friends:[],incoming:[],outgoing:[]};
   for(const row of rows.results){const group=row.connection_status==='accepted'?'friends':row.from_id===me.id?'outgoing':'incoming';const profile=publicProfile(row);if(group!=='friends'){delete profile.homeId;delete profile.status;delete profile.note;delete profile.online;delete profile.lastSeen;}result[group].push({connectionId:row.connection_id,...profile});}return json(result);
  }
  if(path==='/api/profile'&&method==='PUT'){
   const b=await body(request);if(!b||typeof b.name!=='string'||b.name.trim().length<2||b.name.trim().length>24||/[\x00-\x1f<>]/.test(b.name))fail('Use a player name between 2 and 24 characters.');
   if(!AVATARS.includes(b.avatar)||!STATUSES.some(s=>s.id===b.status)||!HOMES.some(h=>h.id===b.homeId))fail('Choose a character, status, and GETAWAY apartment.');
   if(typeof b.note!=='string'||b.note.length>80||/[\x00-\x1f<>]/.test(b.note))fail('Keep your status message under 80 characters, without markup.');
+  const assigned=me?await db.prepare('SELECT home_id FROM residences WHERE profile_id=?').bind(me.id).first():null;if(assigned)b.homeId=assigned.home_id;
   await db.prepare(`INSERT INTO profiles (id,owner_id,friend_code,name,avatar,status,note,home_id,last_seen) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT(owner_id) DO UPDATE SET name=excluded.name,avatar=excluded.avatar,status=excluded.status,note=excluded.note,home_id=excluded.home_id,last_seen=excluded.last_seen`).bind(crypto.randomUUID(),owner,code(),b.name.trim(),b.avatar,b.status,b.note.trim(),b.homeId,Date.now()).run();
   return json({ok:true});
  }
