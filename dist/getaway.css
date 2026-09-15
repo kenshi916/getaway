@@ -78,3 +78,8 @@
 @media(max-width:650px){#ui:has(.home-ui:not(.hidden)) .topbar{left:16px;right:16px}#ui:has(.home-ui:not(.hidden)) .brand{font-size:20px;padding:7px}#ui:has(.home-ui:not(.hidden)) .topbar .tag{display:none}.home-camera{top:78px}.home-place{top:126px}.home-card{top:166px}.home-card>p{font-size:16px}.home-activities{width:min(350px,calc(100vw - 32px))}}
 
 .home-ui button,.home-ui h1,.home-ui h2,.home-ui strong,.home-ui p,.home-ui span{letter-spacing:normal;text-shadow:none}.home-card .primary{font-size:16px;font-weight:700}
+
+/* Keep the city controls available while a borrowed car is out for a test drive. */
+.hud.test-driving #timerBox,.hud.test-driving .haul-card,.hud.test-driving .wanted,.hud.test-driving #passengers,.hud.test-driving #drivePhone,.hud.test-driving #jobsBtn{display:none}
+.test-drive-return{background:#e7cb83;color:#172b31;border:1px solid #ffe6a7;min-height:44px;padding:10px 14px;font:700 12px/1.4 Arial,sans-serif;max-width:155px;white-space:normal}
+@media(max-width:600px){.test-drive-return{max-width:107px;font-size:11px;padding:8px}.hud.test-driving .dispatch{max-width:calc(100vw - 175px);min-width:0}.hud.test-driving .dispatch strong{overflow-wrap:anywhere}}

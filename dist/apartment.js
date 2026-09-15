@@ -1,7 +1,7 @@
-import {createWalkingView} from './first-person.js?v=26';
+import {createWalkingView} from './first-person.js?v=27';
 import * as THREE from './assets/three.module.js';
-import {HOME_SPAWN,HOME_SPOTS,HOME_BOUNDS,homeRoom} from './home-layout.mjs?v=26';
-export {HOME_SPAWN,HOME_SPOTS} from './home-layout.mjs?v=26';
+import {HOME_SPAWN,HOME_SPOTS,HOME_BOUNDS,homeRoom} from './home-layout.mjs?v=27';
+export {HOME_SPAWN,HOME_SPOTS} from './home-layout.mjs?v=27';
 export const APARTMENT_ASSETS=['bedDouble','cabinetBedDrawer','lampRoundTable','loungeDesignSofaCorner','loungeChairRelax','pillowBlue','tableCoffeeGlass','cabinetTelevision','televisionModern','books','laptop','desk','chairDesk','bookcaseClosedDoors','pottedPlant','plantSmall1','kitchenCabinetDrawer','kitchenSink','kitchenStove','kitchenFridge','hoodModern','kitchenCabinetUpperDouble','kitchenCoffeeMachine','tableRound','chairModernCushion','showerRound','toiletSquare','bathroomSinkSquare','bathroomMirror','washer','coatRackStanding','rugDoormat','lampRoundFloor','sideTable','trashcan','radio'];
 
 export function buildApartment(templates,position=HOME_SPAWN,life={}){

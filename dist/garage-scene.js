@@ -1,9 +1,9 @@
-import {createWalkingView} from './first-person.js?v=26';
+import {createWalkingView} from './first-person.js?v=27';
 import * as THREE from './assets/three.module.js';
-import {buildGarageRoom} from './garage-room.js?v=26';
-import {findWalkPath} from './walk-navigation.mjs?v=26';
-import {makeVehicle} from './vehicles.js?v=26';
-import {CARS,PAINTS} from './driving.mjs?v=26';
+import {buildGarageRoom} from './garage-room.js?v=27';
+import {findWalkPath} from './walk-navigation.mjs?v=27';
+import {makeVehicle} from './vehicles.js?v=27';
+import {CARS,PAINTS} from './driving.mjs?v=27';
 export function buildGarage(templates){
  const scene=new THREE.Scene();scene.background=new THREE.Color('#0c1115');scene.fog=new THREE.Fog('#0c1115',32,75);
  const camera=new THREE.PerspectiveCamera(41,1,.1,80);
@@ -21,7 +21,7 @@ export function buildGarage(templates){
  const bounds={minX:-10.8,maxX:10.8,minZ:-7.7,maxZ:10.5},spawn={x:-4.9,z:7.5},colliders=[];
  room.updateMatrixWorld(true);for(const object of [...props,...ghosts.map(v=>v.group)]){object.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(object);if(b.max.y<.3||b.min.y>2)continue;colliders.push({minX:b.min.x-.32,maxX:b.max.x+.32,minZ:b.min.z-.32,maxZ:b.max.z+.32});}
  function blocked(x,z){return !Number.isFinite(x)||!Number.isFinite(z)||x<bounds.minX||x>bounds.maxX||z<bounds.minZ||z>bounds.maxZ||Math.hypot(x,z)<4.85||colliders.some(b=>x>b.minX&&x<b.maxX&&z>b.minZ&&z<b.maxZ);}
- const hotspots=[{id:'inspect',x:0,z:5.65,label:'INSPECT THIS RIDE'},{id:'upstairs',x:-9.7,z:7.2,label:'GO UPSTAIRS'},{id:'drive',x:9.6,z:7.2,label:'DRIVE OUT'}];
+ const hotspots=[{id:'inspect',x:0,z:5.65,label:'INSPECT THIS RIDE'},{id:'upstairs',x:-9.7,z:7.2,label:'GO UPSTAIRS'},{id:'drive',x:9.6,z:7.2,label:'TEST DRIVE THIS CAR'}];
  function door(x,z,color,rotation,text){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rotation;scene.add(g);for(const side of [-1,1]){const post=new THREE.Mesh(new THREE.BoxGeometry(.16,3.15,.32),mat('#4a5659'));post.position.set(side*1.05,1.57,0);g.add(post);}const panel=new THREE.Mesh(new THREE.BoxGeometry(1.95,2.9,.12),mat(color));panel.position.y=1.45;g.add(panel);const stripe=new THREE.Mesh(new THREE.BoxGeometry(2.1,.15,.35),mat('#ebd8a1',{emissive:'#ffce78',emissiveIntensity:.8}));stripe.position.y=3.13;g.add(stripe);sign(text,2.9,.6,0,0,0);const label=room.children.at(-1);g.add(label);label.position.set(0,3.65,.08);label.rotation.y=0;g.userData.garageAction=text==='LIFT / HOME'?'upstairs':'drive';return g;}
  const doors=[door(-11.2,7.2,'#3b494e',Math.PI/2,'LIFT / HOME'),door(11.2,7.2,'#494a3b',-Math.PI/2,'CITY EXIT')];
  const avatar=new THREE.Group();avatar.position.set(spawn.x,.035,spawn.z);scene.add(avatar);let character=null,mixer=null,actions={},animation='',driverTemplate=null;

@@ -1,6 +1,6 @@
-import {BURN_CONFIG} from './burn-config.js?v=26';
-import {BURN_ITEMS} from './collection.mjs?v=26';
-import {METHODS} from './burn-methods.mjs?v=26';
+import {BURN_CONFIG} from './burn-config.js?v=27';
+import {BURN_ITEMS} from './collection.mjs?v=27';
+import {METHODS} from './burn-methods.mjs?v=27';
 
 const address=v=>typeof v==='string'&&/^0x[0-9a-f]{40}$/i.test(v)&&!/^0x0{40}$/i.test(v);
 const word=v=>BigInt(v).toString(16).padStart(64,'0');

@@ -1,8 +1,8 @@
 import * as THREE from './assets/three.module.js';
-import {createCityFinish,addCitySky} from './city-finish.js?v=26';
-import {createCityLandscape} from './city-landscape.js?v=26';
+import {createCityFinish,addCitySky} from './city-finish.js?v=27';
+import {createCityLandscape} from './city-landscape.js?v=27';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=26';
+import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=27';
 
 const ASSETS=[...'abcdefghijklmn'].map(c=>'building-'+c).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','detail-parasol-a','detail-parasol-b'],[...'abfgkqrt'].map(c=>'industrial/building-'+c),['water-tower','shipping-container-a','shipping-container-b','solar-panel-landscape-group','detail-tank'].map(n=>'industrial/'+n),[...'acfgkmoq'].map(c=>'suburban/building-type-'+c),['tree_oak','tree_detailed','tree_palmDetailedTall','plant_bushDetailed','flower_redA'].map(n=>'nature/'+n));
 const models=new Map();

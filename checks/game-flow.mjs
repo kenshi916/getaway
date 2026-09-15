@@ -12,7 +12,7 @@ import {createGamePhone,phoneQuests,phoneIcon} from '../dist/phone.js';
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 import * as RealThree from '../dist/assets/three.module.js';
 import {mergeGeometries} from '../dist/assets/BufferGeometryUtils.js';
-import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded,vehicleReady} from '../dist/vehicles.js?v=26';
+import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded,vehicleReady} from '../dist/vehicles.js?v=27';
 import {loadCityPack,buildCity} from '../dist/city.js';
 import * as core from '../dist/driving.mjs';
 import {SKINS,DRIVERS,BURN_CARS,ownsItem} from '../dist/collection.mjs';
@@ -50,6 +50,31 @@ const crowd=b.get().residents;for(const cap of [48,32])for(const focus of [{x:0,
 assert.equal(b.get().mode,'apartment','new players start inside their home');
 const oldSave={...core.defaultProfile(),homeVersion:2,home:{x:5,z:-4},credits:7100,unlocked:['van','coupe'],selected:'coupe',tutorialStep:5};const migrated=core.cleanProfile(oldSave);assert.deepEqual(migrated.home,HOME_SPAWN);assert.equal(migrated.credits,7100);assert.equal(migrated.selected,'coupe');assert.equal(migrated.tutorialStep,5);
 assert.equal(b.get().profile.tutorialStep,0);b.start();assert.equal(b.get().mode,'apartment','the briefing gates the first shift');
+// Every garage model can be driven before the briefing, without unlocking it.
+b.enterGarage();const beforeTestDrive=JSON.stringify(b.get().profile);
+for(const id of Object.keys(core.CARS)){
+ document.querySelectorAll('[data-garage-car]').find(e=>e.dataset.garageCar===id).onclick();
+ assert(!ids.get('garageTestDrive').disabled,'test drive is enabled for '+id);ids.get('garageTestDrive').onclick();
+ assert.equal(b.get().mode,'driving');assert.equal(b.get().player.config.id,id,'drives the inspected car');
+ assert(ids.get('hud').classList.contains('test-driving'));assert(!ids.get('testDriveReturn').classList.contains('hidden'));
+ const duration=b.get().run.time,origin={x:b.get().player.x,z:b.get().player.z};
+ let peakSpeed=0;ids.get('gasBtn').events.pointerdown({preventDefault(){},pointerId:2});for(let i=0;i<120;i++){callback();peakSpeed=Math.max(peakSpeed,b.get().player.speed);}ids.get('gasBtn').events.pointercancel();
+ assert(core.dist(b.get().player,origin)>6,'car leaves the garage spawn: '+id);assert(peakSpeed>8,'gas accelerates '+id+' before any traffic collision');
+ assert.equal(b.get().run.time,duration,'test drive has no countdown');
+ b.teleport(b.get().pickups[0].stop);for(let i=0;i<80;i++)callback();assert.equal(b.get().run.passengers.length,0,'test drive cannot take paid fares');
+ b.save();windowEvents.get('pagehide')();assert.equal(saved.get('getaway-profile-v1'),beforeTestDrive,'autosave/page exit never persists the borrowed car or rewards');
+ ids.get('testDriveReturn').onclick();assert.equal(b.get().mode,'garage');assert.equal(b.garageState().garageCarId,id,'return keeps inspected car');
+ assert.equal(JSON.stringify(b.get().profile),beforeTestDrive,'test drive preserves all progress');
+}
+// The physical exit also starts a test drive, and pause/restart/repair stay in it.
+const testGarage=b.garageState().garageScene;testGarage.setInspection(false);assert(testGarage.walkTo('drive'));
+for(let i=0;i<1400&&b.get().mode==='garage';i++)callback();assert.equal(b.get().mode,'driving','walk-through garage exit is usable before the briefing');
+b.get().player.health=0;callback();assert.equal(b.get().mode,'driving');assert.equal(b.get().player.health,b.get().player.config.health,'totaled test car repairs without settling a run');
+b.pause();assert(ids.get('modalRoot').innerHTML.includes('RESUME TEST DRIVE'));ids.get('restartBtn').onclick();assert.equal(b.get().mode,'driving');assert.equal(b.get().player.config.id,'suv');
+b.get().run.time=0;callback();assert.equal(b.get().mode,'driving','zero shift clock cannot end a test drive');
+b.teleport(core.HOME);callback();b.bank();assert.equal(b.get().mode,'garage','E returns the loaned car without a payout');assert.equal(JSON.stringify(b.get().profile),beforeTestDrive);
+b.menu();assert.equal(b.get().mode,'apartment');b.start();assert.equal(b.get().mode,'apartment','test drives do not skip the actual shift tutorial');
+console.log('Test drives pass for all six cars: locked access, real movement from garage, touch controls, no timer/fares, physical exit, repair/restart, return, and unchanged saved progress.');
 const home=b.get().apartment;callback();assert.equal(Renderer.lastScene,home.scene);assert.equal(home.viewMode,'room','close camera is the default');
 const feet=home.avatar.position.clone().project(home.camera),head=home.avatar.position.clone().add(new RealThree.Vector3(0,1.8,0)).project(home.camera);assert(Math.abs(head.y-feet.y)>.22,'character is large on screen');
 home.toggleView();
@@ -89,7 +114,7 @@ const passengerId=b.get().run.passengers[0].id,remaining=b.get().run.time;b.paus
 const onDisk=JSON.parse(saved.get('getaway-profile-v1'));assert.equal(onDisk.checkpoint.run.passengerIds[0],passengerId);assert.equal(onDisk.home.x,HOME_SPOTS.find(s=>s.id==='door').x);
 const restored=restoreShift(onDisk.checkpoint,core.cleanProfile(onDisk));assert(restored);assert.equal(restored.run.time,remaining);assert.equal(restored.run.passengers[0].id,passengerId);
 for(const corrupt of [null,{...onDisk.checkpoint,carId:'bogus'},{...onDisk.checkpoint,run:{...onDisk.checkpoint.run,passengerIds:['missing']}},{...onDisk.checkpoint,jobs:[]},{...onDisk.checkpoint,jobs:onDisk.checkpoint.jobs.map((j,i)=>i===0?null:j)},{...onDisk.checkpoint,car:{...onDisk.checkpoint.car,x:Infinity}},{...onDisk.checkpoint,run:{...onDisk.checkpoint.run,time:0}}])assert.equal(restoreShift(corrupt,core.cleanProfile(onDisk)),null,'invalid checkpoints rejected');
-b.reloadProfile();b.resume();assert.equal(b.get().mode,'driving');assert.equal(b.get().run.time,remaining);assert.equal(b.get().run.passengers[0].id,passengerId);assert.equal(b.get().player.x,stop.stop.x);
+b.reloadProfile();b.resume();assert.equal(b.get().mode,'driving');assert.equal(b.get().run.time,remaining);assert.equal(b.get().run.passengers[0].id,passengerId);assert.equal(b.get().player.x,onDisk.checkpoint.car.x,'resume keeps the actual saved position, including any traffic contact');
 b.teleport(b.get().run.passengers[0].dest);for(let i=0;i<65;i++)callback();assert.equal(b.get().mode,'destination','arrival enters a destination quest');assert.equal(b.get().run.deliveries,0,'arrival awards no fare');
 const waitingPassenger=b.get().run.passengers[0],waitingId=waitingPassenger.id,frozenTime=b.get().run.time,frozenHaul=b.get().run.haul,frozenRide=JSON.stringify(waitingPassenger.ride),frozenWanted=b.get().run.wanted;
 for(let i=0;i<3600;i++)callback();assert.equal(b.get().run.time,frozenTime,'interior freezes shift clock');assert.equal(JSON.stringify(waitingPassenger.ride),frozenRide,'interior freezes ride goals');assert.equal(b.get().run.wanted,frozenWanted,'interior freezes pursuit');
@@ -143,6 +168,15 @@ fresh.enterGarage();assert.equal(fresh.get().mode,'garage');assert.equal(JSON.st
 callback();assert.equal(Renderer.lastScene,fresh.garageState().garageScene.scene);
 fresh.browseGarage(1);const chosen=fresh.garageState().garageCarId;assert.equal(fresh.garageState().garageScene.selected,chosen);
 assert.equal(JSON.stringify(fresh.get().profile.checkpoint),garageCheckpoint,'browsing does not mutate saved shift');
+document.querySelectorAll('[data-garage-car]').find(e=>e.dataset.garageCar==='cab').onclick();
+assert(!fresh.get().profile.unlocked.includes('cab'),'preview car is locked');const savedLoadout=fresh.get().profile.selected,savedBalance=fresh.get().profile.collection.balance;
+ids.get('garageTestDrive').onclick();assert.equal(fresh.get().player.config.id,'cab');for(let i=0;i<190;i++)callback();
+windowEvents.get('blur')();assert(fresh.get().paused);assert.equal(JSON.stringify(fresh.get().profile.checkpoint),garageCheckpoint,'blur/autosave preserves passenger, timer, original car, health and wanted level');
+assert.equal(saved.get('getaway-profile-v1'),JSON.stringify(fresh.get().profile),'persisted state remains resumable after closing tab');
+fresh.close();ids.get('testDriveReturn').onclick();assert.equal(fresh.get().profile.selected,savedLoadout);assert.equal(fresh.get().profile.collection.balance,savedBalance);assert(!fresh.get().profile.unlocked.includes('cab'));
+ids.get('garageDriveOut').onclick();assert.equal(fresh.get().player.config.id,'hatch');assert.equal(fresh.get().player.health,67);assert.equal(fresh.get().run.wanted,2);assert.equal(fresh.get().run.time,beforeReload.checkpoint.run.time);assert.equal(fresh.get().run.passengers[0].id,carried);
+fresh.enterGarage();assert.equal(JSON.stringify(fresh.get().profile.checkpoint),garageCheckpoint);
+console.log('Suspended shift survives a locked-car test drive: original car, passengers, exact timer, damage, pursuit, loadout and balances restored.');
 document.querySelectorAll('[data-garage-car]').find(e=>e.dataset.garageCar==='suv').onclick();ids.get('garageAcquire').onclick();
 assert(ids.get('modalRoot').innerHTML.includes('IRONHIDE'));
 await ids.get('burnConfirm').onclick();assert.equal(fresh.get().profile.selected,'suv');assert.equal(fresh.garageState().garageScene.selected,'suv');

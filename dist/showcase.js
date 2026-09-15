@@ -1,8 +1,8 @@
 import * as THREE from './assets/three.module.js';
 import {GLTFLoader} from './assets/GLTFLoader.js';
-import {loadCityPack,buildCity} from './city.js?v=26';
-import {loadVehiclePack,makeVehicle,animateVehicle,vehicleReady} from './vehicles.js?v=26';
-import {CARS,PAINTS,createCar} from './driving.mjs?v=26';
+import {loadCityPack,buildCity} from './city.js?v=27';
+import {loadVehiclePack,makeVehicle,animateVehicle,vehicleReady} from './vehicles.js?v=27';
+import {CARS,PAINTS,createCar} from './driving.mjs?v=27';
 const VIEWS={
  gardens:{eye:[140,90,-9],target:[90,0,-72],number:'04 / NORTH GARDENS',title:'A GREENER SIDE OF THE CITY',text:'Walk the garden paths, take the quieter streets, and find Mina’s next stop among the flowers.'},
  downtown:{eye:[145,148,175],target:[0,0,0],number:'01 / DOWNTOWN',title:'A BIGGER NIGHT OUT',text:'Nine districts. 256 junctions. Nearly eight times the playable area. Keep driving beyond downtown into the harbor, gardens, and hills.'},
