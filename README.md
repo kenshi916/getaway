@@ -48,7 +48,7 @@ Validation includes complete gameplay and website simulations, all pickup/destin
 
 ## Apartment and saved-shift update
 
-`apartment.js` builds a separate furnished cutaway room rendered with the existing renderer. It uses the existing animated character and Kenney furniture assets, collision-aware walking, interactive markers, and a camera that fits the room around the tutorial and controls. The six-step first-night guide saves its place; old credit and vehicle saves remain compatible.
+`apartment.js` builds a connected five-zone cutaway apartment (kitchen, living room, bedroom, bathroom, and entry hall) rendered with the existing renderer. It uses the existing animated character and Kenney furniture assets, collision-aware walking, interactive markers, and an overview camera that fits the rooms around the tutorial and controls. C toggles a closer follow camera with wall fading. The kitchen coffee maker and living-room TV are interactive. The interior uses 36 CC0 Kenney Furniture Kit models. Versioned apartment positions migrate old saves to the new entry point while preserving the tutorial, credits, collection, and suspended shift. The six-step first-night guide saves its place; old credit and vehicle saves remain compatible.
 
 `progress.mjs` serializes and validates resumable shifts. `getaway.js` coordinates apartment entry, laptop briefing, wardrobe garage, bedside save, door departure, tutorial dispatch, and return home. Banking clears the checkpoint and saves earned credits in one storage write. Saves remain local to this browser, with visible feedback if storage is unavailable. Police and traffic vehicles regenerate when resuming; the player's wanted level persists.
 
