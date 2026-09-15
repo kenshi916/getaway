@@ -1,7 +1,18 @@
 {
   "name": "getaway",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "A complete solo arcade driving game built with Three.js. Static files; no build required."
+  "description": "A complete solo arcade driving game built with Three.js. Static files; no build required.",
+  "devDependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "ethers": "^6.15.0",
+    "ganache": "^7.9.2",
+    "solc": "^0.8.30"
+  },
+  "scripts": {
+    "test:game": "node checks/game-flow.mjs",
+    "test:driving": "node checks/handling.mjs",
+    "test:burn": "node checks/burn-contract.mjs"
+  }
 }

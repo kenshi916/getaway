@@ -1,10 +1,12 @@
+import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=8';
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const ROAD=[-90,-54,-18,18,54,90],LIMIT=102;
 export const HOME={x:36,z:54,name:'LAST EXIT GARAGE'};
 export const CARS={
  van:{id:'van',name:'THE WORKHORSE',model:'getaway-van',price:0,speed:22,accel:18,grip:11,steer:2.35,seats:3,health:120,scale:1.7,description:'Three seats. Built to take a hit.'},
  coupe:{id:'coupe',name:'NIGHT RUNNER',model:'coupe',price:6000,speed:26,accel:22,grip:12,steer:2.55,seats:2,health:100,scale:1.7,description:'Quick off the line. Easy in the corners.'},
- racer:{id:'racer',name:'REDLINE',model:'racer',price:14000,speed:31,accel:26,grip:13,steer:2.65,seats:1,health:90,scale:1.65,description:'One seat. Ridiculous speed.'}
+ racer:{id:'racer',name:'REDLINE',model:'racer',price:14000,speed:31,accel:26,grip:13,steer:2.65,seats:1,health:90,scale:1.65,description:'One seat. Ridiculous speed.'},
+ ...BURN_CARS
 };
 export const PAINTS=['#ffc23d','#21cbbb','#ed5949','#6494ff'];
 export const BLOCKS=[
@@ -126,9 +128,9 @@ export function drive(car,input,dt,boxes=BLOCKS){
  if(car.y>ground+.05||car.vy!==0){car.vy-=17*dt;car.y+=car.vy*dt;car.airtime+=dt;if(car.y<=ground){car.y=ground;car.vy=0;car.landed=car.airtime>.4;car.airtime=0;}}
  else car.y=ground;car.ground=ground;car.speed=Math.hypot(car.vx,car.vz);return car;
 }
-export function defaultProfile(){return{credits:0,best:0,runs:0,deliveries:0,unlocked:['van'],selected:'van',paint:0,muted:false,camera:'chase',tutorialStep:0,home:{x:1,z:2.4},checkpoint:null};}
-export function cleanProfile(raw){const p=defaultProfile();if(!raw||typeof raw!=='object')return p;for(const k of ['credits','best','runs','deliveries'])if(Number.isFinite(raw[k]))p[k]=clamp(Math.floor(raw[k]),0,1e9);p.unlocked=['van',...['coupe','racer'].filter(k=>Array.isArray(raw.unlocked)&&raw.unlocked.includes(k))];if(p.unlocked.includes(raw.selected))p.selected=raw.selected;p.paint=Number.isInteger(raw.paint)?clamp(raw.paint,0,PAINTS.length-1):0;p.muted=raw.muted===true;p.camera=raw.camera==='high'?'high':'chase';p.tutorialStep=Number.isInteger(raw.tutorialStep)?clamp(raw.tutorialStep,0,6):0;if(Number.isFinite(raw.home?.x)&&Number.isFinite(raw.home?.z))p.home={x:clamp(raw.home.x,-5.25,5.25),z:clamp(raw.home.z,-4.1,4.3)};p.checkpoint=raw.checkpoint?.version===1?raw.checkpoint:null;return p;}
-export function buyCar(profile,id){const c=CARS[id];if(!c||profile.unlocked.includes(id)||profile.credits<c.price)return false;profile.credits-=c.price;profile.unlocked.push(id);profile.selected=id;return true;}
+export function defaultProfile(){return{credits:0,best:0,runs:0,deliveries:0,unlocked:['van'],selected:'van',paint:0,muted:false,camera:'chase',tutorialStep:0,home:{x:1,z:2.4},checkpoint:null,collection:defaultCollection()};}
+export function cleanProfile(raw){const p=defaultProfile();if(!raw||typeof raw!=='object')return p;for(const k of ['credits','best','runs','deliveries'])if(Number.isFinite(raw[k]))p[k]=clamp(Math.floor(raw[k]),0,1e9);p.collection=cleanCollection(raw.collection);p.unlocked=['van',...Object.values(BURN_CARS).filter(c=>p.collection.owned.includes(c.itemId)).map(c=>c.id),...['coupe','racer'].filter(k=>Array.isArray(raw.unlocked)&&raw.unlocked.includes(k))];if(p.unlocked.includes(raw.selected))p.selected=raw.selected;p.paint=Number.isInteger(raw.paint)?clamp(raw.paint,0,PAINTS.length-1):0;p.muted=raw.muted===true;p.camera=raw.camera==='high'?'high':'chase';p.tutorialStep=Number.isInteger(raw.tutorialStep)?clamp(raw.tutorialStep,0,6):0;if(Number.isFinite(raw.home?.x)&&Number.isFinite(raw.home?.z))p.home={x:clamp(raw.home.x,-5.25,5.25),z:clamp(raw.home.z,-4.1,4.3)};p.checkpoint=raw.checkpoint?.version===1?raw.checkpoint:null;return p;}
+export function buyCar(profile,id){const c=CARS[id];if(!c||c.itemId||profile.unlocked.includes(id)||profile.credits<c.price)return false;profile.credits-=c.price;profile.unlocked.push(id);profile.selected=id;return true;}
 export function createRun(){return{phase:'driving',time:150,haul:0,deliveries:0,combo:1,wanted:0,heat:0,escape:0,passengers:[],pickups:0,nearMisses:0,crashes:0,airJumps:0,drift:0,style:0,busted:0,banked:false,elapsed:0,roadblockCount:0};}
 export function makeJob(stop,index=0,rng=Math.random){const pool=DESTS.filter(d=>dist(stop,d)>48);const dest=pool[Math.floor(rng()*pool.length)%pool.length];const level=stop.type;return{id:stop.id+'-'+index,stopId:stop.id,name:['','LATE SHIFT','HOT PICKUP','BIG SCORE'][level],level,value:[0,850,1450,2100][level],dest:{...dest},picked:false,cooldown:0};}
 export function pickup(run,job,config){if(run.phase!=='driving'||job.picked||job.cooldown>0||run.passengers.length>=config.seats)return false;job.picked=true;run.passengers.push({...job});run.pickups++;run.time=Math.min(180,run.time+10);run.wanted=clamp(run.wanted+job.level-1+(job.level===1?.4:0),0,5);return true;}

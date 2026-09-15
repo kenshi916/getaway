@@ -16,7 +16,7 @@ export async function loadVehiclePack(loader){
   templates.set(id,gltf.scene);
  }));
 }
-export function makeVehicle(model,scale=1.7,paint=null){
+export function makeVehicle(model,scale=1.7,paint=null,skin=null){
  const source=templates.get(model);if(!source)throw new Error('Vehicle is not loaded: '+model);
  const group=new THREE.Group(),root=new THREE.Group(),asset=source.clone(true);
  group.add(root);root.add(asset);root.scale.setScalar(scale);
@@ -26,6 +26,8 @@ export function makeVehicle(model,scale=1.7,paint=null){
   if(materialCopies.has(original))return materialCopies.get(original);
   const m=original.clone();materialCopies.set(original,m);
   if(m.name==='paint'&&paint&&model!=='taxi')m.color.set(paint);
+  if(skin?.color&&m.name==='paint'){m.color.set(skin.color);m.metalness=skin.metalness;m.roughness=skin.roughness;}
+  if(skin?.accent&&['chrome','rim'].includes(m.name)){m.color.set(skin.accent);m.metalness=.75;m.roughness=.27;}
   if(m.name==='brake')tail=m;
   if(m.name==='police-red')policeLights[0]={material:m};
   if(m.name==='police-blue')policeLights[1]={material:m};

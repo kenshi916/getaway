@@ -34,7 +34,9 @@ export function buildApartment(templates,position=HOME_SPAWN){
  // Entry frame and coat hooks at the open edge of the room.
  for(const z of [1.75,3.55])box(.18,3,.18,'#d2b38b',5.7,1.7,z);box(.18,.18,1.98,'#d2b38b',5.7,3.17,2.65);box(.08,2.9,1.65,'#395e63',5.85,1.7,2.65);box(.15,.15,.15,'#ffc87c',5.66,1.58,2.13);box(1.3,.035,1.7,'#ceb07c',4.85,.28,2.65);
  // The playable character uses the existing animated suit asset.
- const character=templates.suit.scene.clone(true),avatar=new THREE.Group();character.updateMatrixWorld(true);const cb=new THREE.Box3().setFromObject(character),cs=cb.getSize(new THREE.Vector3()),scale=1.65/cs.y;character.scale.setScalar(scale);character.position.y=-cb.min.y*scale;avatar.add(character);avatar.position.set(position.x,.25,position.z);scene.add(avatar);const mixer=new THREE.AnimationMixer(character),actions={};for(const name of ['idle','walk']){const clip=templates.suit.animations.find(a=>a.name===name);if(clip)actions[name]=mixer.clipAction(clip);}actions.idle?.play();let walking=false;
+ const avatar=new THREE.Group();avatar.position.set(position.x,.25,position.z);scene.add(avatar);let character,mixer,actions={},walking=false;
+ function setCharacter(template){if(mixer){mixer.stopAllAction();mixer.uncacheRoot(character);avatar.remove(character);}character=template.scene.clone(true);character.updateMatrixWorld(true);const cb=new THREE.Box3().setFromObject(character),cs=cb.getSize(new THREE.Vector3()),scale=1.65/cs.y;character.scale.setScalar(scale);character.position.y=-cb.min.y*scale;avatar.add(character);mixer=new THREE.AnimationMixer(character);actions={};for(const name of ['idle','walk']){const clip=template.animations.find(a=>a.name===name);if(clip)actions[name]=mixer.clipAction(clip);}actions.idle?.play();walking=false;}
+ setCharacter(templates.suit);
  for(const spot of HOME_SPOTS){const ring=new THREE.Mesh(new THREE.RingGeometry(.4,.48,4),new THREE.MeshBasicMaterial({color:'#94f7d5',transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.rotation.z=Math.PI/4;ring.position.set(spot.x,.29,spot.z);scene.add(ring);const diamond=new THREE.Mesh(new THREE.OctahedronGeometry(.16),new THREE.MeshBasicMaterial({color:'#ffe39b'}));diamond.position.set(spot.x,2.1,spot.z);scene.add(diamond);hotspots.push({...spot,ring,diamond});}
  function blocked(x,z){return Math.abs(x)>5.25||z<-4.1||z>4.3||colliders.some(b=>x+.27>b.x-b.w/2&&x-.27<b.x+b.w/2&&z+.27>b.z-b.d/2&&z-.27<b.z+b.d/2);}
  function setPosition(p){avatar.position.set(p.x,.25,p.z);if(blocked(p.x,p.z))avatar.position.set(HOME_SPAWN.x,.25,HOME_SPAWN.z);}
@@ -57,5 +59,5 @@ export function buildApartment(templates,position=HOME_SPAWN){
   camera.far=Math.max(90,camera.position.length()+25);camera.setViewOffset(width,height,(bounds.left+bounds.right-area.left-area.right)/2,(bounds.top+bounds.bottom-area.top-area.bottom)/2,width,height);camera.updateProjectionMatrix();
  }
 
- return{scene,camera,avatar,colliders,hotspots,update,nearest,setPosition,blocked,resize};
+ return{scene,camera,avatar,colliders,hotspots,update,nearest,setPosition,blocked,resize,setCharacter};
 }
