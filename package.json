@@ -14,6 +14,7 @@
     "test:game": "node checks/game-flow.mjs",
     "test:driving": "node checks/handling.mjs",
     "test:burn": "node checks/burn-contract.mjs",
-    "test:landscape": "node checks/city-landscape.mjs"
+    "test:landscape": "node checks/city-landscape.mjs",
+    "test:destinations": "node checks/destinations.mjs"
   }
 }
