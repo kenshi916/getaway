@@ -4,11 +4,11 @@ import {loadCityPack,buildCity} from './city.js?v=6';
 import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=8';
 import {createCollectionUI} from './collection-ui.js?v=8';
 import {createBurnWallet} from './burn-wallet.mjs?v=8';
-import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=10';
-import {captureShift,restoreShift} from './progress.mjs?v=10';
+import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=11';
+import {captureShift,restoreShift} from './progress.mjs?v=11';
 import {GLTFLoader} from './assets/GLTFLoader.js';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {clamp,ROAD,LIMIT,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=10';
+import {clamp,ROAD,LIMIT,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=11';
 
 const $=id=>document.getElementById(id),touch=matchMedia('(pointer:coarse)').matches;
 let profile=defaultProfile(),storageAvailable=true;

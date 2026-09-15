@@ -1,14 +1,14 @@
-export const HOME_VERSION=2;
-export const HOME_SPAWN={x:-.6,z:2.8};
-export const HOME_BOUNDS={minX:-7.28,maxX:7.28,minZ:-5.28,maxZ:5.28};
+export const HOME_VERSION=3;
+export const HOME_SPAWN={x:-3.5,z:2.5};
+export const HOME_BOUNDS={minX:-10.48,maxX:10.48,minZ:-7.68,maxZ:7.68};
 export const HOME_SPOTS=[
- {id:'laptop',x:3.25,z:-.9,label:'CHECK LAPTOP',room:'Bedroom'},
- {id:'wardrobe',x:5.85,z:-.25,label:'OPEN COLLECTION',room:'Bedroom'},
- {id:'bed',x:5.1,z:-1.35,label:'SAVE & REST',room:'Bedroom'},
- {id:'door',x:2.65,z:4.55,label:'HEAD DOWNSTAIRS',room:'Entry'},
- {id:'coffee',x:-1.05,z:-3.2,label:'MAKE COFFEE',room:'Kitchen'},
- {id:'tv',x:-5.7,z:-.25,label:'SWITCH TV',room:'Living room'},
- {id:'sofa',x:-2.45,z:1.45,label:'SIT & WATCH TV',room:'Living room'},
- {id:'shower',x:6.35,z:3.22,label:'TAKE A SHOWER',room:'Bathroom'}
+ {id:'laptop',x:3.8,z:-1.65,label:'CHECK LAPTOP',room:'Bedroom'},
+ {id:'wardrobe',x:9,z:-.35,label:'OPEN COLLECTION',room:'Bedroom'},
+ {id:'bed',x:7,z:-3.65,label:'SAVE & REST',room:'Bedroom'},
+ {id:'door',x:3.8,z:6.95,label:'HEAD DOWNSTAIRS',room:'Entry'},
+ {id:'coffee',x:-1.8,z:-5.95,label:'MAKE COFFEE',room:'Kitchen'},
+ {id:'tv',x:-9,z:1,label:'SWITCH TV',room:'Living room'},
+ {id:'sofa',x:-5.05,z:2,label:'SIT & WATCH TV',room:'Living room'},
+ {id:'shower',x:9.3,z:3.7,label:'TAKE A SHOWER',room:'Bathroom'}
 ];
-export function homeRoom(x,z){return x>4.5&&z>.85?'Bathroom':x>1.35&&z<.85?'Bedroom':x>1.35?'Entry':z<-2.65?'Kitchen':'Living room';}
+export function homeRoom(x,z){return x>6.6&&z>1.1?'Bathroom':x>1.6&&z<1.1?'Bedroom':x>1.6?'Entry':z<-4.3?'Kitchen':'Living room';}

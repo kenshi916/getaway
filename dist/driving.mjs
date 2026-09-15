@@ -1,4 +1,4 @@
-import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=10';
+import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=11';
 import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=8';
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const ROAD=[-90,-54,-18,18,54,90],LIMIT=102;

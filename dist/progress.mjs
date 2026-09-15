@@ -1,4 +1,4 @@
-import {CARS,STOPS,DESTS,LIMIT,clamp,createCar,createRun} from './driving.mjs?v=10';
+import {CARS,STOPS,DESTS,LIMIT,clamp,createCar,createRun} from './driving.mjs?v=11';
 const RUN_FIELDS=['time','haul','deliveries','combo','wanted','heat','escape','pickups','nearMisses','crashes','airJumps','drift','style','busted','elapsed','roadblockCount'];
 const CAR_FIELDS=['x','z','heading','vx','vz','y','vy','health','nitro','ground','airtime','steering','yawRate','wheelTravel','reverseDelay'];
 export function captureShift(player,run,pickups,locks={}){

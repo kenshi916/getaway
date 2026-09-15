@@ -4,7 +4,7 @@ A self-contained solo arcade driving game. Serve `dist/` over HTTP. The website 
 
 ## Play
 
-Start inside your apartment with a close, full-window camera. Click the floor to walk, click furniture to use it, or choose an item from Things to do. WASD / arrows walk; E uses or stops an activity. C opens the floor plan, the wheel or + / − controls zoom, and F requests browser full screen. The sofa plays the real seated animation and turns on the animated TV. Coffee, showers, and bed rest are timed, cancellable activities with saved completion state. The first-night tutorial leads into your first pickup, delivery, and banked shift.
+Start inside your apartment with a close, full-window camera. The 21.6 × 16 floor plan has about twice the floor area of the previous 15.2 × 11.2 layout, with wider doorways, a longer fitted kitchen, four dining chairs, and more circulation around furniture. Apartment version 3 relocates old home positions to the new living-room spawn without resetting earned progress. Click the floor to walk, click furniture to use it, or choose an item from Things to do. WASD / arrows walk; E uses or stops an activity. C opens the floor plan, the wheel or + / − controls zoom, and F requests browser full screen. The sofa plays the real seated animation and turns on the animated TV. Coffee, showers, and bed rest are timed, cancellable activities with saved completion state. The first-night tutorial leads into your first pickup, delivery, and banked shift.
 
 In the car, WASD / arrow keys drive and reverse. Space is the handbrake; Shift is nitro. C switches camera. J chooses a job. Tab routes to the garage. E banks the haul when stopped there. R recovers a stuck car. Mobile uses simultaneous touch steering, pedals, drift, and nitro.
 
