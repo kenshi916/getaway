@@ -147,3 +147,6 @@ https://kenney.nl/assets/city-kit-suburban
 https://kenney.nl/assets/nature-kit
 Original licenses: models/city/industrial/LICENSE.txt, models/city/suburban/LICENSE.txt, models/city/nature/LICENSE.txt.
 Palette atlases baked to linear vertex colors; artist mesh geometry retained.
+
+Additional passenger characters and original preview portraits: Kenney Blocky Characters 2.0, CC0. https://kenney.nl/assets/blocky-characters
+License: models/passengers/LICENSE.txt. Original geometry and animations preserved; PNG textures embedded in the GLBs.

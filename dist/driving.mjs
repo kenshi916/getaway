@@ -1,3 +1,4 @@
+import {passengerJob,startRide,rideStatus,scoreRide,cleanPassengerHistory} from './passengers.mjs?v=14';
 import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=11';
 import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=8';
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -55,16 +56,20 @@ export const STOPS=[
  {id:'roadhouse',x:72,z:90,name:'ROADHOUSE',type:2}
 ];
 export const DESTS=[
- {id:'west',x:-54,z:-36,name:'WESTSIDE LOCKUP'},
+ {id:'west',x:-54,z:-36,name:'WESTSIDE APARTMENTS'},
  {id:'north',x:18,z:-36,name:'NORTHSIDE LOFT'},
- {id:'east',x:54,z:36,name:'EASTSIDE HIDEOUT'},
- {id:'south',x:-18,z:36,name:'SOUTHERN SAFEHOUSE'},
+ {id:'east',x:54,z:36,name:'EAST END STUDIOS'},
+ {id:'south',x:-18,z:36,name:'RIVERSIDE HOMES'},
  {id:'bay',x:-36,z:18,name:'LOADING BAY'},
  {id:'loft',x:36,z:-18,name:'ROOFTOP LOFT'},
  {id:'northyard',x:-36,z:-90,name:'NORTH YARD'},
  {id:'pier',x:-90,z:0,name:'PIER LOCKUP'},
- {id:'skyline',x:90,z:-36,name:'SKYLINE SAFEHOUSE'},
- {id:'southyard',x:0,z:90,name:'SOUTH MOTOR YARD'}
+ {id:'skyline',x:90,z:-36,name:'SKYLINE PLAZA'},
+ {id:'southyard',x:0,z:90,name:'SOUTH MOTOR YARD'},
+ {id:'gardens',x:90,z:-72,name:'NORTH GARDENS'},
+ {id:'stage',x:36,z:-90,name:'STARLIGHT STAGE DOOR'},
+ {id:'dinerdoor',x:0,z:54,name:'24H DINER'},
+ {id:'westcourt',x:-72,z:90,name:'WEST COURT'}
 ];
 export const RAMPS=[{x:0,z:0,w:5,d:10,dir:-1,h:2.6},{x:-36,z:36,w:10,d:4.8,dir:1,axis:'x',h:2.2}];
 export function dist(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
@@ -129,11 +134,11 @@ export function drive(car,input,dt,boxes=BLOCKS){
  if(car.y>ground+.05||car.vy!==0){car.vy-=17*dt;car.y+=car.vy*dt;car.airtime+=dt;if(car.y<=ground){car.y=ground;car.vy=0;car.landed=car.airtime>.4;car.airtime=0;}}
  else car.y=ground;car.ground=ground;car.speed=Math.hypot(car.vx,car.vz);return car;
 }
-export function defaultProfile(){return{credits:0,best:0,runs:0,deliveries:0,unlocked:['van'],selected:'van',paint:0,muted:false,camera:'chase',tutorialStep:0,trackedQuest:'first-night',homeVersion:HOME_VERSION,home:{...HOME_SPAWN},homeLife:{tvOn:false,completed:[]},checkpoint:null,collection:defaultCollection()};}
-export function cleanProfile(raw){const p=defaultProfile();if(!raw||typeof raw!=='object')return p;for(const k of ['credits','best','runs','deliveries'])if(Number.isFinite(raw[k]))p[k]=clamp(Math.floor(raw[k]),0,1e9);p.collection=cleanCollection(raw.collection);p.unlocked=['van',...Object.values(BURN_CARS).filter(c=>p.collection.owned.includes(c.itemId)).map(c=>c.id),...['coupe','racer'].filter(k=>Array.isArray(raw.unlocked)&&raw.unlocked.includes(k))];if(p.unlocked.includes(raw.selected))p.selected=raw.selected;p.paint=Number.isInteger(raw.paint)?clamp(raw.paint,0,PAINTS.length-1):0;p.muted=raw.muted===true;p.camera=raw.camera==='high'?'high':'chase';p.tutorialStep=Number.isInteger(raw.tutorialStep)?clamp(raw.tutorialStep,0,6):0;if(raw.homeVersion===HOME_VERSION&&Number.isFinite(raw.home?.x)&&Number.isFinite(raw.home?.z))p.home={x:clamp(raw.home.x,HOME_BOUNDS.minX,HOME_BOUNDS.maxX),z:clamp(raw.home.z,HOME_BOUNDS.minZ,HOME_BOUNDS.maxZ)};p.trackedQuest=['first-night','ten-fares','big-bank','five-shifts','home-comforts'].includes(raw.trackedQuest)?raw.trackedQuest:'first-night';p.homeLife={tvOn:raw.homeLife?.tvOn===true,completed:Array.isArray(raw.homeLife?.completed)?['sofa','coffee','shower','bed'].filter(id=>raw.homeLife.completed.includes(id)):[]};p.checkpoint=raw.checkpoint?.version===1?raw.checkpoint:null;return p;}
+export function defaultProfile(){return{credits:0,best:0,runs:0,deliveries:0,unlocked:['van'],selected:'van',paint:0,muted:false,camera:'chase',tutorialStep:0,trackedQuest:'first-night',passengerHistory:{},homeVersion:HOME_VERSION,home:{...HOME_SPAWN},homeLife:{tvOn:false,completed:[]},checkpoint:null,collection:defaultCollection()};}
+export function cleanProfile(raw){const p=defaultProfile();if(!raw||typeof raw!=='object')return p;for(const k of ['credits','best','runs','deliveries'])if(Number.isFinite(raw[k]))p[k]=clamp(Math.floor(raw[k]),0,1e9);p.collection=cleanCollection(raw.collection);p.unlocked=['van',...Object.values(BURN_CARS).filter(c=>p.collection.owned.includes(c.itemId)).map(c=>c.id),...['coupe','racer'].filter(k=>Array.isArray(raw.unlocked)&&raw.unlocked.includes(k))];if(p.unlocked.includes(raw.selected))p.selected=raw.selected;p.paint=Number.isInteger(raw.paint)?clamp(raw.paint,0,PAINTS.length-1):0;p.muted=raw.muted===true;p.camera=raw.camera==='high'?'high':'chase';p.tutorialStep=Number.isInteger(raw.tutorialStep)?clamp(raw.tutorialStep,0,6):0;if(raw.homeVersion===HOME_VERSION&&Number.isFinite(raw.home?.x)&&Number.isFinite(raw.home?.z))p.home={x:clamp(raw.home.x,HOME_BOUNDS.minX,HOME_BOUNDS.maxX),z:clamp(raw.home.z,HOME_BOUNDS.minZ,HOME_BOUNDS.maxZ)};p.trackedQuest=['first-night','ten-fares','big-bank','five-shifts','home-comforts'].includes(raw.trackedQuest)?raw.trackedQuest:'first-night';p.homeLife={tvOn:raw.homeLife?.tvOn===true,completed:Array.isArray(raw.homeLife?.completed)?['sofa','coffee','shower','bed'].filter(id=>raw.homeLife.completed.includes(id)):[]};p.passengerHistory=cleanPassengerHistory(raw.passengerHistory);p.checkpoint=[1,2].includes(raw.checkpoint?.version)?raw.checkpoint:null;return p;}
 export function buyCar(profile,id){const c=CARS[id];if(!c||c.itemId||profile.unlocked.includes(id)||profile.credits<c.price)return false;profile.credits-=c.price;profile.unlocked.push(id);profile.selected=id;return true;}
 export function createRun(){return{phase:'driving',time:150,haul:0,deliveries:0,combo:1,wanted:0,heat:0,escape:0,passengers:[],pickups:0,nearMisses:0,crashes:0,airJumps:0,drift:0,style:0,busted:0,banked:false,elapsed:0,roadblockCount:0};}
-export function makeJob(stop,index=0,rng=Math.random){const pool=DESTS.filter(d=>dist(stop,d)>48);const dest=pool[Math.floor(rng()*pool.length)%pool.length];const level=stop.type;return{id:stop.id+'-'+index,stopId:stop.id,name:['','LATE SHIFT','HOT PICKUP','BIG SCORE'][level],level,value:[0,850,1450,2100][level],dest:{...dest},picked:false,cooldown:0};}
-export function pickup(run,job,config){if(run.phase!=='driving'||job.picked||job.cooldown>0||run.passengers.length>=config.seats)return false;job.picked=true;run.passengers.push({...job});run.pickups++;run.time=Math.min(180,run.time+10);run.wanted=clamp(run.wanted+job.level-1+(job.level===1?.4:0),0,5);return true;}
-export function deliver(run,id){if(run.phase!=='driving')return null;const index=run.passengers.findIndex(p=>p.id===id);if(index<0)return null;const [p]=run.passengers.splice(index,1);const payment=Math.round(p.value*run.combo);run.haul+=payment;run.deliveries++;run.combo=Math.min(3,1+run.deliveries*.25);run.time=Math.min(180,run.time+40);return{payment,passenger:p};}
+export function makeJob(stop,index=0,rng=Math.random,history={}){return passengerJob(stop,index,DESTS,history);}
+export function pickup(run,job,config,car){if(run.phase!=='driving'||job.picked||job.cooldown>0||run.passengers.length>=config.seats)return false;job.picked=true;run.passengers.push({...job,ride:startRide(run,job,car)});run.pickups++;run.time=Math.min(180,run.time+10);run.wanted=clamp(run.wanted+(job.heat||0),0,5);return true;}
+export function deliver(run,id){if(run.phase!=='driving')return null;const index=run.passengers.findIndex(p=>p.id===id);if(index<0)return null;const p=run.passengers[index];if(!rideStatus(p,run.wanted).canDrop)return null;run.passengers.splice(index,1);const result=scoreRide(p,run.combo,run.wanted);run.haul+=result.payment;run.deliveries++;run.combo=Math.min(3,1+run.deliveries*.25);run.time=Math.min(180,run.time+40);return{...result,passenger:p};}
 export function settleRun(run,profile,success){if(run.banked||run.phase==='banked'||run.phase==='busted')return false;run.phase=success?'banked':'busted';run.banked=true;profile.runs++;profile.deliveries+=run.deliveries;if(success){const total=Math.floor(run.haul+run.style);profile.credits+=total;profile.best=Math.max(profile.best,total);run.total=total;}else run.total=0;return true;}

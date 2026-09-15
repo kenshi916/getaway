@@ -66,7 +66,7 @@ The published build uses an explicit demo: 25,000 demo tokens, review-and-confir
 
 ## In-game phone
 
-`phone.js` renders the handset and its eight apps. `getaway.js` supplies live game state and routes phone commands through the same movement, dispatch, collection, pause, and save functions as the HUD. The garage reuses the complete collection and burn-review flow within the phone. Pending wallet operations block closing or switching apps. Suspended shifts are decoded through `restoreShift` for accurate passengers and map data after a reload.
+`phone.js` renders the handset and its nine apps. `getaway.js` supplies live game state and routes phone commands through the same movement, dispatch, collection, pause, and save functions as the HUD. The garage reuses the complete collection and burn-review flow within the phone. Pending wallet operations block closing or switching apps. Suspended shifts are decoded through `restoreShift` for accurate passengers and map data after a reload.
 
 The five quests read tutorial progress, deliveries, best banked haul, completed shifts, and home activities. `trackedQuest` is validated and saved with the local profile. Milestones do not invent token rewards. Opening the phone freezes the actual shift timer; closing it resumes the game.
 
@@ -75,3 +75,11 @@ The five quests read tutorial progress, deliveries, best banked haul, completed 
 26 additional CC0 Kenney models replace repeated commercial blocks with warehouse/service buildings, suburban houses, detailed trees and palms, shrubs, flowers, containers, water towers, and solar panels. Street-level shop windows and awnings attach to the actual building bounds. The road grid, collision footprints, pickups, destinations, saved progress, and player assets are retained. Shared scenery is batched; each block still fades independently behind the chase camera. The website city view uses the same assets.
 
 `checks/import-city-assets.py` reproduces the asset import from the original Kenney ZIPs. Original palette colors are sampled into linear vertex colors without changing artist geometry. The published GLBs need no external textures. Original licenses and source URLs are included with the assets.
+
+## Passengers and story rides
+
+Twelve named passengers use twelve distinct Kenney Blocky Characters models with original animations and embedded textures. They wait and greet nearby drivers, walk toward the stopped car while boarding, and walk away at their destination. Their original preview portraits appear in the HUD, Dispatch, and the People phone app. Each passenger has a background, authored in-car dialogue, and three story chapters.
+
+`passengers.mjs` owns the cast, five ride objectives, live comfort/cargo/deadline/boost telemetry, tips, ratings, and chapter progression. `passenger-actors.js` handles world characters and boarding/departure animations. Goal completion advances the current chapter; any completed ride records a visit and rating. Ordinary passengers do not summon police. Discreet riders cannot be dropped off while wanted. Rush/cargo/comfort failures retain the base fare. Tips and goal bonuses require actual movement, and all earnings still require banking.
+
+Checkpoint version 2 persists onboard ride metrics and deadlines. Version 1 shifts still restore with the passenger assigned to the original pickup spot. Profile history and all prior car, skin, apartment, and tutorial progress remain local and are preserved. `node checks/rides.mjs` covers success and failure for each objective, payout arithmetic, duplicate protection, chapter progress, and old/new save restoration. The game simulation covers real character geometry/animation, boarding and departure, phone biographies, and saved passenger history. No real-money or token rewards were added.
