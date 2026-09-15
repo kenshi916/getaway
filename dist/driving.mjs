@@ -1,6 +1,6 @@
-import {passengerJob,startRide,rideStatus,scoreRide,cleanPassengerHistory} from './passengers.mjs?v=19';
-import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=19';
-import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=19';
+import {passengerJob,startRide,rideStatus,scoreRide,cleanPassengerHistory} from './passengers.mjs?v=20';
+import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=20';
+import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=20';
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const ROAD=Array.from({length:16},(_,i)=>-270+i*36),LIMIT=282;
 export const DISTRICTS=[
