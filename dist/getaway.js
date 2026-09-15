@@ -1,7 +1,7 @@
 import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=12';
 import * as THREE from './assets/three.module.js';
 import {makeVehicle,animateVehicle,loadVehiclePack} from './vehicles.js?v=8';
-import {loadCityPack,buildCity} from './city.js?v=6';
+import {loadCityPack,buildCity} from './city.js?v=13';
 import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=8';
 import {createCollectionUI} from './collection-ui.js?v=12';
 import {createBurnWallet} from './burn-wallet.mjs?v=8';
@@ -25,11 +25,11 @@ let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch(error){$('game').innerHTML='<div class="error-panel"><h2>GETAWAY needs 3D graphics</h2><p>Open this link in Safari or Chrome with hardware acceleration enabled to play.</p></div>';throw error;}
 renderer.setPixelRatio(Math.min(devicePixelRatio,touch?1.5:2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
 $('game').appendChild(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','GETAWAY. In your apartment, WASD to walk and E to interact. In the car, WASD to drive, Space to drift, Shift for nitro, E to bank at the garage.');
-const scene=new THREE.Scene();scene.background=new THREE.Color('#596585');scene.fog=new THREE.Fog('#596585',105,285);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#586f85');scene.fog=new THREE.Fog('#586f85',125,310);
 const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,360);
-scene.add(new THREE.HemisphereLight('#bdd7ff','#253247',1.95));
-const sun=new THREE.DirectionalLight('#ffcf9b',2.65);sun.position.set(-40,75,50);sun.castShadow=true;sun.shadow.mapSize.set(touch?1024:2048,touch?1024:2048);Object.assign(sun.shadow.camera,{left:-120,right:120,top:120,bottom:-120,near:1,far:230});sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;scene.add(sun);
-const fill=new THREE.DirectionalLight('#8ecfff',1.0);fill.position.set(40,20,-30);scene.add(fill);
+scene.add(new THREE.HemisphereLight('#c5ddeb','#303a43',1.5));
+const sun=new THREE.DirectionalLight('#ffd3a1',2.75);sun.position.set(-40,75,50);sun.castShadow=true;sun.shadow.mapSize.set(touch?1024:2048,touch?1024:2048);Object.assign(sun.shadow.camera,{left:-120,right:120,top:120,bottom:-120,near:1,far:230});sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;scene.add(sun);
+const fill=new THREE.DirectionalLight('#94c8eb',.65);fill.position.set(40,20,-30);scene.add(fill);
 // Soft sky reflections give the paint and glass a readable curved surface.
 const reflectionFaces=Array.from({length:6},()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,'#a8d5ff');g.addColorStop(.44,'#6189ad');g.addColorStop(.49,'#edf6ff');g.addColorStop(.58,'#3d5674');g.addColorStop(1,'#1b2739');x.fillStyle=g;x.fillRect(0,0,128,128);return c;});
 const skyReflection=new THREE.CubeTexture(reflectionFaces);skyReflection.colorSpace=THREE.SRGBColorSpace;skyReflection.needsUpdate=true;scene.environment=skyReflection;

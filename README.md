@@ -14,7 +14,7 @@ The garage has six cars with distinct speed, acceleration, handling, capacity, a
 
 ## Implementation
 
-`driving.mjs` contains driving physics, city collision bounds, road routing, job state, settlement, and profile validation. `vehicles.js` loads the RGS_Dev CC0 models and animates their original separated wheels, brake lights and suspension. The same models appear in the live garage thumbnails. `city.js` loads the commercial building pack and creates streets, storefronts, skyline, and animated signals. `getaway.js` renders imported assets, driving controls, traffic and police, missions, garage, effects, audio, and HUD. Buildings fade when they obstruct the chase camera. Fixed scenery is batched for rendering efficiency.
+`driving.mjs` contains driving physics, city collision bounds, road routing, job state, settlement, and profile validation. `vehicles.js` loads the RGS_Dev CC0 models and animates their original separated wheels, brake lights and suspension. The same models appear in the live garage thumbnails. `city.js` combines Commercial, Industrial, Suburban, and Nature packs into distinct districts, with fitted storefronts, rooftop equipment, planted parks, dock cranes and containers, textured asphalt, and animated signals and fountain ripples. `getaway.js` renders imported assets, driving controls, traffic and police, missions, garage, effects, audio, and HUD. Buildings fade when they obstruct the chase camera. Fixed scenery is batched for rendering efficiency.
 
 Models: Kenney Blocky Characters, Car Kit, City Kit Roads, and City Kit Commercial (CC0), plus RGS_Dev vehicles (CC0). Three.js 0.170.0 (MIT). Space Mono and Silkscreen (SIL Open Font License). Credits and licenses are included in the app and `dist/assets/LICENSES.txt`.
 
@@ -69,3 +69,9 @@ The published build uses an explicit demo: 25,000 demo tokens, review-and-confir
 `phone.js` renders the handset and its eight apps. `getaway.js` supplies live game state and routes phone commands through the same movement, dispatch, collection, pause, and save functions as the HUD. The garage reuses the complete collection and burn-review flow within the phone. Pending wallet operations block closing or switching apps. Suspended shifts are decoded through `restoreShift` for accurate passengers and map data after a reload.
 
 The five quests read tutorial progress, deliveries, best banked haul, completed shifts, and home activities. `trackedQuest` is validated and saved with the local profile. Milestones do not invent token rewards. Opening the phone freezes the actual shift timer; closing it resumes the game.
+
+## City art update
+
+26 additional CC0 Kenney models replace repeated commercial blocks with warehouse/service buildings, suburban houses, detailed trees and palms, shrubs, flowers, containers, water towers, and solar panels. Street-level shop windows and awnings attach to the actual building bounds. The road grid, collision footprints, pickups, destinations, saved progress, and player assets are retained. Shared scenery is batched; each block still fades independently behind the chase camera. The website city view uses the same assets.
+
+`checks/import-city-assets.py` reproduces the asset import from the original Kenney ZIPs. Original palette colors are sampled into linear vertex colors without changing artist geometry. The published GLBs need no external textures. Original licenses and source URLs are included with the assets.

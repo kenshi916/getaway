@@ -140,3 +140,10 @@ SILKSCREEN — SIL OPEN FONT LICENSE
 Font authors: The Silkscreen Project Authors
 https://github.com/googlefonts/silkscreen
 Full license: fonts/SILKSCREEN-LICENSE.txt
+
+Kenney City Kit Industrial 2.0, City Kit Suburban 2.0, and Nature Kit — Creative Commons CC0.
+https://kenney.nl/assets/city-kit-industrial
+https://kenney.nl/assets/city-kit-suburban
+https://kenney.nl/assets/nature-kit
+Original licenses: models/city/industrial/LICENSE.txt, models/city/suburban/LICENSE.txt, models/city/nature/LICENSE.txt.
+Palette atlases baked to linear vertex colors; artist mesh geometry retained.

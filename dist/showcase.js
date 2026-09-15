@@ -1,6 +1,6 @@
 import * as THREE from './assets/three.module.js';
 import {GLTFLoader} from './assets/GLTFLoader.js';
-import {loadCityPack,buildCity} from './city.js?v=6';
+import {loadCityPack,buildCity} from './city.js?v=13';
 import {loadVehiclePack,makeVehicle,animateVehicle} from './vehicles.js?v=8';
 import {CARS,PAINTS,createCar} from './driving.mjs?v=12';
 const VIEWS={
@@ -14,8 +14,8 @@ export async function startShowcase(){
  renderRides();
  let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'low-power'});}catch{loading.innerHTML='THE CITY IS WAITING<span>Open the game on a device with 3D graphics</span>';return;}
  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
- const scene=new THREE.Scene();scene.background=new THREE.Color('#586783');scene.fog=new THREE.Fog('#586783',165,420);
- scene.add(new THREE.HemisphereLight('#c5e5ff','#344337',2.1));const sun=new THREE.DirectionalLight('#ffd2a0',2.9);sun.position.set(-65,115,80);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-118,right:118,top:118,bottom:-118,near:1,far:300});sun.shadow.normalBias=.05;sun.shadow.bias=-.0001;scene.add(sun);
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#586f85');scene.fog=new THREE.Fog('#586f85',165,420);
+ scene.add(new THREE.HemisphereLight('#c5ddeb','#303a43',1.5));const sun=new THREE.DirectionalLight('#ffd3a1',2.75);sun.position.set(-65,115,80);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);Object.assign(sun.shadow.camera,{left:-118,right:118,top:118,bottom:-118,near:1,far:300});sun.shadow.normalBias=.05;sun.shadow.bias=-.0001;scene.add(sun);
  const world=new THREE.Group();scene.add(world);const city=buildCity(world),camera=new THREE.PerspectiveCamera(42,1,.5,550),look=new THREE.Vector3(0,0,0);let active='downtown';camera.position.fromArray(VIEWS.downtown.eye);camera.lookAt(look);
  const cars=[];for(const [name,x,z,h]of [['coupe',18,37,0],['getaway-van',-54,27,0],['taxi',40,-54,Math.PI/2],['hatchback',-28,90,Math.PI/2],['suv',90,-44,0]]){const view=makeVehicle(name,1.65,PAINTS[cars.length%4]);world.add(view.group);cars.push({view,car:{...createCar(CARS.coupe,x,z,h),speed:7},initial:{x,z,h}});}
  host.appendChild(renderer.domElement);loading.remove();
