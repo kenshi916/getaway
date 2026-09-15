@@ -2,6 +2,7 @@ export const HOME_VERSION=3;
 export const HOME_SPAWN={x:-3.5,z:2.5};
 export const HOME_BOUNDS={minX:-10.48,maxX:10.48,minZ:-7.68,maxZ:7.68};
 export const HOME_SPOTS=[
+ {id:'garage',x:.2,z:6.65,label:'ENTER GARAGE',room:'Entry'},
  {id:'laptop',x:3.8,z:-1.65,label:'CHECK LAPTOP',room:'Bedroom'},
  {id:'wardrobe',x:9,z:-.35,label:'OPEN COLLECTION',room:'Bedroom'},
  {id:'bed',x:7,z:-3.65,label:'SAVE & REST',room:'Bedroom'},

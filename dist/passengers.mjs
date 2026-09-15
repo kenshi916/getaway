@@ -73,15 +73,17 @@ export const RIDE_RULES={
 };
 export const passengerFor=job=>PASSENGERS.find(p=>p.id===job?.personId)||PASSENGERS.find(p=>p.stop===job?.stopId)||PASSENGERS[0];
 export const passengerPortrait=person=>'/assets/models/passengers/character-'+person.model+'.png';
-export const storyFor=job=>passengerFor(job).chapters[bound(Number(job?.chapter)||0,0,2)];
+export const storyFor=job=>job?.dest?.id?.startsWith('landmark-')?{title:'Across the city',request:'Another night, another stop. Take me to '+job.dest.name+'.',after:'Right on time. Good to see '+job.dest.name+' again.'}:passengerFor(job).chapters[bound(Number(job?.chapter)||0,0,2)];
 export function cleanPassengerHistory(raw){const history={};for(const p of PASSENGERS){const v=raw?.[p.id];if(!v||!Number.isFinite(v.rides))continue;history[p.id]={rides:bound(Math.floor(v.rides),0,99999),chapters:bound(Math.floor(Number(v.chapters)||0),0,3),bestRating:bound(Math.floor(Number(v.bestRating)||0),0,5),lastRating:bound(Math.floor(Number(v.lastRating)||0),0,5)};}return history;}
 export function passengerJob(stop,index,destinations,history={}){
  const person=PASSENGERS.find(p=>p.stop===stop.id)||PASSENGERS[0],chapterIndex=Math.min(2,history[person.id]?.chapters||0),story=person.chapters[chapterIndex];
- const dest=destinations.find(d=>d.id===story.dest)||destinations[0];
+ const outer=destinations.filter(d=>d.id.startsWith('landmark-'));
+ const repeat=(history[person.id]?.chapters||0)>=person.chapters.length;
+ const dest=repeat&&outer.length?outer[(PASSENGERS.indexOf(person)+index)%outer.length]:destinations.find(d=>d.id===story.dest)||destinations[0];
  return{id:stop.id+'-'+index,stopId:stop.id,personId:person.id,chapter:chapterIndex,name:person.name,level:person.level,value:[0,850,1450,2100][person.level],dest:{...dest},kind:person.kind,heat:person.heat,picked:false,cooldown:0};
 }
-export function startRide(run,job,car){const distance=Math.abs((car?.x||0)-job.dest.x)+Math.abs((car?.z||0)-job.dest.z);return{elapsed:0,distance:0,comfort:100,cargo:100,boost:0,collisions:0,crashesAt:run.crashes,lastHealth:car?.health??100,lastX:car?.x??null,lastZ:car?.z??null,deadline:bound(Math.ceil(distance/9+25),30,75),midSpoken:false,crashSpoken:false,lateSpoken:false};}
-export function cleanRide(raw,run,job,car){const r=startRide(run,job,car);if(!raw||typeof raw!=='object')return r;for(const key of ['elapsed','distance','boost','collisions'])if(Number.isFinite(raw[key]))r[key]=bound(raw[key],0,100000);for(const key of ['comfort','cargo'])if(Number.isFinite(raw[key]))r[key]=bound(raw[key],0,100);if(Number.isFinite(raw.deadline))r.deadline=bound(raw.deadline,30,75);r.midSpoken=raw.midSpoken===true;r.crashSpoken=raw.crashSpoken===true;r.lateSpoken=raw.lateSpoken===true;return r;}
+export function startRide(run,job,car){const distance=Math.abs((car?.x||0)-job.dest.x)+Math.abs((car?.z||0)-job.dest.z);return{elapsed:0,distance:0,comfort:100,cargo:100,boost:0,collisions:0,crashesAt:run.crashes,lastHealth:car?.health??100,lastX:car?.x??null,lastZ:car?.z??null,deadline:bound(Math.ceil(distance/8+30),30,150),midSpoken:false,crashSpoken:false,lateSpoken:false};}
+export function cleanRide(raw,run,job,car){const r=startRide(run,job,car);if(!raw||typeof raw!=='object')return r;for(const key of ['elapsed','distance','boost','collisions'])if(Number.isFinite(raw[key]))r[key]=bound(raw[key],0,100000);for(const key of ['comfort','cargo'])if(Number.isFinite(raw[key]))r[key]=bound(raw[key],0,100);if(Number.isFinite(raw.deadline))r.deadline=bound(raw.deadline,30,150);r.midSpoken=raw.midSpoken===true;r.crashSpoken=raw.crashSpoken===true;r.lateSpoken=raw.lateSpoken===true;return r;}
 export function updateRides(run,car,dt){
  const messages=[];if(run.phase!=='driving')return messages;dt=bound(dt,0,.05);
  for(const p of run.passengers){const r=p.ride||(p.ride=startRide(run,p,car)),person=passengerFor(p),crashes=Math.max(0,run.crashes-r.crashesAt),lost=Math.max(0,r.lastHealth-car.health);
@@ -90,7 +92,7 @@ export function updateRides(run,car,dt){
   r.comfort=bound(r.comfort-crashes*22-lost*.35-rough*dt,0,100);r.cargo=bound(r.cargo-crashes*32-(car.drifting?3*dt:0),0,100);if(car.boosting)r.boost+=dt;
   if(crashes&&!r.crashSpoken){messages.push({job:p,line:person.crash});r.crashSpoken=true;}
   else if(p.kind==='rush'&&r.elapsed>r.deadline&&!r.lateSpoken){messages.push({job:p,line:'We missed the deadline. Please still get me there safely.'});r.lateSpoken=true;}
-  else if(r.elapsed>7&&!r.midSpoken){messages.push({job:p,line:person.talk});r.midSpoken=true;}
+  else if(r.elapsed>7&&!r.midSpoken){messages.push({job:p,line:p.dest.id.startsWith('landmark-')?'There is a whole city out here. Keep following the route.':person.talk});r.midSpoken=true;}
  }
  return messages;
 }

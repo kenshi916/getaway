@@ -150,3 +150,9 @@ Palette atlases baked to linear vertex colors; artist mesh geometry retained.
 
 Additional passenger characters and original preview portraits: Kenney Blocky Characters 2.0, CC0. https://kenney.nl/assets/blocky-characters
 License: models/passengers/LICENSE.txt. Original geometry and animations preserved; PNG textures embedded in the GLBs.
+
+Car Concept (Alley Cat playable model)
+Model and textures by Eric Chadwick. Copyright 2024 Darmstadt Graphics Group GmbH.
+Creative Commons Attribution 4.0 International: https://creativecommons.org/licenses/by/4.0/
+Source: https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept
+Adaptations for GETAWAY: uniform scale, flattened/merged geometry, standardized body and wheel pivots, straightened front wheels, material names and brake lighting, blank license plate; source logo texture removed. No endorsement implied.

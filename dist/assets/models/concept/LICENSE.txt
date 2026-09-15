@@ -1,0 +1,6 @@
+
+Car Concept (Alley Cat playable model)
+Model and textures by Eric Chadwick. Copyright 2024 Darmstadt Graphics Group GmbH.
+Creative Commons Attribution 4.0 International: https://creativecommons.org/licenses/by/4.0/
+Source: https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept
+Adaptations for GETAWAY: uniform scale, flattened/merged geometry, standardized body and wheel pivots, straightened front wheels, material names and brake lighting, blank license plate; source logo texture removed. No endorsement implied.

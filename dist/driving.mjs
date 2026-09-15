@@ -1,8 +1,21 @@
-import {passengerJob,startRide,rideStatus,scoreRide,cleanPassengerHistory} from './passengers.mjs?v=14';
-import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=11';
-import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=8';
+import {passengerJob,startRide,rideStatus,scoreRide,cleanPassengerHistory} from './passengers.mjs?v=17';
+import {HOME_VERSION,HOME_SPAWN,HOME_BOUNDS} from './home-layout.mjs?v=17';
+import {BURN_CARS,defaultCollection,cleanCollection} from './collection.mjs?v=17';
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-export const ROAD=[-90,-54,-18,18,54,90],LIMIT=102;
+export const ROAD=Array.from({length:16},(_,i)=>-270+i*36),LIMIT=282;
+export const DISTRICTS=[
+ {id:'harbor',name:'HARBOR WORKS',x:-180,z:-180,color:'#7aafba',type:'industrial',description:'Container yards and warehouses. Long roads for losing a tail.'},
+ {id:'uptown',name:'CROWN HEIGHTS',x:0,z:-180,color:'#bcb9ed',type:'commercial',description:'Tall towers, station streets, and the northern skyline.'},
+ {id:'gardens',name:'PALM GARDENS',x:180,z:-180,color:'#87c99a',type:'garden',description:'Palm-lined boulevards and quiet green city blocks.'},
+ {id:'west',name:'WESTSIDE',x:-180,z:0,color:'#e8bc82',type:'residential',description:'Low-rise homes and long neighborhood avenues.'},
+ {id:'downtown',name:'DOWNTOWN',x:0,z:0,color:'#f3d689',type:'commercial',description:'Union Trust, Neon Row, your apartment, and Last Exit Garage.'},
+ {id:'east',name:'EAST EXCHANGE',x:180,z:0,color:'#85bde9',type:'commercial',description:'Glass towers, late-night offices, and wide intersections.'},
+ {id:'docks',name:'SOUTH DOCKS',x:-180,z:180,color:'#83c9bd',type:'industrial',description:'A working port at the edge of the water.'},
+ {id:'south',name:'MOTOR QUARTER',x:0,z:180,color:'#ef9f79',type:'industrial',description:'Service yards, garages, and warehouse streets.'},
+ {id:'sunset',name:'SUNSET HILLS',x:180,z:180,color:'#d9a6c5',type:'residential',description:'Suburban streets and tree-lined blocks on the far side of town.'}
+];
+export const districtAt=p=>DISTRICTS[(p.z<-90?0:p.z>90?2:1)*3+(p.x<-90?0:p.x>90?2:1)];
+export const LANDMARKS=DISTRICTS.filter(d=>d.id!=='downtown').map(d=>({id:'landmark-'+d.id,name:d.name,x:d.x,z:d.z-18,district:d.id}));
 export const HOME={x:36,z:54,name:'LAST EXIT GARAGE'};
 export const CARS={
  van:{id:'van',name:'THE WORKHORSE',model:'getaway-van',price:0,speed:22,accel:18,grip:11,steer:2.35,seats:3,health:120,scale:1.7,description:'Three seats. Built to take a hit.'},
@@ -41,6 +54,12 @@ export const BLOCKS=[
  {x:36,z:72,w:25,d:25,h:10,color:'#c0b098',name:'FUEL STOP',district:'south'},
  {x:72,z:72,w:25,d:25,h:11,color:'#ce9778',name:'ROADHOUSE',district:'south'}
 ];
+// Preserve every original block and save coordinate; add 200 surrounding blocks.
+for(let x=-252;x<=252;x+=36)for(let z=-252;z<=252;z+=36){
+ if(Math.abs(x)<=72&&Math.abs(z)<=72)continue;
+ const area=districtAt({x,z}),n=Math.abs(x/36)+Math.abs(z/36),park=area.type==='garden'&&n%3===0;
+ BLOCKS.push({x,z,w:26,d:26,h:area.type==='commercial'?16+n%4*5:9,color:area.color,name:area.name,district:area.id,outer:true,park});
+}
 export const STOPS=[
  {id:'bank',x:-36,z:-54,name:'UNION TRUST',type:3},
  {id:'hotel',x:0,z:-54,name:'THE REGENT',type:2},
@@ -69,7 +88,8 @@ export const DESTS=[
  {id:'gardens',x:90,z:-72,name:'NORTH GARDENS'},
  {id:'stage',x:36,z:-90,name:'STARLIGHT STAGE DOOR'},
  {id:'dinerdoor',x:0,z:54,name:'24H DINER'},
- {id:'westcourt',x:-72,z:90,name:'WEST COURT'}
+ {id:'westcourt',x:-72,z:90,name:'WEST COURT'},
+ ...LANDMARKS
 ];
 export const RAMPS=[{x:0,z:0,w:5,d:10,dir:-1,h:2.6},{x:-36,z:36,w:10,d:4.8,dir:1,axis:'x',h:2.2}];
 export function dist(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
@@ -137,8 +157,8 @@ export function drive(car,input,dt,boxes=BLOCKS){
 export function defaultProfile(){return{credits:0,best:0,runs:0,deliveries:0,unlocked:['van'],selected:'van',paint:0,muted:false,camera:'chase',tutorialStep:0,trackedQuest:'first-night',passengerHistory:{},homeVersion:HOME_VERSION,home:{...HOME_SPAWN},homeLife:{tvOn:false,completed:[]},checkpoint:null,collection:defaultCollection()};}
 export function cleanProfile(raw){const p=defaultProfile();if(!raw||typeof raw!=='object')return p;for(const k of ['credits','best','runs','deliveries'])if(Number.isFinite(raw[k]))p[k]=clamp(Math.floor(raw[k]),0,1e9);p.collection=cleanCollection(raw.collection);p.unlocked=['van',...Object.values(BURN_CARS).filter(c=>p.collection.owned.includes(c.itemId)).map(c=>c.id),...['coupe','racer'].filter(k=>Array.isArray(raw.unlocked)&&raw.unlocked.includes(k))];if(p.unlocked.includes(raw.selected))p.selected=raw.selected;p.paint=Number.isInteger(raw.paint)?clamp(raw.paint,0,PAINTS.length-1):0;p.muted=raw.muted===true;p.camera=raw.camera==='high'?'high':'chase';p.tutorialStep=Number.isInteger(raw.tutorialStep)?clamp(raw.tutorialStep,0,6):0;if(raw.homeVersion===HOME_VERSION&&Number.isFinite(raw.home?.x)&&Number.isFinite(raw.home?.z))p.home={x:clamp(raw.home.x,HOME_BOUNDS.minX,HOME_BOUNDS.maxX),z:clamp(raw.home.z,HOME_BOUNDS.minZ,HOME_BOUNDS.maxZ)};p.trackedQuest=['first-night','ten-fares','big-bank','five-shifts','home-comforts'].includes(raw.trackedQuest)?raw.trackedQuest:'first-night';p.homeLife={tvOn:raw.homeLife?.tvOn===true,completed:Array.isArray(raw.homeLife?.completed)?['sofa','coffee','shower','bed'].filter(id=>raw.homeLife.completed.includes(id)):[]};p.passengerHistory=cleanPassengerHistory(raw.passengerHistory);p.checkpoint=[1,2].includes(raw.checkpoint?.version)?raw.checkpoint:null;return p;}
 export function buyCar(profile,id){const c=CARS[id];if(!c||c.itemId||profile.unlocked.includes(id)||profile.credits<c.price)return false;profile.credits-=c.price;profile.unlocked.push(id);profile.selected=id;return true;}
-export function createRun(){return{phase:'driving',time:150,haul:0,deliveries:0,combo:1,wanted:0,heat:0,escape:0,passengers:[],pickups:0,nearMisses:0,crashes:0,airJumps:0,drift:0,style:0,busted:0,banked:false,elapsed:0,roadblockCount:0};}
+export function createRun(){return{phase:'driving',time:300,haul:0,deliveries:0,combo:1,wanted:0,heat:0,escape:0,passengers:[],pickups:0,nearMisses:0,crashes:0,airJumps:0,drift:0,style:0,busted:0,banked:false,elapsed:0,roadblockCount:0};}
 export function makeJob(stop,index=0,rng=Math.random,history={}){return passengerJob(stop,index,DESTS,history);}
-export function pickup(run,job,config,car){if(run.phase!=='driving'||job.picked||job.cooldown>0||run.passengers.length>=config.seats)return false;job.picked=true;run.passengers.push({...job,ride:startRide(run,job,car)});run.pickups++;run.time=Math.min(180,run.time+10);run.wanted=clamp(run.wanted+(job.heat||0),0,5);return true;}
-export function deliver(run,id){if(run.phase!=='driving')return null;const index=run.passengers.findIndex(p=>p.id===id);if(index<0)return null;const p=run.passengers[index];if(!rideStatus(p,run.wanted).canDrop)return null;run.passengers.splice(index,1);const result=scoreRide(p,run.combo,run.wanted);run.haul+=result.payment;run.deliveries++;run.combo=Math.min(3,1+run.deliveries*.25);run.time=Math.min(180,run.time+40);return{...result,passenger:p};}
+export function pickup(run,job,config,car){if(run.phase!=='driving'||job.picked||job.cooldown>0||run.passengers.length>=config.seats)return false;job.picked=true;run.passengers.push({...job,ride:startRide(run,job,car)});run.pickups++;run.time=Math.min(360,run.time+10);run.wanted=clamp(run.wanted+(job.heat||0),0,5);return true;}
+export function deliver(run,id){if(run.phase!=='driving')return null;const index=run.passengers.findIndex(p=>p.id===id);if(index<0)return null;const p=run.passengers[index];if(!rideStatus(p,run.wanted).canDrop)return null;run.passengers.splice(index,1);const result=scoreRide(p,run.combo,run.wanted);run.haul+=result.payment;run.deliveries++;run.combo=Math.min(3,1+run.deliveries*.25);run.time=Math.min(360,run.time+40);return{...result,passenger:p};}
 export function settleRun(run,profile,success){if(run.banked||run.phase==='banked'||run.phase==='busted')return false;run.phase=success?'banked':'busted';run.banked=true;profile.runs++;profile.deliveries+=run.deliveries;if(success){const total=Math.floor(run.haul+run.style);profile.credits+=total;profile.best=Math.max(profile.best,total);run.total=total;}else run.total=0;return true;}

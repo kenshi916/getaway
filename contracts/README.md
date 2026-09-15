@@ -1,6 +1,6 @@
 # GETAWAY token unlocks
 
-The published collection runs in **demo mode**. No token address, network, or live unlock contract has been configured, and no public-network deployment has been made.
+The published collection runs in **demo mode**. Robinhood Chain is selected. The GETAWAY token and live unlock contract have not been deployed or configured, and no public-network transactions have been made.
 
 `GetawayUnlocks.sol` accepts an ERC20 token with a standard `burnFrom(address,uint256)` implementation. It grants one permanent, non-transferable item to the burning wallet. Supply and wallet balance must both decrease by the exact price in the same transaction. If anything fails, the burn and unlock revert together. The contract has no owner, price update, upgrade, or withdrawal function.
 
@@ -37,3 +37,11 @@ The game is a client-side solo game; local tampering does not create an on-chain
 - [Pons launchpad source and V2 token description](https://github.com/ponsdotdev/ponsfamily/blob/main/README.md)
 - [OpenZeppelin ERC20 and ERC20Burnable](https://docs.openzeppelin.com/contracts/5.x/api/token/erc20)
 - [EIP-1193 wallet provider API](https://eips.ethereum.org/EIPS/eip-1193)
+
+## Selected network and launchpad
+
+The owner selected a new GETAWAY token on Pons, on Robinhood Chain. The frontend now supplies chain ID 0x1237 (4663), the official mainnet RPC and Blockscout explorer; token and registry remain empty and live burns stay disabled.
+
+Launch through Pons V2, whose published PonsV2LauncherToken inherits ERC20Burnable. Verify the actual deployed token and its 18 decimals before deploying this registry. Pons V1 and the existing PONS ecosystem token must not be substituted. The prices listed above remain demo prices until the owner chooses launch economics. The owner must sign the token launch and registry deployment through their wallet; private keys never belong in this project.
+
+Sources: https://docs.ponsfamily.com/v2 ; https://docs.robinhood.com/chain/connecting/ ; https://github.com/ponsdotdev/ponsfamily/blob/main/contractsV2/src/v2/PonsV2LauncherToken.sol .

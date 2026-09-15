@@ -1,6 +1,6 @@
 import * as THREE from './assets/three.module.js';
-import {HOME_SPAWN,HOME_SPOTS,HOME_BOUNDS,homeRoom} from './home-layout.mjs?v=11';
-export {HOME_SPAWN,HOME_SPOTS} from './home-layout.mjs?v=11';
+import {HOME_SPAWN,HOME_SPOTS,HOME_BOUNDS,homeRoom} from './home-layout.mjs?v=17';
+export {HOME_SPAWN,HOME_SPOTS} from './home-layout.mjs?v=17';
 export const APARTMENT_ASSETS=['bedDouble','cabinetBedDrawer','lampRoundTable','loungeDesignSofaCorner','loungeChairRelax','pillowBlue','tableCoffeeGlass','cabinetTelevision','televisionModern','books','laptop','desk','chairDesk','bookcaseClosedDoors','pottedPlant','plantSmall1','kitchenCabinetDrawer','kitchenSink','kitchenStove','kitchenFridge','hoodModern','kitchenCabinetUpperDouble','kitchenCoffeeMachine','tableRound','chairModernCushion','showerRound','toiletSquare','bathroomSinkSquare','bathroomMirror','washer','coatRackStanding','rugDoormat','lampRoundFloor','sideTable','trashcan','radio'];
 
 export function buildApartment(templates,position=HOME_SPAWN,life={}){
@@ -47,6 +47,12 @@ export function buildApartment(templates,position=HOME_SPAWN,life={}){
  wall(.18,3.2,9.1,1.6,-3.45,'#b7c0b2');wall(.85,1.15,.18,2.025,1.1,'#b7c0b2');wall(6.15,1.15,.18,7.725,1.1,'#b7c0b2');
  function doorway(x,z,width,rotation=0,door=false){const group=new THREE.Group();group.position.set(x,0,z);group.rotation.y=rotation;room.add(group);for(const xx of [-width/2,width/2])box(.13,2.7,.22,'#e3d4b8',xx,1.62,0,{},group);box(width+.13,.15,.22,'#e3d4b8',0,3,0,{},group);box(width,.045,.28,'#c8a779',0,.32,0,{},group);if(door){const panel=box(width-.15,2.58,.12,'#2d4852',0,1.59,0,{},group);panel.userData.homeAction='door';panel.material=panel.material.clone();panel.material.transparent=true;occluders.push(panel);box(.07,.07,.15,'#d8b571',width*.31,1.45,.12,{metalness:.65,roughness:.35},group);}}
  doorway(3.55,1.1,2.2);wall(.18,1.2,2.3,6.6,2.25,'#90aba4');wall(.18,1.2,2.4,6.6,6.8,'#90aba4');doorway(6.6,4.5,2.2,Math.PI/2);doorway(3.8,7.96,1.8,0,true);label('04',.42,.3,3.8,2.24,8.05,0,'#e6c784','#2d4852');
+ // The apartment's garage lift changes to the downstairs car bay.
+ for(const x of [-.78,1.18])box(.14,2.95,.2,'#6b9297',x,1.74,7.78);
+ box(2.1,.16,.2,'#93d7c4',.2,3.24,7.78,{emissive:'#6dbba8',emissiveIntensity:.35});
+ const garageDoor=box(1.8,2.7,.1,'#314e5b',.2,1.68,7.82);garageDoor.userData.homeAction='garage';
+ box(.025,2.7,.13,'#8ba2a3',.2,1.68,7.74);label('GARAGE / B1',1.6,.36,.2,2.68,7.7,Math.PI,'#dbedca','#25424f');
+ const garageCall=box(.2,.37,.08,'#9bbaae',1.5,1.6,7.77);garageCall.userData.homeAction='garage';
  // A longer fitted kitchen, with a four-seat dining area and wide aisles.
  const kitchen={wood:'#365963',woodDark:'#29434b',metal:'#d0d6d1'};
  prop('kitchenFridge',-9.75,-7.22,1.25,{height:2.65,colors:{wood:'#b9c5c5'}});
@@ -81,7 +87,7 @@ export function buildApartment(templates,position=HOME_SPAWN,life={}){
  setCharacter(templates.suit);
  const interactive=[];const mappings={laptop:'laptop',desk:'laptop',bookcaseClosedDoors:'wardrobe',bedDouble:'bed',kitchenCoffeeMachine:'coffee',televisionModern:'tv',cabinetTelevision:'tv',loungeDesignSofaCorner:'sofa',showerRound:'shower',rugDoormat:'door'};
  for(const prop of furniture){const id=mappings[prop.name];if(id){prop.group.userData.homeAction=id;interactive.push(prop.group);}}
- room.traverse(o=>{if(o.userData.homeAction==='door'&&!interactive.includes(o))interactive.push(o);});
+ room.traverse(o=>{if(['door','garage'].includes(o.userData.homeAction)&&!interactive.includes(o))interactive.push(o);});
  for(const spot of HOME_SPOTS){const ring=new THREE.Mesh(new THREE.RingGeometry(.28,.34,32),new THREE.MeshBasicMaterial({color:'#aeeed4',transparent:true,opacity:.6,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.set(spot.x,.37,spot.z);scene.add(ring);const diamond=new THREE.Mesh(new THREE.OctahedronGeometry(.1),new THREE.MeshBasicMaterial({color:'#ffdb96'}));diamond.position.set(spot.x,2.2,spot.z);scene.add(diamond);hotspots.push({...spot,ring,diamond});}
  const radius=.23;
  function blocked(x,z){return !Number.isFinite(x)||!Number.isFinite(z)||x<HOME_BOUNDS.minX||x>HOME_BOUNDS.maxX||z<HOME_BOUNDS.minZ||z>HOME_BOUNDS.maxZ||colliders.some(b=>x+radius>b.x-b.w/2&&x-radius<b.x+b.w/2&&z+radius>b.z-b.d/2&&z-radius<b.z+b.d/2);}

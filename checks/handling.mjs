@@ -1,3 +1,5 @@
+// Image decoding is browser-verified; Node checks validate geometry and game state.
+globalThis.self=globalThis;globalThis.createImageBitmap=async()=>({width:1,height:1,close(){}});
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -16,7 +18,7 @@ for(const config of Object.values(CARS)){
  for(let i=0;i<60;i++)drive(car,{throttle:1,steer:1,brake:true},dt,[]);assert(car.drifting,'drift enters');const driftSlip=Math.abs(car.vx*Math.cos(car.heading)-car.vz*Math.sin(car.heading));assert(driftSlip>3,'drift retains lateral momentum');
  for(let i=0;i<90;i++)drive(car,{throttle:1},dt,[]);const recoveredSlip=Math.abs(car.vx*Math.cos(car.heading)-car.vz*Math.sin(car.heading));assert(recoveredSlip<.3,'released drift regains traction');
  car=createCar(config,0,0,0);for(let i=0;i<180;i++)drive(car,{throttle:1,boost:true},dt,[]);assert(car.nitro<60&&car.speed>config.speed*1.2,'nitro accelerates');const peak=car.speed;drive(car,{throttle:1},dt,[]);assert(peak-car.speed<1,'no boost release speed snap');
- const view=makeVehicle(config.model,config.scale,'#ffc23d');animateVehicle(view,car,dt);const box=new THREE.Box3().setFromObject(view.root);assert(box.max.y>1.2&&box.max.y<3.2,'sensible car dimensions');assert.equal(view.wheels.length,4);let meshes=0,triangles=0;view.root.traverse(o=>{if(o.isMesh){meshes++;triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;for(const n of o.geometry.attributes.position.array)assert(Number.isFinite(n),'finite geometry');}});assert(meshes<32,'batched vehicle meshes');
+ const view=makeVehicle(config.model,config.scale,'#ffc23d');animateVehicle(view,car,dt);const box=new THREE.Box3().setFromObject(view.root);assert(box.max.y>1.2&&box.max.y<3.2,'sensible car dimensions');assert.equal(view.wheels.length,4);let meshes=0,triangles=0;view.root.traverse(o=>{if(o.isMesh){meshes++;triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;for(const n of o.geometry.attributes.position.array)assert(Number.isFinite(n),'finite geometry');}});assert(meshes<(config.model==='concept-gt'?45:32),'batched vehicle meshes');
  stats.push({car:config.id,driftSlip:+driftSlip.toFixed(2),recoveredSlip:+recoveredSlip.toFixed(3),meshes,triangles});
 }
 const patrol=makeVehicle('police-car');assert.equal(patrol.policeLights.length,2);assert(patrol.tail);assert(patrol.wheels.every(w=>w.radius>0));

@@ -1,10 +1,10 @@
 import * as THREE from './assets/three.module.js';
 import {GLTFLoader} from './assets/GLTFLoader.js';
-import {loadCityPack,buildCity} from './city.js?v=14';
-import {loadVehiclePack,makeVehicle,animateVehicle} from './vehicles.js?v=8';
-import {CARS,PAINTS,createCar} from './driving.mjs?v=14';
+import {loadCityPack,buildCity} from './city.js?v=17';
+import {loadVehiclePack,makeVehicle,animateVehicle} from './vehicles.js?v=17';
+import {CARS,PAINTS,createCar} from './driving.mjs?v=17';
 const VIEWS={
- downtown:{eye:[145,148,175],target:[0,0,0],number:'01 / DOWNTOWN',title:'A BIGGER NIGHT OUT',text:'From the north station to the south motor yards. Twelve characters, thirty-six story chapters, and fourteen destinations across the city.'},
+ downtown:{eye:[145,148,175],target:[0,0,0],number:'01 / DOWNTOWN',title:'A BIGGER NIGHT OUT',text:'Nine districts. 256 junctions. Nearly eight times the playable area. Keep driving beyond downtown into the harbor, gardens, and hills.'},
  neon:{eye:[41,45,62],target:[0,3,0],number:'02 / NEON ROW',title:'BRIGHT LIGHTS. TIGHT TURNS.',text:'Find the arcade gateway, slip through the center alley, and take the ramp to shake the pursuit.'},
  garage:{eye:[79,49,101],target:[34,1,46],number:'03 / LAST EXIT',title:'BRING IT BACK IN ONE PIECE',text:'Home is the lit garage on the southeast road. Stop here to bank your haul and finish the shift.'}
 };

@@ -1,10 +1,14 @@
+// Image decoding is browser-verified; Node checks validate geometry and game state.
+globalThis.self=globalThis;globalThis.createImageBitmap=async()=>({width:1,height:1,close(){}});
+import {buildGarage} from '../dist/garage-scene.js';
+import {createCityAtlas} from '../dist/atlas.js';
 import * as people from '../dist/passengers.mjs';
 import {createPassengerActor} from '../dist/passenger-actors.js';
 import {createGamePhone,phoneQuests,phoneIcon} from '../dist/phone.js';
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 import * as RealThree from '../dist/assets/three.module.js';
 import {mergeGeometries} from '../dist/assets/BufferGeometryUtils.js';
-import {makeVehicle,animateVehicle,loadVehiclePack} from '../dist/vehicles.js';
+import {makeVehicle,animateVehicle,loadVehiclePack} from '../dist/vehicles.js?v=17';
 import {loadCityPack,buildCity} from '../dist/city.js';
 import * as core from '../dist/driving.mjs';
 import {SKINS,DRIVERS,BURN_CARS,ownsItem} from '../dist/collection.mjs';
@@ -26,18 +30,18 @@ new Element('div','game');new Element('div','ui');document={getElementById:id=>{
 globalThis.document=document;
 class Renderer{constructor(){this.domElement=new Element('canvas');this.shadowMap={}}setPixelRatio(){}setSize(){}render(s,c){s.updateMatrixWorld();c.updateMatrixWorld();Renderer.lastScene=s}dispose(){}forceContextLoss(){}getRenderTarget(){return this.target}setRenderTarget(t){this.target=t}readRenderTargetPixels(){}}
 class Loader{async loadAsync(url){if(url.includes('/passengers/')||/\/(suit|robber|police-officer)\.glb$/.test(url)){const original=fs.readFileSync(new URL('../dist'+url,import.meta.url)),length=original.readUInt32LE(12),data=JSON.parse(original.subarray(20,20+length).toString());delete data.images;delete data.textures;delete data.samplers;for(const material of data.materials||[]){if(material.pbrMetallicRoughness)delete material.pbrMetallicRoughness.baseColorTexture;}const json=Buffer.from(JSON.stringify(data)),padded=Buffer.alloc(Math.ceil(json.length/4)*4,32);json.copy(padded);const binary=original.subarray(20+length),result=Buffer.alloc(20+padded.length+binary.length);original.copy(result,0,0,12);result.writeUInt32LE(result.length,8);result.writeUInt32LE(padded.length,12);result.writeUInt32LE(0x4e4f534a,16);padded.copy(result,20);binary.copy(result,20+padded.length);return new RealGLTFLoader().parseAsync(result.buffer.slice(result.byteOffset,result.byteOffset+result.byteLength),'');}if(url.includes("/rgsdev/")||url.includes("/city/")||url.includes("/interior/")||/\/(desk|monitor|keyboard|office-chair|office-cabinet|potted-plant|cardboard-box)\.glb$/.test(url)){const b=fs.readFileSync(new URL("../dist"+url,import.meta.url));return new RealGLTFLoader().parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),"");}const scene=new RealThree.Group();const mesh=new RealThree.Mesh(new RealThree.BoxGeometry(.3,.6,.3),new RealThree.MeshStandardMaterial());mesh.name='body';scene.add(mesh);return{scene,animations:['idle','walk'].map(name=>new RealThree.AnimationClip(name,1,[]))}}}
-const saved=new Map(),windowEvents=new Map();let callback;const context={...core,...people,createPassengerActor,...people,createPassengerActor,createGamePhone,phoneQuests,phoneIcon,SKINS,DRIVERS,BURN_CARS,ownsItem,createCollectionUI,createBurnWallet,THREE:{...RealThree,WebGLRenderer:Renderer,Clock:class{getDelta(){return 1/60}}},GLTFLoader:Loader,mergeGeometries,makeVehicle,animateVehicle,loadVehiclePack,loadCityPack,buildCity,buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS,captureShift,restoreShift,document,localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},matchMedia:()=>({matches:false}),devicePixelRatio:1,innerWidth:1280,innerHeight:800,addEventListener:(name,fn)=>windowEvents.set(name,fn),requestAnimationFrame:f=>{callback=f},setTimeout(){},console,AbortController,Uint8Array,Uint8ClampedArray};context.window=context;vm.createContext(context);
-const source=fs.readFileSync(new URL('../dist/getaway.js',import.meta.url),'utf8').replace(/^import .*\n/gm,'');
-const application=source+`;this.bridge={phone:showPhone,phoneState,phoneIsOpen:()=>phoneUI.isOpen(),start:startRun,garage:showGarage,close:closeModal,pause:showPause,jobs:showJobs,bank,menu:returnMenu,route:toggleGarageRoute,get:()=>({ready,mode,paused,player,run,profile,bankReady,pickups,cityState,residents,apartment,bankRoute,playerView,target,pickupLock,targetLock}),interact:interactHome,leave:leaveApartment,resume:resumeRun,save:saveProfile,input:(value)=>{keys=value},reloadProfile:()=>{profile=cleanProfile(JSON.parse(localStorage.getItem('getaway-profile-v1')))},teleport:(p)=>{Object.assign(player,{x:p.x,z:p.z,vx:0,vz:0,speed:0,y:0,vy:0,yawRate:0,steering:0});},fund:()=>{profile.credits=20000}}`;vm.runInContext(application,context);
-await new Promise(resolve=>setImmediate(resolve));const b=context.bridge;assert(b.get().ready,'assets ready');
-const city=b.get().cityState;assert.equal(city.buildings.length,core.BLOCKS.length);assert.equal(city.buildingBounds.length,92);assert.equal(b.get().residents.length,12);assert.equal(new Set(b.get().pickups.map(p=>p.actor.person.model)).size,12,'twelve different passenger character models');
-assert.equal(city.buildingBounds.filter(b=>b.name.startsWith('industrial/')).length,28,'industrial districts use warehouse and service models');
-assert.equal(city.buildingBounds.filter(b=>b.name.startsWith('suburban/')).length,16,'residential districts use house models');
+const saved=new Map(),windowEvents=new Map();let callback;const context={buildGarage,createCityAtlas,...core,...people,createPassengerActor,...people,createPassengerActor,createGamePhone,phoneQuests,phoneIcon,SKINS,DRIVERS,BURN_CARS,ownsItem,createCollectionUI,createBurnWallet,THREE:{...RealThree,WebGLRenderer:Renderer,Clock:class{getDelta(){return 1/60}}},GLTFLoader:Loader,mergeGeometries,makeVehicle,animateVehicle,loadVehiclePack,loadCityPack,buildCity,buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS,captureShift,restoreShift,document,localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},matchMedia:()=>({matches:false}),devicePixelRatio:1,innerWidth:1280,innerHeight:800,addEventListener:(name,fn)=>windowEvents.set(name,fn),requestAnimationFrame:f=>{callback=f},setTimeout(){},console,AbortController,Uint8Array,Uint8ClampedArray};context.window=context;vm.createContext(context);
+const source=fs.readFileSync(new URL('../dist/getaway.js',import.meta.url),'utf8').replace(/^import [^\n]*\n/gm,'');
+const application=source+`;this.bridge={enterGarage,browseGarage,garageState:()=>({garageScene,garageCarId}),atlas:showAtlas,phone:showPhone,phoneState,phoneIsOpen:()=>phoneUI.isOpen(),start:startRun,garage:showGarage,close:closeModal,pause:showPause,jobs:showJobs,bank,menu:returnMenu,route:toggleGarageRoute,get:()=>({ready,mode,paused,player,run,profile,bankReady,pickups,cityState,residents,apartment,bankRoute,playerView,target,pickupLock,targetLock}),interact:interactHome,leave:leaveApartment,resume:resumeRun,save:saveProfile,input:(value)=>{keys=value},reloadProfile:()=>{profile=cleanProfile(JSON.parse(localStorage.getItem('getaway-profile-v1')))},teleport:(p)=>{Object.assign(player,{x:p.x,z:p.z,vx:0,vz:0,speed:0,y:0,vy:0,yawRate:0,steering:0});},fund:()=>{profile.credits=20000}}`;vm.runInContext(application,context);
+for(let i=0;i<500&&!context.bridge.get().ready;i++)await new Promise(resolve=>setTimeout(resolve,10));const b=context.bridge;assert(b.get().ready,'assets ready');
+const city=b.get().cityState;assert.equal(city.buildings.length,core.BLOCKS.length);assert(city.buildingBounds.length>300);assert.equal(b.get().residents.length,12);assert.equal(new Set(b.get().pickups.map(p=>p.actor.person.model)).size,12,'twelve different passenger character models');
+assert.equal(city.buildingBounds.filter(b=>!b.block.outer&&b.name.startsWith('industrial/')).length,28,'industrial districts use warehouse and service models');
+assert.equal(city.buildingBounds.filter(b=>!b.block.outer&&b.name.startsWith('suburban/')).length,16,'residential districts use house models');
 assert.equal([...city.usedAssets].filter(name=>/^(industrial|suburban|nature)\//.test(name)).length,26,'all added assets appear in the city');
 for(const {bounds,block}of city.buildingBounds){assert(bounds.min.x>=block.x-block.w/2-1e-5&&bounds.max.x<=block.x+block.w/2+1e-5,'building stays inside horizontal collision boundary');assert(bounds.min.z>=block.z-block.d/2-1e-5&&bounds.max.z<=block.z+block.d/2+1e-5,'building stays inside depth collision boundary');}
 const fadeMaterials=new Set();for(const building of city.buildings)for(const material of building.materials){assert(!fadeMaterials.has(material),'camera fading cannot affect another block');fadeMaterials.add(material);}
 let meshes=0,triangles=0;city.stage.traverse(o=>{if(!o.isMesh)return;meshes++;triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;for(const a of Object.values(o.geometry.attributes))assert([...a.array].every(Number.isFinite),'finite city geometry');});
-assert(meshes<650,'shared color surfaces keep the complete city below the mesh budget');assert(triangles<400000,'city geometry stays within the static art budget');
+assert(meshes<1600,'expanded city mesh budget');assert(triangles<1200000,'expanded city geometry budget');
 assert.equal(b.get().mode,'apartment','new players start inside their home');
 const oldSave={...core.defaultProfile(),homeVersion:2,home:{x:5,z:-4},credits:7100,unlocked:['van','coupe'],selected:'coupe',tutorialStep:5};const migrated=core.cleanProfile(oldSave);assert.deepEqual(migrated.home,HOME_SPAWN);assert.equal(migrated.credits,7100);assert.equal(migrated.selected,'coupe');assert.equal(migrated.tutorialStep,5);
 assert.equal(b.get().profile.tutorialStep,0);b.start();assert.equal(b.get().mode,'apartment','the briefing gates the first shift');
@@ -112,18 +116,34 @@ console.log('Phone checks passed: keyboard open/close, paused timer, persistent 
 
 // A fresh application context must read the same persisted state and still open at home.
 Object.assign(b.get().player,{health:67,nitro:42});Object.assign(b.get().run,{wanted:2,heat:1.7});b.save();const beforeReload=JSON.parse(saved.get('getaway-profile-v1'));
-const freshContext={...context};freshContext.window=freshContext;vm.createContext(freshContext);vm.runInContext(application,freshContext);await new Promise(resolve=>setImmediate(resolve));const fresh=freshContext.bridge;
+const freshContext={...context};freshContext.window=freshContext;vm.createContext(freshContext);vm.runInContext(application,freshContext);for(let i=0;i<500&&!freshContext.bridge.get().ready;i++)await new Promise(resolve=>setTimeout(resolve,10));const fresh=freshContext.bridge;
 assert(fresh.get().ready);assert.equal(fresh.get().mode,'apartment');assert.equal(fresh.get().profile.tutorialStep,6);assert.equal(fresh.get().profile.trackedQuest,'ten-fares');assert.equal(fresh.get().profile.passengerHistory.jules.rides,1,'passengers remember past rides after reload');fresh.phone('dispatch');assert.equal(fresh.phoneState().passengers[0].id,carried,'fresh reload shows saved passengers in phone');fresh.close();assert.equal(fresh.get().profile.credits,14000);assert.equal(fresh.get().profile.checkpoint.carId,'hatch');assert.equal(fresh.get().profile.collection.balance,21000);assert.equal(fresh.get().profile.collection.skin,'afterglow');assert.equal(fresh.get().profile.collection.driver,'robber');
 ids.get('homeResume').onclick();assert.equal(fresh.get().mode,'driving');assert.equal(fresh.get().player.config.id,'hatch');assert.equal(fresh.get().player.health,67);assert.equal(fresh.get().player.nitro,42);assert.equal(fresh.get().run.wanted,2);assert.equal(fresh.get().run.time,beforeReload.checkpoint.run.time);
 const write=freshContext.localStorage.setItem;freshContext.localStorage.setItem=()=>{throw new Error('Storage blocked')};assert.equal(fresh.save(),false);assert.equal(ids.get('homeSave').textContent,'SAVING UNAVAILABLE');freshContext.localStorage.setItem=write;
 console.log('Reload and persistence checks passed: the full app starts at home from a saved profile, resumes car / timer / heat, and handles unavailable storage.');
 
+// Garage mode changes scenery without replacing the saved shift.
+fresh.save();const garageCheckpoint=JSON.stringify(fresh.get().profile.checkpoint);
+fresh.enterGarage();assert.equal(fresh.get().mode,'garage');assert.equal(JSON.stringify(fresh.get().profile.checkpoint),garageCheckpoint);
+callback();assert.equal(Renderer.lastScene,fresh.garageState().garageScene.scene);
+fresh.browseGarage(1);const chosen=fresh.garageState().garageCarId;assert.equal(fresh.garageState().garageScene.selected,chosen);
+assert.equal(JSON.stringify(fresh.get().profile.checkpoint),garageCheckpoint,'browsing does not mutate saved shift');
+document.querySelectorAll('[data-garage-car]').find(e=>e.dataset.garageCar==='suv').onclick();ids.get('garageAcquire').onclick();
+assert(ids.get('modalRoot').innerHTML.includes('IRONHIDE'));
+await ids.get('burnConfirm').onclick();assert.equal(fresh.get().profile.selected,'suv');assert.equal(fresh.garageState().garageScene.selected,'suv');
+assert.equal(JSON.stringify(fresh.get().profile.checkpoint),garageCheckpoint,'buying a car preserves checkpoint');
+ids.get('garageDrive').onclick();assert.equal(fresh.get().mode,'garage');assert(ids.get('modalRoot').classList.contains('hidden'));
+ids.get('garageDriveOut').onclick();assert.equal(fresh.get().mode,'driving');assert.equal(fresh.get().player.config.id,'hatch','resume keeps original driving car');
+fresh.enterGarage();ids.get('garageUpstairs').onclick();assert.equal(fresh.get().mode,'apartment');
+const garageSpot=HOME_SPOTS.find(p=>p.id==='garage');fresh.get().apartment.setPosition(garageSpot);fresh.interact();assert.equal(fresh.get().mode,'garage','apartment lift enters garage');
+ids.get('garageUpstairs').onclick();
+console.log('3D garage checks passed: reachable apartment entry, actual garage scene, model browsing, burn/equip, return upstairs, and saved-shift preservation.');
 // Exercise the website's actual model loaders, vehicle preview creation and view buttons.
 const websiteRoot=new Element('main','website');websiteRoot.innerHTML=fs.readFileSync(new URL('../dist/index.html',import.meta.url),'utf8');
 context.Image=class extends Element{constructor(){super('img')}};
 context.ResizeObserver=class{constructor(callback){this.callback=callback}observe(){this.callback()}disconnect(){}};
 context.IntersectionObserver=class{constructor(callback){this.callback=callback}observe(target){this.callback([{target,isIntersecting:true}])}disconnect(){}};
-const showcaseSource=fs.readFileSync(new URL('../dist/showcase.js',import.meta.url),'utf8').replace(/^import .*\n/gm,'').replace('export async function startShowcase','async function startShowcase');
+const showcaseSource=fs.readFileSync(new URL('../dist/showcase.js',import.meta.url),'utf8').replace(/^import [^\n]*\n/gm,'').replace('export async function startShowcase','async function startShowcase');
 vm.runInContext(showcaseSource+';this.startShowcase=startShowcase;',context);await context.startShowcase();
 const cards=document.querySelectorAll('[data-car-preview]');assert.equal(cards.length,6);for(const card of cards)assert(card.children[0].src.startsWith('data:image/png'),'actual car preview created');
 for(const button of document.querySelectorAll('[data-view]')){button.events.click();for(let i=0;i<8;i++)callback(1000+i*40);assert(ids.get('districtTitle').textContent.length>0);Renderer.lastScene.traverse(o=>assert(o.matrixWorld.elements.every(Number.isFinite),'finite website scene transforms'));}

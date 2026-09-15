@@ -1,10 +1,10 @@
 import * as THREE from './assets/three.module.js';
 
-// RGS_Dev's CC0 vehicle models, converted from the original FBX pack to GLB.
+// Licensed imported vehicle models; see assets/LICENSES.txt for source credits.
 // Geometry and wheel pivots come from the pack; driving state stays in driving.mjs.
 export const VEHICLE_ASSETS={
  'getaway-van':'van',coupe:'muscle',racer:'sports','police-car':'police-sedan',
- taxi:'taxi',suv:'suv',hatchback:'hatchback'
+ taxi:'taxi',suv:'suv',hatchback:'hatchback','concept-gt':'../concept/concept-gt'
 };
 const templates=new Map();
 export async function loadVehiclePack(loader){

@@ -83,3 +83,23 @@ Twelve named passengers use twelve distinct Kenney Blocky Characters models with
 `passengers.mjs` owns the cast, five ride objectives, live comfort/cargo/deadline/boost telemetry, tips, ratings, and chapter progression. `passenger-actors.js` handles world characters and boarding/departure animations. Goal completion advances the current chapter; any completed ride records a visit and rating. Ordinary passengers do not summon police. Discreet riders cannot be dropped off while wanted. Rush/cargo/comfort failures retain the base fare. Tips and goal bonuses require actual movement, and all earnings still require banking.
 
 Checkpoint version 2 persists onboard ride metrics and deadlines. Version 1 shifts still restore with the passenger assigned to the original pickup spot. Profile history and all prior car, skin, apartment, and tutorial progress remain local and are preserved. `node checks/rides.mjs` covers success and failure for each objective, payout arithmetic, duplicate protection, chapter progress, and old/new save restoration. The game simulation covers real character geometry/animation, boarding and departure, phone biographies, and saved passenger history. No real-money or token rewards were added.
+
+## Nine-district city and Pons launch preparation
+
+The playable boundary is now ±282, up from ±102 (7.64 times the area). Two hundred surrounding blocks preserve the original downtown streets and add Harbor Works, Crown Heights, Palm Gardens, Westside, East Exchange, South Docks, Motor Quarter, and Sunset Hills. The city uses 334 fitted building models across a 16 by 16 road grid (256 junctions). Distant blocks are culled during driving; the existing art and vehicle assets remain local.
+
+M opens the full atlas; the minimap and Phone → City map also open it. Select a district, job, or road, zoom, pan, and set driving directions. Waypoints save with the shift. Older saved cars that overlap a new building are moved to a clear road while retaining their haul and passengers. Shifts start at five minutes and can extend to six. Repeat rides visit outer districts after the passenger’s three story chapters are complete.
+
+Robinhood Chain is configured as chain ID 4663 / 0x1237, with ETH gas. GETAWAY is intended to be a new token launched through Pons V2. Live burns remain disabled pending the actual GETAWAY token address, verified burn support, approved item prices, and deployed GetawayUnlocks registry. No wallet transactions or token launch were performed. The demo collection includes exact-cost confirmation, equipping, saved ownership, and a local burn history.
+
+Primary integration sources: https://docs.robinhood.com/chain/connecting/ and https://docs.ponsfamily.com/v2 . Published Pons V2 source: https://github.com/ponsdotdev/ponsfamily/blob/main/contractsV2/src/v2/PonsV2LauncherToken.sol . Verify the eventual GETAWAY deployment before activation; a launch factory is not the game token address.
+
+Checks include real imported geometry, all routes from original stops and district landmarks to outer landmarks, old-save collision recovery, waypoint persistence, rejected invalid coordinates, passenger-story preservation, and the existing full gameplay simulations.
+
+Browser QA passed on desktop (1440 × 960) and mobile (390 × 844) using Edge: atlas navigation, road selection, zoom, route restoration after reload, driving input, demo burn and actual material equip, no horizontal page overflow, and no page errors. Screenshots were inspected. Physical-device performance and live token transactions remain untested.
+
+## Apartment garage and detailed concept car
+
+G / the apartment Garage button walks to the lower-level lift and enters a separate 3D showroom. Browse all six cars, rotate the model, review a demo burn, equip a ride, go upstairs, or drive out. Browsing and equipping preserve an unfinished shift; the shift resumes in its original car. The Alley Cat burn unlock uses the freely downloadable Car Concept by Eric Chadwick / Darmstadt Graphics Group GmbH (CC BY 4.0), with animated wheels and brake lights. Low-poly traffic retains the lightweight RGS models. Live token burns remain disabled pending GETAWAY and the unlock registry.
+
+Desktop and mobile browser checks cover garage entry, browsing, demo burn/equip, driving, and saved-shift preservation. Node renderer simulations use image bitmap placeholders; actual textures are checked in browser.
