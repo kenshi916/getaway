@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as THREE from '../dist/assets/three.module.js';
 import {GLTFLoader} from '../dist/assets/GLTFLoader.js';
-import {loadVehiclePack} from '../dist/vehicles.js?v=22';
+import {loadVehiclePack} from '../dist/vehicles.js?v=23';
 import {buildGarage} from '../dist/garage-scene.js';
 globalThis.self=globalThis;globalThis.createImageBitmap=async()=>({width:1,height:1,close(){}});
 const ctx=new Proxy({},{get:(o,k)=>o[k]||(()=>{})});globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>ctx})};

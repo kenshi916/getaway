@@ -1,6 +1,6 @@
 import * as THREE from './assets/three.module.js';
-import {findWalkPath} from './walk-navigation.mjs?v=22';
-import {makeVehicle} from './vehicles.js?v=22';
+import {findWalkPath} from './walk-navigation.mjs?v=23';
+import {makeVehicle} from './vehicles.js?v=23';
 
 export function buildDestination(templates,quest,person,driver){
  const scene=new THREE.Scene(),room=new THREE.Group(),camera=new THREE.PerspectiveCamera(46,1,.1,100);

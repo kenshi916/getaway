@@ -1,22 +1,23 @@
-import {destinationQuest} from './destination-quests.mjs?v=22';
-import {buildDestination} from './destination-scene.js?v=22';
-import {createCityResidents,updateCityResidents} from './city-residents.js?v=22';
-import {buildGarage} from './garage-scene.js?v=22';
-import {createCityAtlas} from './atlas.js?v=22';
-import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=22';
-import {createPassengerActor} from './passenger-actors.js?v=22';
-import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=22';
+import {homeRouteFromSearch} from './social-catalog.mjs?v=23';
+import {destinationQuest} from './destination-quests.mjs?v=23';
+import {buildDestination} from './destination-scene.js?v=23';
+import {createCityResidents,updateCityResidents} from './city-residents.js?v=23';
+import {buildGarage} from './garage-scene.js?v=23';
+import {createCityAtlas} from './atlas.js?v=23';
+import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=23';
+import {createPassengerActor} from './passenger-actors.js?v=23';
+import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=23';
 import * as THREE from './assets/three.module.js';
-import {makeVehicle,animateVehicle,loadVehiclePack} from './vehicles.js?v=22';
-import {loadCityPack,buildCity} from './city.js?v=22';
-import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=22';
-import {createCollectionUI} from './collection-ui.js?v=22';
-import {createBurnWallet} from './burn-wallet.mjs?v=22';
-import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=22';
-import {captureShift,restoreShift} from './progress.mjs?v=22';
+import {makeVehicle,animateVehicle,loadVehiclePack} from './vehicles.js?v=23';
+import {loadCityPack,buildCity} from './city.js?v=23';
+import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=23';
+import {createCollectionUI} from './collection-ui.js?v=23';
+import {createBurnWallet} from './burn-wallet.mjs?v=23';
+import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=23';
+import {captureShift,restoreShift} from './progress.mjs?v=23';
 import {GLTFLoader} from './assets/GLTFLoader.js';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=22';
+import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=23';
 
 const $=id=>document.getElementById(id),touch=matchMedia('(pointer:coarse)').matches;
 let profile=defaultProfile(),storageAvailable=true;
@@ -42,6 +43,9 @@ const reflectionFaces=Array.from({length:6},()=>{const c=document.createElement(
 const skyReflection=new THREE.CubeTexture(reflectionFaces);skyReflection.colorSpace=THREE.SRGBColorSpace;skyReflection.needsUpdate=true;scene.environment=skyReflection;
 const world=new THREE.Group();scene.add(world);const materials=new Map(),buildingGroups=[],templates={},pickups=[],drops=[],destructibles=[],traffic=[],cops=[],debris=[],trails=[],sparks=[],residents=[];
 let mapWaypoint=null;
+let pendingCrewHome=homeRouteFromSearch(globalThis.location?.search);
+function applyCrewRoute(){if(!pendingCrewHome)return;mapWaypoint={x:pendingCrewHome.x,z:pendingCrewHome.z,name:pendingCrewHome.name};bankRoute=false;pickupLock=null;targetLock=null;pendingCrewHome=null;}
+
 let player=createCar(CARS[profile.selected],HOME.x,HOME.z,-Math.PI/2),playerView=null,run=createRun(),mode='menu',paused=false,ready=false,keys={},mobile={},clock=new THREE.Clock(),time=0,lastHUD=0,routeTimer=0,routePoints=[],target=null,targetLock=null,pickupLock=null,bankRoute=false;
 let pickupProgress=0,pickupKey='',damageCooldown=0,toastUntil=0,popUntil=0,nearMissTimer=0,smashTimer=0,copSpawnTimer=0,roadblockTimer=0,lastSiren=0,lastRecovery=-30,bankReady=false;
 let cameraHeading=player.heading,cameraTarget=new THREE.Vector3(HOME.x,0,HOME.z),cameraPosition=new THREE.Vector3(59,29,79),currentInput={throttle:0,steer:0,brake:false,boost:false};
@@ -211,8 +215,8 @@ function cleanupRun(){rideSpeechQueue.length=0;rideSpeechUntil=0;$('rideTalk').c
 }
 function resetRun(){mapWaypoint=null;cleanupRun();replacePlayer();run=createRun();for(const p of pickups){p.index++;p.job=makeJob(p.stop,p.index,Math.random,profile.passengerHistory);p.actor.wait();p.actor.group.visible=true;p.marker.root.visible=true;}for(const d of drops)d.marker.root.visible=false;targetLock=null;pickupLock=null;bankRoute=false;target=null;routeTimer=0;routePoints=[];pickupProgress=0;pickupKey='';damageCooldown=0;copSpawnTimer=0;roadblockTimer=0;nearMissTimer=0;bankReady=false;lastRecovery=-30;clearControls();cameraHeading=player.heading;cameraTarget.set(player.x,0,player.z);$('bankBtn').classList.add('hidden');$('stopProgress').classList.add('hidden');$('damageFlash').style.opacity=0;}
 function showDrivingUI(){['destinationUI','menu','topbar','bottomBar','carPlaque','homeUI','garageUI'].forEach(id=>$(id).classList.add('hidden'));$('hud').classList.remove('hidden');camera.clearViewOffset();}
-function startRun(){if(mode==='destination')leaveDestination();dismissedDestination=null;dismissedDestinations.clear();if(!ready||collectionUI?.isBusy())return;reconcileCollection();if(profile.tutorialStep<2){returnHome();return;}closeModal();initAudio();profile.checkpoint=null;resetRun();mode='driving';if(profile.tutorialStep<6){profile.tutorialStep=3;pickupLock='diner';}showDrivingUI();refreshRoute();updateHUD();saveProfile();toast(touch?'Hold GAS. Follow the arrows to your first fare.':'W to accelerate. Follow the arrows to your first fare.','good',4);sound(250,.2,'triangle',.05,330);}
-function resumeRun(){dismissedDestination=null;dismissedDestinations.clear();if(collectionUI?.isBusy())return;reconcileCollection();if(burnWallet.state().live&&BURN_CARS[profile.checkpoint?.carId]&&!profile.unlocked.includes(profile.checkpoint.carId)){toast('Connect your wallet in the collection to resume this ride.','good',4);showGarage();return;}const saved=restoreShift(profile.checkpoint,profile);if(!saved){profile.checkpoint=null;startRun();return;}closeModal();initAudio();cleanupRun();if(playerView){world.remove(playerView.group);disposeVehicle(playerView);}player=saved.car;run=saved.run;playerView=carView(player.config.model,player.config.scale,PAINTS[profile.paint],activeSkin());animateCar(playerView,player,0);for(const p of pickups){p.job=saved.jobs.find(j=>j.stopId===p.stop.id);p.index=Number(p.job.id.split('-').at(-1));if(p.job.picked)p.actor.onboard();else p.actor.wait();}({bankRoute,pickupLock,targetLock,mapWaypoint}=saved.locks);mode='driving';pickupProgress=0;pickupKey='';damageCooldown=.4;copSpawnTimer=0;roadblockTimer=10;cameraHeading=player.heading;cameraTarget.set(player.x,0,player.z);cameraPosition.set(player.x-12,16,player.z+14);showDrivingUI();stopActivities(0);refreshRoute();updateHUD();saveProfile();toast('SHIFT RESUMED. YOUR HAUL IS STILL ON BOARD.','good',3);}
+function startRun(){if(mode==='destination')leaveDestination();dismissedDestination=null;dismissedDestinations.clear();if(!ready||collectionUI?.isBusy())return;reconcileCollection();if(profile.tutorialStep<2){returnHome();return;}closeModal();initAudio();profile.checkpoint=null;resetRun();mode='driving';if(profile.tutorialStep<6){profile.tutorialStep=3;pickupLock='diner';}showDrivingUI();applyCrewRoute();refreshRoute();updateHUD();saveProfile();toast(touch?'Hold GAS. Follow the arrows to your first fare.':'W to accelerate. Follow the arrows to your first fare.','good',4);sound(250,.2,'triangle',.05,330);}
+function resumeRun(){dismissedDestination=null;dismissedDestinations.clear();if(collectionUI?.isBusy())return;reconcileCollection();if(burnWallet.state().live&&BURN_CARS[profile.checkpoint?.carId]&&!profile.unlocked.includes(profile.checkpoint.carId)){toast('Connect your wallet in the collection to resume this ride.','good',4);showGarage();return;}const saved=restoreShift(profile.checkpoint,profile);if(!saved){profile.checkpoint=null;startRun();return;}closeModal();initAudio();cleanupRun();if(playerView){world.remove(playerView.group);disposeVehicle(playerView);}player=saved.car;run=saved.run;playerView=carView(player.config.model,player.config.scale,PAINTS[profile.paint],activeSkin());animateCar(playerView,player,0);for(const p of pickups){p.job=saved.jobs.find(j=>j.stopId===p.stop.id);p.index=Number(p.job.id.split('-').at(-1));if(p.job.picked)p.actor.onboard();else p.actor.wait();}({bankRoute,pickupLock,targetLock,mapWaypoint}=saved.locks);mode='driving';pickupProgress=0;pickupKey='';damageCooldown=.4;copSpawnTimer=0;roadblockTimer=10;cameraHeading=player.heading;cameraTarget.set(player.x,0,player.z);cameraPosition.set(player.x-12,16,player.z+14);showDrivingUI();stopActivities(0);applyCrewRoute();refreshRoute();updateHUD();saveProfile();toast('SHIFT RESUMED. YOUR HAUL IS STILL ON BOARD.','good',3);}
 function returnHome(){if(mode==='destination')leaveDestination();if(!ready||collectionUI?.isBusy())return;$('garageUI').classList.add('hidden');if(mode==='driving')saveProfile();closeModal();mode='apartment';['menu','bottomBar','carPlaque','hud'].forEach(id=>$(id).classList.add('hidden'));$('topbar').classList.remove('hidden');$('homeUI').classList.remove('hidden');arrows.count=0;apartment.setPosition(profile.home);apartment.resize(innerWidth,innerHeight);refreshHomeCamera();updateHomeUI();saveProfile();}
 function returnMenu(){returnHome();}
 function advanceTutorial(step){if(step>profile.tutorialStep&&profile.tutorialStep<6){profile.tutorialStep=step;saveProfile();if(mode==='apartment')updateHomeUI();}}

@@ -1,8 +1,8 @@
 import * as THREE from './assets/three.module.js';
-import {buildGarageRoom} from './garage-room.js?v=22';
-import {findWalkPath} from './walk-navigation.mjs?v=22';
-import {makeVehicle} from './vehicles.js?v=22';
-import {CARS,PAINTS} from './driving.mjs?v=22';
+import {buildGarageRoom} from './garage-room.js?v=23';
+import {findWalkPath} from './walk-navigation.mjs?v=23';
+import {makeVehicle} from './vehicles.js?v=23';
+import {CARS,PAINTS} from './driving.mjs?v=23';
 export function buildGarage(templates){
  const scene=new THREE.Scene();scene.background=new THREE.Color('#0c1115');scene.fog=new THREE.Fog('#0c1115',32,75);
  const camera=new THREE.PerspectiveCamera(41,1,.1,80);
