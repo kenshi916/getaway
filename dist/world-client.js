@@ -1,8 +1,8 @@
 import * as THREE from './assets/three.module.js';
-import {CARS,PAINTS,dist} from './driving.mjs?v=35';
-import {makeVehicle,animateVehicle,DETAILED_STAND_INS} from './vehicles.js?v=35';
-import {HOMES} from './social-catalog.mjs?v=35';
-import {HOME_UPGRADES,NEIGHBORHOOD_JOBS,ROOM_CAPACITY} from './world-catalog.mjs?v=35';
+import {CARS,PAINTS,dist} from './driving.mjs?v=36';
+import {makeVehicle,animateVehicle,DETAILED_STAND_INS} from './vehicles.js?v=36';
+import {HOMES} from './social-catalog.mjs?v=36';
+import {HOME_UPGRADES,NEIGHBORHOOD_JOBS,ROOM_CAPACITY} from './world-catalog.mjs?v=36';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=id=>document.getElementById(id);
 export function createNeighborhood(api){

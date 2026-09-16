@@ -1,4 +1,4 @@
-export const CLUB={id:'last-hand',name:'Last Hand Social Club',x:54,z:36,entrance:{x:54,z:30},radius:12};
+export const CLUB={id:'last-hand',name:'Last Hand Casino',x:54,z:36,entrance:{x:59,z:36},radius:12};
 export const TABLES=[{id:1,name:'Clover table',x:-4,z:-2},{id:2,name:'Diamond table',x:4,z:-2}];
 export const DAILY_STOPS=[
  {id:'garden',name:'Help the community garden',x:90,z:-72,action:'Tidy the planting beds',material:'wood',quantity:3,credits:20},

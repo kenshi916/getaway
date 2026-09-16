@@ -1,4 +1,4 @@
-import {passengerFor,storyFor} from './passengers.mjs?v=35';
+import {passengerFor,storyFor} from './passengers.mjs?v=36';
 const HOMES=['west','north','south','loft','westcourt','landmark-west','landmark-sunset'];
 const GARAGES=['bay','northyard','pier','southyard','landmark-harbor','landmark-docks','landmark-south'];
 const GARDENS=['gardens','landmark-gardens'];

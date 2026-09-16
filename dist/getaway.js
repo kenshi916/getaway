@@ -1,34 +1,34 @@
-import {CLUB} from './club-catalog.mjs?v=35';
-import {buildClub} from './club-scene.js?v=35';
-import {createClubUI} from './club-ui.js?v=35';
-import {createNeighborhoodLife} from './neighborhood-ui.js?v=35';
-import {createNeighbor,createCityWalker,createPlacedFurniture} from './neighborhood-scenes.js?v=35';
-import {buildArrival} from './arrival-scene.js?v=35';
-import {createArrivalUI} from './arrival-ui.js?v=35';
-import {createFirstHour} from './first-hour-ui.js?v=35';
-import {FIRST_JOBS,CAR_COLORS,WHEEL_FINISHES} from './first-hour.mjs?v=35';
-import {createDrivingFeedback} from './driving-feedback.js?v=35';
-import {createNeighborhood} from './world-client.js?v=35';
-import {homeRouteFromSearch} from './social-catalog.mjs?v=35';
-import {destinationQuest} from './destination-quests.mjs?v=35';
-import {buildDestination} from './destination-scene.js?v=35';
-import {createCityResidents,updateCityResidents} from './city-residents.js?v=35';
-import {buildGarage} from './garage-scene.js?v=35';
-import {createCityAtlas} from './atlas.js?v=35';
-import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=35';
-import {createPassengerActor} from './passenger-actors.js?v=35';
-import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=35';
+import {CLUB} from './club-catalog.mjs?v=36';
+import {buildClub} from './club-scene.js?v=36';
+import {createClubUI} from './club-ui.js?v=36';
+import {createNeighborhoodLife} from './neighborhood-ui.js?v=36';
+import {createNeighbor,createCityWalker,createPlacedFurniture} from './neighborhood-scenes.js?v=36';
+import {buildArrival} from './arrival-scene.js?v=36';
+import {createArrivalUI} from './arrival-ui.js?v=36';
+import {createFirstHour} from './first-hour-ui.js?v=36';
+import {FIRST_JOBS,CAR_COLORS,WHEEL_FINISHES} from './first-hour.mjs?v=36';
+import {createDrivingFeedback} from './driving-feedback.js?v=36';
+import {createNeighborhood} from './world-client.js?v=36';
+import {homeRouteFromSearch} from './social-catalog.mjs?v=36';
+import {destinationQuest} from './destination-quests.mjs?v=36';
+import {buildDestination} from './destination-scene.js?v=36';
+import {createCityResidents,updateCityResidents} from './city-residents.js?v=36';
+import {buildGarage} from './garage-scene.js?v=36';
+import {createCityAtlas} from './atlas.js?v=36';
+import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=36';
+import {createPassengerActor} from './passenger-actors.js?v=36';
+import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=36';
 import * as THREE from './assets/three.module.js';
-import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded} from './vehicles.js?v=35';
-import {loadCityPack,buildCity} from './city.js?v=35';
-import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=35';
-import {createCollectionUI} from './collection-ui.js?v=35';
-import {createBurnWallet} from './burn-wallet.mjs?v=35';
-import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=35';
-import {captureShift,restoreShift} from './progress.mjs?v=35';
+import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded} from './vehicles.js?v=36';
+import {loadCityPack,buildCity} from './city.js?v=36';
+import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=36';
+import {createCollectionUI} from './collection-ui.js?v=36';
+import {createBurnWallet} from './burn-wallet.mjs?v=36';
+import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=36';
+import {captureShift,restoreShift} from './progress.mjs?v=36';
 import {GLTFLoader} from './assets/GLTFLoader.js';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=35';
+import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=36';
 
 const $=id=>document.getElementById(id),touch=matchMedia('(pointer:coarse)').matches;
 let clubScene=null,clubUI=null,clubEntering=false,clubReturnMode='driving';
@@ -528,7 +528,7 @@ function effects(dt){
  if(time>toastUntil)$('toast').classList.add('hidden');if(time>popUntil)$('stylePop').classList.add('hidden');
 }
 const mapCtx=$('minimap').getContext('2d');
-function drawMap(c=mapCtx,size=300,view=null){const mapPlayer=view?.car||player,mapRun=view?.run||run,mapPickups=view?.pickups||(testDrive?[]:pickups),mapRoute=view?.route||routePoints,mapCops=view?.cops||cops,mapBank=view?.bankRoute??bankRoute;const local=c===mapCtx,extent=local?65:LIMIT+4,span=extent*2,m=v=>(v+extent-(local?mapPlayer.x:0))/span*size,mz=v=>(v+extent-(local?mapPlayer.z:0))/span*size;c.fillStyle='#dfd7ad';c.fillRect(0,0,size,size);for(const b of BLOCKS){c.fillStyle=b.park?'#88b960':districtAt(b).type==='residential'?'#c9ad86':'#b4b6a0';c.fillRect(m(b.x-b.w/2),mz(b.z-b.d/2),b.w/span*size,b.d/span*size);}c.strokeStyle='#fff6df';c.lineWidth=11.8/span*size;for(const n of ROAD){c.beginPath();c.moveTo(m(-LIMIT),mz(n));c.lineTo(m(LIMIT),mz(n));c.stroke();c.beginPath();c.moveTo(m(n),mz(-LIMIT));c.lineTo(m(n),mz(LIMIT));c.stroke();}c.strokeStyle=mapBank?'#b97531':'#a05c37';c.lineWidth=2;c.beginPath();mapRoute.forEach((p,i)=>i?c.lineTo(m(p.x),mz(p.z)):c.moveTo(m(p.x),mz(p.z)));c.stroke();for(const p of mapPickups)if(!p.job.picked&&p.job.cooldown<=0){c.fillStyle=['','#acdba9','#e7ce8b','#e7a084'][p.stop.type];c.beginPath();c.arc(m(p.stop.x),mz(p.stop.z),3,0,Math.PI*2);c.fill();}for(const p of mapRun.passengers){c.fillStyle='#8cdee3';c.fillRect(m(p.dest.x)-3,mz(p.dest.z)-3,6,6);}c.fillStyle='#dff5ad';c.fillRect(m(HOME.x)-4,mz(HOME.z)-4,8,8);for(const cop of mapCops){c.fillStyle='#f39376';c.beginPath();c.arc(m(cop.car.x),mz(cop.car.z),3,0,Math.PI*2);c.fill();}for(const peer of neighborhood.peers()){c.fillStyle='#319a9a';c.fillRect(m(peer.x)-3,mz(peer.z)-3,6,6);}c.save();c.translate(m(mapPlayer.x),mz(mapPlayer.z));c.rotate(-mapPlayer.heading);c.fillStyle='#fff0b7';c.strokeStyle='#173d40';c.lineWidth=1;c.beginPath();c.moveTo(0,6);c.lineTo(-4,-5);c.lineTo(4,-5);c.closePath();c.fill();c.stroke();c.restore();}
+function drawMap(c=mapCtx,size=300,view=null){const mapPlayer=view?.car||player,mapRun=view?.run||run,mapPickups=view?.pickups||(testDrive?[]:pickups),mapRoute=view?.route||routePoints,mapCops=view?.cops||cops,mapBank=view?.bankRoute??bankRoute;const local=c===mapCtx,extent=local?65:LIMIT+4,span=extent*2,m=v=>(v+extent-(local?mapPlayer.x:0))/span*size,mz=v=>(v+extent-(local?mapPlayer.z:0))/span*size;c.fillStyle='#dfd7ad';c.fillRect(0,0,size,size);for(const b of BLOCKS){c.fillStyle=b.park?'#88b960':districtAt(b).type==='residential'?'#c9ad86':'#b4b6a0';c.fillRect(m(b.x-b.w/2),mz(b.z-b.d/2),b.w/span*size,b.d/span*size);}c.strokeStyle='#fff6df';c.lineWidth=11.8/span*size;for(const n of ROAD){c.beginPath();c.moveTo(m(-LIMIT),mz(n));c.lineTo(m(LIMIT),mz(n));c.stroke();c.beginPath();c.moveTo(m(n),mz(-LIMIT));c.lineTo(m(n),mz(LIMIT));c.stroke();}c.strokeStyle=mapBank?'#b97531':'#a05c37';c.lineWidth=2;c.beginPath();mapRoute.forEach((p,i)=>i?c.lineTo(m(p.x),mz(p.z)):c.moveTo(m(p.x),mz(p.z)));c.stroke();for(const p of mapPickups)if(!p.job.picked&&p.job.cooldown<=0){c.fillStyle=['','#acdba9','#e7ce8b','#e7a084'][p.stop.type];c.beginPath();c.arc(m(p.stop.x),mz(p.stop.z),3,0,Math.PI*2);c.fill();}for(const p of mapRun.passengers){c.fillStyle='#8cdee3';c.fillRect(m(p.dest.x)-3,mz(p.dest.z)-3,6,6);}c.fillStyle='#dff5ad';c.fillRect(m(HOME.x)-4,mz(HOME.z)-4,8,8);c.save();c.fillStyle='#284b3c';c.fillRect(m(CLUB.x)-7,mz(CLUB.z)-7,14,14);c.fillStyle='#f2c763';c.font='bold 12px monospace';c.textAlign='center';c.textBaseline='middle';c.fillText('♦',m(CLUB.x),mz(CLUB.z));c.restore();for(const cop of mapCops){c.fillStyle='#f39376';c.beginPath();c.arc(m(cop.car.x),mz(cop.car.z),3,0,Math.PI*2);c.fill();}for(const peer of neighborhood.peers()){c.fillStyle='#319a9a';c.fillRect(m(peer.x)-3,mz(peer.z)-3,6,6);}c.save();c.translate(m(mapPlayer.x),mz(mapPlayer.z));c.rotate(-mapPlayer.heading);c.fillStyle='#fff0b7';c.strokeStyle='#173d40';c.lineWidth=1;c.beginPath();c.moveTo(0,6);c.lineTo(-4,-5);c.lineTo(4,-5);c.closePath();c.fill();c.stroke();c.restore();}
 const rideSpeechQueue=[];let rideSpeechUntil=0,riderMiniKey='';
 function htmlText(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function showPassengerLine(job,line,review=null,force=false){

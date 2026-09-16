@@ -1,4 +1,4 @@
-import {getWalletSession,networkLabel} from './wallet-session.mjs?v=35';
+import {getWalletSession,networkLabel} from './wallet-session.mjs?v=36';
 const wallet=getWalletSession(),buttons=[...document.querySelectorAll('[data-wallet-open]')];
 const short=address=>address.slice(0,6)+'…'+address.slice(-4);
 const dialog=document.createElement('dialog');dialog.className='wallet-dialog';dialog.setAttribute('aria-labelledby','walletTitle');

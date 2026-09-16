@@ -1,5 +1,5 @@
-import {passengerJob,cleanRide} from './passengers.mjs?v=35';
-import {CARS,STOPS,DESTS,LIMIT,clamp,closestRoad,blocked,createCar,createRun} from './driving.mjs?v=35';
+import {passengerJob,cleanRide} from './passengers.mjs?v=36';
+import {CARS,STOPS,DESTS,LIMIT,clamp,closestRoad,blocked,createCar,createRun} from './driving.mjs?v=36';
 const RUN_FIELDS=['time','haul','deliveries','combo','wanted','heat','escape','pickups','nearMisses','crashes','airJumps','drift','style','busted','elapsed','roadblockCount'];
 const CAR_FIELDS=['x','z','heading','vx','vz','y','vy','health','nitro','ground','airtime','steering','yawRate','wheelTravel','reverseDelay'];
 function cleanWaypoint(p){if(!p||!Number.isFinite(p.x)||!Number.isFinite(p.z)||Math.abs(p.x)>LIMIT||Math.abs(p.z)>LIMIT)return null;const q=closestRoad(p);if(Math.hypot(q.x-p.x,q.z-p.z)>.1)return null;return{x:q.x,z:q.z,name:typeof p.name==='string'?p.name.slice(0,50):'STREET WAYPOINT'};}

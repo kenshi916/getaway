@@ -1,5 +1,5 @@
-import {destinationQuest} from './destination-quests.mjs?v=35';
-import {PASSENGERS,passengerFor,passengerPortrait,storyFor,rideStatus,RIDE_RULES} from './passengers.mjs?v=35';
+import {destinationQuest} from './destination-quests.mjs?v=36';
+import {PASSENGERS,passengerFor,passengerPortrait,storyFor,rideStatus,RIDE_RULES} from './passengers.mjs?v=36';
 const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=value=>Math.floor(Number(value)||0).toLocaleString();
 const timeLeft=value=>{const n=Math.max(0,Math.ceil(value||0));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');};

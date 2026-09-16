@@ -1,8 +1,9 @@
 import * as THREE from './assets/three.module.js';
-import {createCityFinish,addCitySky} from './city-finish.js?v=35';
-import {createCityLandscape} from './city-landscape.js?v=35';
+import {buildCasinoExterior} from './casino-exterior.js?v=36';
+import {createCityFinish,addCitySky} from './city-finish.js?v=36';
+import {createCityLandscape} from './city-landscape.js?v=36';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=35';
+import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=36';
 
 const ASSETS=[...'abcdefghijklmn'].map(c=>'building-'+c).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','detail-parasol-a','detail-parasol-b'],[...'abfgkqrt'].map(c=>'industrial/building-'+c),['water-tower','shipping-container-a','shipping-container-b','solar-panel-landscape-group','detail-tank'].map(n=>'industrial/'+n),[...'acfgkmoq'].map(c=>'suburban/building-type-'+c),['tree_oak','tree_detailed','tree_palmDetailedTall','plant_bushDetailed','flower_redA'].map(n=>'nature/'+n));
 const models=new Map();
@@ -100,6 +101,12 @@ export function buildCity(world){
  ];
  BLOCKS.forEach((b,i)=>{
   const theme=designs[i]||{models:b.district==='east'?['skyscraper-a','l','m','f']:b.district==='docks'?['e','j','k','n']:['a','g','i','c'],wall:b.color,neon:b.district==='docks'?'#a3ece9':b.district==='north'?'#ffdb91':'#ffd0a3',height:b.h},group=new THREE.Group();group.name=b.name;stage.add(group);
+  if(b.x===72&&b.z===36){
+   group.name='LAST HAND CASINO';
+   const casino=buildCasinoExterior(group,{block,ground,label,pole,tree,bench});
+   buildingBounds.push({name:'last-hand-casino',bounds:casino.box,block:b});landmarkLights.push(casino.light);
+   finishBlock(group);return;
+  }
   if(b.outer){
    const area=districtAt(b),v=blockSeed(b.x,b.z),industrial=area.type==='industrial',residential=['residential','garden'].includes(area.type),palette=industrial?['#738d94','#a9937e','#648181','#899a9d']:residential?['#d8c5a5','#a4bfaa','#c0c7d2','#cb9b87']:['#d9bea3','#b8c9ce','#d0ac9e','#c1c3af'],wall=palette[v%palette.length];
    const names=industrial?[...'abfgkqrt'].map(n=>'industrial/building-'+n):residential?[...'acfgkmoq'].map(n=>'suburban/building-type-'+n):(v%4===0?['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c']:['building-j','building-f','building-l','building-m','building-i','building-k','building-n','building-b']);
@@ -283,9 +290,5 @@ export function buildCity(world){
  vec2 units=masonry*vec2(${kind===1?'1.75,3.6':'0.45,0.31'});units.x+=mod(floor(units.y),2.0)*${kind===1?'.5':'0.'};
  vec2 seamWidth=max(fwidth(units)*1.25,vec2(${kind===1?'.025':'.012'}));vec2 edge=smoothstep(vec2(1.0)-seamWidth,vec2(1.0),fract(units));float seam=max(edge.x,edge.y);
  float grain=fract(sin(dot(floor(units),vec2(12.9898,78.233)))*43758.5453);float tone=mix(.91+grain*.09,${kind===1?'.67':'.76'},seam);diffuseColor.rgb*=mix(tone,1.0,step(.65,abs(vMasonryNormal.y)));`);};}
- // Last Hand occupies the north-facing sidewalk of the central club block.
- label('LAST HAND / SOCIAL CLUB',9,1.2,54,3.8,30.2,'#f8d991','#284f3b');
- block(10,.2,2.3,'#284f3b',54,3,30.4);for(const x of [49.4,58.6]){block(.18,3,.18,'#c9aa67',x,1.5,31.4);tree(x,32,2.8);}
- label('FREE PLAY / EVERYONE WELCOME',6,.5,54,2.3,30.5,'#c7ed9d','#284f3b');
  return{buildings,buildingBounds,stage,landmarkLights,usedAssets,landscape,update(time,focus){if(focus)for(const b of buildings){const c=b.box;const x=(c.min.x+c.max.x)/2,z=(c.min.z+c.max.z)/2;b.group.visible=Math.hypot(x-focus.x,z-focus.z)<195;}let signalChanged=false;signals.forEach((s,i)=>{const go=Math.sin(time*.28+s.phase)>0;if(go!==s.go){s.go=go;greenSignals.setColorAt(i,new THREE.Color(go?'#76f6be':'#20392c'));redSignals.setColorAt(i,new THREE.Color(go?'#402934':'#ff5573'));signalChanged=true;}});if(signalChanged){redSignals.instanceColor.needsUpdate=true;greenSignals.instanceColor.needsUpdate=true;}for(const r of fountainRings){const p=(time*.32+r.phase)%1;r.mesh.scale.setScalar(.45+p*2.45);r.mesh.material.opacity=(1-p)*.32;}}};
 }

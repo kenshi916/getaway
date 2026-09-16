@@ -23,7 +23,7 @@ import {createGamePhone,phoneQuests,phoneIcon} from '../dist/phone.js';
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 import * as RealThree from '../dist/assets/three.module.js';
 import {mergeGeometries} from '../dist/assets/BufferGeometryUtils.js';
-import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded,vehicleReady} from '../dist/vehicles.js?v=35';
+import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded,vehicleReady} from '../dist/vehicles.js?v=36';
 import {loadCityPack,buildCity} from '../dist/city.js';
 import * as core from '../dist/driving.mjs';
 import {SKINS,DRIVERS,BURN_CARS,ownsItem} from '../dist/collection.mjs';
@@ -54,7 +54,8 @@ for(let i=0;i<500&&(!context.bridge.get().ready||context.bridge.get().mode==='me
 assert.equal(ids.get('loadProgress').value,100,'progress completes only after the city is built');assert.equal(ids.get('loadPercent').textContent,'100%');assert(!ids.get('garageBtn').disabled,'garage becomes available after loading');assert(ids.get('menu').classList.contains('hidden'),'completed loading opens the apartment');
 const city=b.get().cityState;assert.equal(city.buildings.length,core.BLOCKS.length);assert(city.buildingBounds.length>500);assert.equal(b.get().residents.length,640);assert.equal(new Set(b.get().residents.map(r=>r.model)).size,12,'varied resident models');assert.equal(new Set(b.get().pickups.map(p=>p.actor.person.model)).size,12,'twelve different passenger character models');
 assert.equal(city.buildingBounds.filter(b=>!b.block.outer&&b.name.startsWith('industrial/')).length,28,'industrial districts use warehouse and service models');
-assert.equal(city.buildingBounds.filter(b=>!b.block.outer&&b.name.startsWith('suburban/')).length,16,'residential districts use house models');
+assert.equal(city.buildingBounds.filter(b=>!b.block.outer&&b.name.startsWith('suburban/')).length,12,'residential districts use house models; East End hosts the casino');
+assert.equal(city.buildingBounds.filter(b=>b.name==='last-hand-casino').length,1,'the casino has its own physical city building');
 assert.equal([...city.usedAssets].filter(name=>/^(industrial|suburban|nature)\//.test(name)).length,26,'all added assets appear in the city');
 for(const {bounds,block}of city.buildingBounds){assert(bounds.min.x>=block.x-block.w/2-1e-5&&bounds.max.x<=block.x+block.w/2+1e-5,'building stays inside horizontal collision boundary');assert(bounds.min.z>=block.z-block.d/2-1e-5&&bounds.max.z<=block.z+block.d/2+1e-5,'building stays inside depth collision boundary');}
 const fadeMaterials=new Set();for(const building of city.buildings)for(const material of building.materials){assert(!fadeMaterials.has(material),'camera fading cannot affect another block');fadeMaterials.add(material);}
