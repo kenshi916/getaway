@@ -1,5 +1,12 @@
-export const CLUB={id:'last-hand',name:'Last Hand Casino',x:54,z:36,entrance:{x:59,z:36},radius:12};
-export const TABLES=[{id:1,name:'Clover table',x:-4,z:-2},{id:2,name:'Diamond table',x:4,z:-2}];
+export const CLUB={id:'last-hand',name:'Last Hand Casino',x:54,z:36,entrance:{x:58,z:36},radius:14,spawn:{x:0,z:19},bounds:{minX:-26,maxX:26,minZ:-21,maxZ:21}};
+export const TABLES=[
+ {id:1,name:'Clover table',suit:'♣',x:-14,z:-7},
+ {id:2,name:'Diamond table',suit:'♦',x:0,z:-7},
+ {id:3,name:'Heart table',suit:'♥',x:14,z:-7},
+ {id:4,name:'Spade table',suit:'♠',x:-14,z:6},
+ {id:5,name:'Emerald table',suit:'◆',x:0,z:6},
+ {id:6,name:'Royal table',suit:'★',x:14,z:6}
+];
 export const DAILY_STOPS=[
  {id:'garden',name:'Help the community garden',x:90,z:-72,action:'Tidy the planting beds',material:'wood',quantity:3,credits:20},
  {id:'workshop',name:'Sort Rae’s spare parts',x:-90,z:36,action:'Sort the reusable parts',material:'scrap',quantity:3,credits:20},

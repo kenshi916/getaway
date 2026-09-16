@@ -1,6 +1,6 @@
 import {BrowserProvider,Contract,ContractFactory,formatEther,parseEther} from '../assets/ethers.min.js';
-import {getWalletSession} from '../wallet-session.mjs?v=37';
-import {TESTNET,TESTNET_ITEMS} from '../testnet-items.mjs?v=37';
+import {getWalletSession} from '../wallet-session.mjs?v=38';
+import {TESTNET,TESTNET_ITEMS} from '../testnet-items.mjs?v=38';
 const $=id=>document.getElementById(id),session=getWalletSession();let config=null,artifacts=null,busy=false,selected=null,mask=0n,balance=0n,identity='';
 const status=(text,error=false)=>{$('testStatus').textContent=text;$('testStatus').classList.toggle('error',error);};
 const storage={read(key,fallback){try{return JSON.parse(localStorage.getItem(key))||fallback;}catch{return fallback;}},write(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{}}};

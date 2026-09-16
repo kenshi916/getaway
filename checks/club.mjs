@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import worker from '../worker/index.js';
 import {localD1} from './d1-local.mjs';
-import {DAILY_STOPS,handValue} from '../dist/club-catalog.mjs';
+import {DAILY_STOPS,TABLES,handValue} from '../dist/club-catalog.mjs';
 const DB=localD1(),env={DB,ASSETS:{fetch:()=>new Response('static')}},origin='https://getaway.test',realNow=Date.now;let now=realNow();Date.now=()=>now;const users={};
 async function call(u,path,body,method=body?'POST':'GET'){const r=await worker.fetch(new Request(origin+'/api/'+path,{method,headers:{origin,'oai-authenticated-user-id':u,'content-type':'application/json'},body:body?JSON.stringify({...body,session:users[u]?.session}):undefined}),env,{});return {status:r.status,...await r.json()};}
 async function move(u,x,z,extra={}){now+=1600;const p=users[u];const r=await call(u,'world/sync',{seq:++p.seq,x,z,heading:0,mode:'driving',carId:'van',...extra});assert.equal(r.status,200,JSON.stringify(r));return r;}
@@ -10,7 +10,7 @@ async function table(u,action,id=1){const d=await club(u),t=d.tables.find(t=>t.i
 try{
  for(const u of ['a','b','c']){await call(u,'profile',{name:'Club '+u,avatar:'jules',status:'at-home',homeId:'last-exit',note:''},'PUT');users[u]={...await call(u,'world/join',u==='a'?{}:{roomId:users.a.roomId}),seq:0};}
  assert.equal((await call('a','club/table',{table:1,action:'sit',revision:0})).status,409,'must physically enter');
- for(const u of ['a','b']){await move(u,36,54);await move(u,54,36);assert.equal((await call(u,'world/interior',{mode:'destination',venue:'last-hand'})).status,200);await move(u,54,36,{mode:'destination',venue:'last-hand',travel:'foot',local:{x:-4,z:.3}});await table(u,'sit');}
+ for(const u of ['a','b']){await move(u,36,54);await move(u,54,36);assert.equal((await call(u,'world/interior',{mode:'destination',venue:'last-hand'})).status,200);await move(u,54,36,{mode:'destination',venue:'last-hand',travel:'foot',local:{x:TABLES[0].x,z:TABLES[0].z+3}});await table(u,'sit');}
  const view=await club('a');assert.equal(view.tables[0].seats.length,2);assert.equal(view.account.chips,500);assert.equal(view.inside,true);
  await call('a','neighborhood/chat',{text:'Meet at Clover!'});assert.equal((await call('b','neighborhood/social')).messages.length,1);assert.equal((await call('c','neighborhood/social')).messages.length,0,'club chat stays in venue');
  const rev=(await club('a')).tables[0].revision;const ready=await Promise.all([call('a','club/table',{table:1,action:'ready',revision:rev}),call('a','club/table',{table:1,action:'ready',revision:rev})]);assert.equal(ready.filter(r=>r.status===200).length,1);assert.equal((await club('a')).account.chips,490,'single debit');await table('b','ready');await table('a','deal');
@@ -20,7 +20,7 @@ try{
  await table('a','stand');await table('b','stand');d=await club('a');assert.equal(d.account.chips,510);assert.equal((await club('b')).account.chips,500);assert.equal(d.tables[0].phase,'results');assert.equal(d.tables[0].dealer[1],6);assert.equal((await club('a')).account.chips,510,'poll does not repay');
  assert.equal((await call('a','club/table',{action:'stand',table:1,revision:d.tables[0].revision})).status,409);
  await table('a','ready');assert.equal((await club('a')).account.chips,500);await table('a','leave');assert.equal((await club('a')).account.chips,510,'unplayed stake refunded');
- await table('b','leave');await table('a','sit');await table('a','ready');await table('a','deal');now+=61000;await move('a',54,36,{mode:'destination',venue:'last-hand',travel:'foot',local:{x:-4,z:0}}).catch(()=>{});
+ await table('b','leave');await table('a','sit');await table('a','ready');await table('a','deal');now+=61000;await move('a',54,36,{mode:'destination',venue:'last-hand',travel:'foot',local:{x:TABLES[0].x,z:TABLES[0].z+3}}).catch(()=>{});
  // Rejoin after expiry and inspect the old room; abandoned hands always settle.
  users.a={...await call('a','world/join',{roomId:users.a.roomId}),seq:0};d=await club('a');assert.equal(d.tables[0].phase,'results');
  assert.equal(handValue([0,13,9]),12,'multiple aces');assert.equal(handValue([9,10,11]),30);

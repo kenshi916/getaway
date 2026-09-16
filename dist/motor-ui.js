@@ -1,5 +1,5 @@
-import {MOTOR_CLUB,MOTOR_SPOTS} from './motor-catalog.mjs?v=37';
-import {CARS} from './driving.mjs?v=37';
+import {MOTOR_CLUB,MOTOR_SPOTS} from './motor-catalog.mjs?v=38';
+import {CARS} from './driving.mjs?v=38';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function createMotorUI(api){
  let pending=null,last=0,busy=false;const hud=document.createElement('section');hud.className='motor-hud hidden';hud.setAttribute('aria-label','Motor Club controls');hud.innerHTML='<div><small>RAE’S MOTOR CLUB</small><strong>Your crew. Your rides.</strong><span id="motorCount">Eight display bays · everyone welcome</span></div><nav><button data-motor-walk="style">PARTS COUNTER</button><button data-motor-walk="jobs">CREW JOBS</button><button data-motor-walk="chat">LOUNGE</button><button id="motorPhoto">CREW PHOTO</button><button id="motorExit">LEAVE CLUB</button></nav><button id="motorInteract">WALK TO A STATION</button>';document.body.append(hud);

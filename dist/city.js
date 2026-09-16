@@ -1,10 +1,10 @@
 import * as THREE from './assets/three.module.js';
-import {buildMotorExterior} from './motor-exterior.js?v=37';
-import {buildCasinoExterior} from './casino-exterior.js?v=37';
-import {createCityFinish,addCitySky} from './city-finish.js?v=37';
-import {createCityLandscape} from './city-landscape.js?v=37';
+import {buildMotorExterior} from './motor-exterior.js?v=38';
+import {buildCasinoExterior} from './casino-exterior.js?v=38';
+import {createCityFinish,addCitySky} from './city-finish.js?v=38';
+import {createCityLandscape} from './city-landscape.js?v=38';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=37';
+import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=38';
 
 const ASSETS=[...'abcdefghijklmn'].map(c=>'building-'+c).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','detail-parasol-a','detail-parasol-b'],[...'abfgkqrt'].map(c=>'industrial/building-'+c),['water-tower','shipping-container-a','shipping-container-b','solar-panel-landscape-group','detail-tank'].map(n=>'industrial/'+n),[...'acfgkmoq'].map(c=>'suburban/building-type-'+c),['tree_oak','tree_detailed','tree_palmDetailedTall','plant_bushDetailed','flower_redA'].map(n=>'nature/'+n));
 const models=new Map();
@@ -105,7 +105,7 @@ export function buildCity(world){
   if(b.x===72&&b.z===36){
    group.name='LAST HAND CASINO';
    const casino=buildCasinoExterior(group,{block,ground,label,pole,tree,bench});
-   buildingBounds.push({name:'last-hand-casino',bounds:casino.box,block:b});landmarkLights.push(casino.light);
+   buildingBounds.push({name:'last-hand-casino',bounds:casino.box,block:b});landmarkLights.push(casino.light);venueUpdates.push(casino.update);
    finishBlock(group);return;
   }
   if(b.x===-108&&b.z===36){const motor=buildMotorExterior(group,{block,ground,label,tree});group.name='RAE’S MOTOR CLUB';buildingBounds.push({name:'motor-club',bounds:motor.box,block:b});venueUpdates.push(motor.update);finishBlock(group);return;}

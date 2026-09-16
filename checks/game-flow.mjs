@@ -26,7 +26,7 @@ import {createGamePhone,phoneQuests,phoneIcon} from '../dist/phone.js';
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 import * as RealThree from '../dist/assets/three.module.js';
 import {mergeGeometries} from '../dist/assets/BufferGeometryUtils.js';
-import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded,vehicleReady} from '../dist/vehicles.js?v=37';
+import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded,vehicleReady} from '../dist/vehicles.js?v=38';
 import {loadCityPack,buildCity} from '../dist/city.js';
 import * as core from '../dist/driving.mjs';
 import {SKINS,DRIVERS,BURN_CARS,ownsItem} from '../dist/collection.mjs';

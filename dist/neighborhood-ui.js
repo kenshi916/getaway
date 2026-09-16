@@ -1,7 +1,7 @@
-import {MOTOR_CLUB} from './motor-catalog.mjs?v=37';
-import {CLUB,DAILY_STOPS,RECIPES,utcDay} from './club-catalog.mjs?v=37';
-import {FURNITURE,WALLPAPERS,CAR_PARTS,EMOTES,CAREERS,ACTIVITIES,COOP_JOBS,HOME_EXPANSIONS,rankFor,cityActivities} from './neighborhood-catalog.mjs?v=37';
-import {canPlaceFurniture} from './home-placement.mjs?v=37';
+import {MOTOR_CLUB} from './motor-catalog.mjs?v=38';
+import {CLUB,DAILY_STOPS,RECIPES,utcDay} from './club-catalog.mjs?v=38';
+import {FURNITURE,WALLPAPERS,CAR_PARTS,EMOTES,CAREERS,ACTIVITIES,COOP_JOBS,HOME_EXPANSIONS,rankFor,cityActivities} from './neighborhood-catalog.mjs?v=38';
+import {canPlaceFurniture} from './home-placement.mjs?v=38';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=id=>document.getElementById(id);
 export function createNeighborhoodLife(api){

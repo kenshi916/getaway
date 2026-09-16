@@ -5,12 +5,19 @@ export function buildCasinoExterior(parent,{block,ground,label,pole,tree,bench})
  const g=new THREE.Group();g.name='Last Hand Casino';g.position.set(72,0,36);g.rotation.y=-Math.PI/2;parent.add(g);
  const green='#244c43',dark='#193c36',gold='#d7b66d',cream='#e1d5b3',glow={emissive:'#ffce77',emissiveIntensity:.8};
  block(25,.32,26,'#727b69',0,.27,0,g);
- const shell=block(24.6,7.5,25.4,green,0,4.1,-.2,g);
+ const shell=block(24.6,8.5,25.4,green,0,4.6,-.2,g);
  for(const y of [.75,3.7,7.5])block(25,.24,25.8,gold,0,y,-.2,g);
  block(25,.45,26,cream,0,8,-.2,g);
- block(17,2.3,17,dark,0,9.25,-2.7,g);
- block(17.6,.24,17.6,gold,0,10.5,-2.7,g);
- block(11,.35,11,cream,0,10.8,-2.7,g);
+ block(20,12,19,dark,0,14.2,-2.7,g);
+ for(const y of [10.4,14.2,18,20.3])block(20.5,.26,19.5,gold,0,y,-2.7,g);
+ for(const x of [-8,-4,0,4,8]){
+  block(.3,12.2,.3,gold,x,14.3,6.92,g,glow);
+  for(const y of [12.2,16,19.1])block(2.8,2.4,.14,'#536f63',x,y,6.88,g,{emissive:'#ddb968',emissiveIntensity:.22});
+ }
+ for(const side of [-1,1])for(const z of [-9,-5,-1,3])for(const y of [12.2,16,19.1]){block(.16,2.4,2.8,'#617c68',side*10.1,y,z,g,{emissive:'#ddb968',emissiveIntensity:.22});block(.22,12,.15,gold,side*10.15,14.2,z-1.65,g);}
+ block(14,.5,13,cream,0,20.8,-2.7,g);block(8,2.4,7,green,0,22.25,-2.7,g);block(8.4,.28,7.4,gold,0,23.6,-2.7,g,glow);
+ label('LAST HAND',13.5,1.8,0,21.7,4.05,'#ffe7a2',dark,0,g);
+ const crown=block(2.2,2.2,.4,gold,0,25.1,-2.7,g,glow);crown.rotation.z=Math.PI/4;
  // Art-deco piers and inset glazed bays wrap both street-facing sides.
  for(const x of [-11.5,-7.8,7.8,11.5]){
   block(.7,6.7,.45,cream,x,4,12.65,g);
@@ -43,15 +50,17 @@ export function buildCasinoExterior(parent,{block,ground,label,pole,tree,bench})
  }
  // Double doors, lit marquee, carpet and rope rails make the walk-in point clear.
  block(5.5,3.3,.2,gold,0,1.98,12.66,g);
- for(const x of [-1.3,1.3]){
-  block(2.45,2.95,.15,'#173c3c',x,1.91,12.81,g,{roughness:.2,metalness:.25});
-  block(2.15,1.75,.04,'#849b87',x,2.25,12.91,g,{emissive:'#f4d48c',emissiveIntensity:.2});
-  block(.07,.7,.12,gold,x-Math.sign(x)*.6,1.7,13.02,g);
+ block(5.3,3.15,.16,'#071f1c',0,1.96,12.78,g);
+ const doors=[];for(const x of [-1.3,1.3]){
+  const door=new THREE.Group();door.position.set(x,0,12.85);g.add(door);doors.push({group:door,x});
+  block(2.45,2.95,.15,'#173c3c',0,1.91,0,door,{roughness:.2,metalness:.25,transparent:true});
+  block(2.15,1.75,.04,'#849b87',0,2.25,.1,door,{emissive:'#f4d48c',emissiveIntensity:.2,transparent:true});
+  block(.07,.7,.12,gold,-Math.sign(x)*.6,1.7,.21,door,{transparent:true});
  }
  block(14,.58,3.6,dark,0,4,12.7,g);
  block(14.2,.12,3.8,gold,0,4.34,12.7,g,glow);
  label('LAST HAND',13.4,1.35,0,5.1,12.94,'#ffe7a2',green,0,g);
- label('FREE PLAY',6,.57,0,3.96,14.52,'#fff1c0',dark,0,g);
+ label('GRAND CASINO / FREE ENTRY',12,.57,0,3.96,14.52,'#fff1c0',dark,0,g);
  for(let x=-6.5;x<=6.5;x+=.65)block(.16,.16,.12,'#fff1b6',x,3.9,14.57,g,glow);
  ground(4.4,3.2,'#853b43',0,14.1,.45,g);
  for(const x of [-2.28,2.28]){
@@ -61,8 +70,8 @@ export function buildCasinoExterior(parent,{block,ground,label,pole,tree,bench})
  }
  for(const x of [-9.2,9.2]){tree(x,13.5,3.7,g,true);}
  bench(-8,-13.1,Math.PI,g);bench(8,-13.1,Math.PI,g);
- label('ENTER',3.2,.75,0,2.3,15.3,'#ffe7a2',dark,0,g);
+ label('E / ENTER',3.2,.75,0,2.3,15.3,'#ffe7a2',dark,0,g);
  const light=new THREE.PointLight('#ffdf9e',18,12,2);light.position.set(0,3,15);g.add(light);
  g.updateMatrixWorld(true);
- return {group:g,box:new THREE.Box3().setFromObject(shell),light};
+ return {group:g,box:new THREE.Box3().setFromObject(shell),light,update(time,focus){const open=focus&&Math.hypot(focus.x-54,focus.z-36)<20;for(const d of doors)d.group.position.x=THREE.MathUtils.lerp(d.group.position.x,d.x+(open?Math.sign(d.x)*2.2:0),.1);}};
 }

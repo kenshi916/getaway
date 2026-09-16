@@ -1,10 +1,10 @@
 import * as THREE from './assets/three.module.js';
-import {createNeighbor} from './neighborhood-scenes.js?v=37';
-import {createWalkingView} from './first-person.js?v=37';
-import {findWalkPath} from './walk-navigation.mjs?v=37';
-import {makeVehicle,DETAILED_STAND_INS} from './vehicles.js?v=37';
-import {CARS} from './driving.mjs?v=37';
-import {MOTOR_BAYS,MOTOR_SPOTS,MOTOR_SEATS} from './motor-catalog.mjs?v=37';
+import {createNeighbor} from './neighborhood-scenes.js?v=38';
+import {createWalkingView} from './first-person.js?v=38';
+import {findWalkPath} from './walk-navigation.mjs?v=38';
+import {makeVehicle,DETAILED_STAND_INS} from './vehicles.js?v=38';
+import {CARS} from './driving.mjs?v=38';
+import {MOTOR_BAYS,MOTOR_SPOTS,MOTOR_SEATS} from './motor-catalog.mjs?v=38';
 
 export function buildMotorClub(templates,appearance='jules'){
  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(49,innerWidth/innerHeight,.08,160);scene.background=new THREE.Color('#223d46');scene.fog=new THREE.Fog('#223d46',55,100);

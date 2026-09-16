@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';import fs from 'node:fs';
 import * as THREE from '../dist/assets/three.module.js';
 import {GLTFLoader} from '../dist/assets/GLTFLoader.js';
-import {loadVehiclePack} from '../dist/vehicles.js?v=37';
+import {loadVehiclePack} from '../dist/vehicles.js?v=38';
 import {createNeighborhood} from '../dist/world-client.js';
 import worker from '../worker/index.js';import {localD1} from './d1-local.mjs';
 const nodes=new Map();
@@ -34,6 +34,7 @@ try{
  root.updateMatrixWorld(true);root.traverse(o=>assert(o.matrixWorld.elements.every(Number.isFinite),'remote transforms remain finite'));
  positionB.x=50;await tick(b,'b');await tick(a,'a');assert.equal(a.peers()[0].x,50,'server position reaches other client');
  user='a';for(let i=0;i<4;i++)await a.sync();assert(a.connected(),'brief sync rate limits must not disconnect a player');
+ user='a';now+=1400;positionA.x=54;positionA.z=51;await a.sync();positionA.z=39;await a.enterInterior('destination','last-hand');positionA.mode='destination';positionA.venue='last-hand';now+=1400;await a.syncFresh();assert(a.connected(),'entering between broadcasts preserves the session');positionA.mode='driving';positionA.venue='';now+=1400;await a.sync();
  user='a';a.open('home');assert(nodes.get('modalRoot').innerHTML.includes('Garden retreat'));assert(nodes.get('modalRoot').innerHTML.includes('120 HOME CR'));
  user='a';a.open('jobs');assert(nodes.get('modalRoot').innerHTML.includes('Flowers for the neighbors'));
  user='b';await b.leave();await tick(a,'a');assert.equal(a.peers().length,0);assert.equal(root.children.filter(p=>p.userData.playerId).length,0,'leaving removes remote cars and name labels');

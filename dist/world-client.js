@@ -1,14 +1,14 @@
-import {MOTOR_SEATS} from './motor-catalog.mjs?v=37';
+import {MOTOR_SEATS} from './motor-catalog.mjs?v=38';
 import * as THREE from './assets/three.module.js';
-import {CARS,PAINTS,dist} from './driving.mjs?v=37';
-import {makeVehicle,animateVehicle,DETAILED_STAND_INS} from './vehicles.js?v=37';
-import {HOMES} from './social-catalog.mjs?v=37';
-import {HOME_UPGRADES,NEIGHBORHOOD_JOBS,ROOM_CAPACITY} from './world-catalog.mjs?v=37';
+import {CARS,PAINTS,dist} from './driving.mjs?v=38';
+import {makeVehicle,animateVehicle,DETAILED_STAND_INS} from './vehicles.js?v=38';
+import {HOMES} from './social-catalog.mjs?v=38';
+import {HOME_UPGRADES,NEIGHBORHOOD_JOBS,ROOM_CAPACITY} from './world-catalog.mjs?v=38';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=id=>document.getElementById(id);
 export function createNeighborhood(api){
  let data={profile:null,home:null,rooms:[]},session=null,roomId=null,peers=[],seq=0,tab='servers',error='',busy=false,syncing=false,lastPoll=0,retryAt=0,failures=0,jobBusy=false,lastHome='',loaded=false,disposed=false;
- const views=new Map();let interiorUpdate=Promise.resolve();
+ const views=new Map();let interiorUpdate=Promise.resolve(),syncTask=null,pendingVenue='';
  async function request(path,method='GET',body,keepalive=false){
   const response=await fetch('/api/world'+path,{method,credentials:'same-origin',headers:body?{'content-type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,keepalive,signal:keepalive?undefined:AbortSignal.timeout(8000)});
   const result=await response.json();if(!response.ok)throw Object.assign(new Error(result.error||'Could not reach your neighborhood.'),{status:response.status});return result;
@@ -17,7 +17,7 @@ export function createNeighborhood(api){
  function address(home=data.home){const h=HOMES.find(p=>p.id===home?.homeId);return h?h.name+' · UNIT '+String(home.unit).padStart(3,'0'):'Your keys are waiting';}
  function applyHome(){const key=JSON.stringify(data.home);if(key===lastHome)return;lastHome=key;api.homeChanged(data.home,place());}
  async function load(){const next=await request('');data={...data,...next};loaded=true;applyHome();}
- function open(next='servers'){if(!api.canOpen())return;tab=next;api.pause();error='';render();if(!loaded){busy=true;render();load().catch(e=>{error=e.message;}).finally(()=>{busy=false;if(isOpen())render();});}}
+ function open(next='servers'){if(!api.canOpen())return;pendingVenue=api.state().venue||'';tab=next;api.pause();error='';render();if(!loaded){busy=true;render();load().catch(e=>{error=e.message;}).finally(()=>{busy=false;if(isOpen())render();});}}
  function isOpen(){return $('modalRoot').classList.contains('world-shade');}
  function homeBoard(){const home=data.home;
   if(!home)return '<div class="world-empty"><h3>YOUR FIRST SET OF KEYS</h3><p>Join a neighborhood to get a permanent in-game address and 120 home credits for your first upgrade.</p><button data-world-tab="servers" class="primary">FIND MY NEIGHBORHOOD</button></div>';
@@ -28,7 +28,7 @@ export function createNeighborhood(api){
  }
  function serverBoard(){
   if(!loaded)return error?'<p>Your online neighborhood could not load. Solo play is still available.</p><button id="worldRefresh" class="primary">TRY AGAIN</button>':'<p role="status">Finding your neighborhood…</p>';
-  if(!data.profile)return '<p>Pick the name other drivers will see in the city.</p><form id="worldCreate" class="world-form"><label>PLAYER NAME<input id="worldName" required minlength="2" maxlength="24" autocomplete="nickname" placeholder="Your driver name"></label><button class="primary" '+(busy?'disabled':'')+'>CREATE MY DRIVER</button></form><p class="world-note">Players in your server can see your player name, car, and in-game address.</p>';
+  if(!data.profile)return '<p>'+ (pendingVenue?'Choose your player name to join the people in this venue.':'Pick the name other drivers will see in the city.')+'</p><form id="worldCreate" class="world-form"><label>PLAYER NAME<input id="worldName" required minlength="2" maxlength="24" autocomplete="nickname" placeholder="Your driver name"></label><button class="primary" '+(busy?'disabled':'')+'>CREATE MY DRIVER</button></form><p class="world-note">Players in your server can see your player name, car, and in-game address.</p>';
   return '<div class="world-banner"><span><strong>'+esc(data.profile.name)+'</strong>'+(session?'NEIGHBORHOOD '+String(roomId).padStart(2,'0')+' · '+(peers.length+1)+' / '+ROOM_CAPACITY+' PLAYERS':'READY TO MEET THE NEIGHBORS')+'</span><button id="worldJoin" class="primary" '+(busy?'disabled':'')+'>'+(session?'SWITCH SERVER':'JOIN A NEIGHBORHOOD')+'</button></div>'+(session?'<p class="world-note">Share the streets on foot or in your car. Open NEIGHBORHOOD for live home visits, chat, crew jobs and furnishing. Traffic and solo passenger shifts remain personal.</p><div class="world-row"><button id="worldCruise" class="primary">DRIVE WITH THE NEIGHBORS →</button><button id="worldLeave" class="small-btn">LEAVE SERVER</button></div><h3>IN YOUR NEIGHBORHOOD</h3>'+(peers.length?peers.map(p=>'<div class="world-row"><span><strong>'+esc(p.name)+'</strong><small>'+esc(address(p))+' · '+esc(p.mode)+'</small></span><button data-world-follow="'+esc(p.id)+'">SET ROUTE</button></div>').join(''):'<p>No other drivers are here yet. Friends with access to this Site can join Neighborhood '+String(roomId).padStart(2,'0')+'.</p>'):'<p>Drive together in 16-player neighborhoods. Your assigned home and its upgrades follow your account between servers.</p>')+'<h3>SERVER LIST</h3>'+(data.rooms.length?data.rooms.map(r=>'<div class="world-row"><span>'+esc(r.name)+'<small>'+r.players+' / '+r.capacity+' PLAYERS</small></span><button data-world-room="'+r.id+'" '+(busy||r.players>=r.capacity?'disabled':'')+'>JOIN</button></div>').join(''):'<p>The first neighborhood opens when you join.</p>')+'<div class="world-row"><a href="/crew/" class="small-btn">FRIENDS &amp; CREW →</a><button id="worldRefresh" class="small-btn">REFRESH SERVERS</button></div>';
  }
  function render(){
@@ -39,7 +39,7 @@ export function createNeighborhood(api){
   document.querySelectorAll('[data-world-upgrade]').forEach(b=>b.onclick=()=>act(async()=>{const next=await request('/upgrade','POST',{level:Number(b.dataset.worldUpgrade)});data.home=next.home;applyHome();api.notify('HOME UPGRADED · '+HOME_UPGRADES[data.home.level].name);}));
   document.querySelectorAll('[data-world-job]').forEach(b=>b.onclick=()=>act(async()=>{await jobAction('start',b.dataset.worldJob);trackJob();}));
   document.querySelectorAll('[data-world-follow]').forEach(b=>b.onclick=()=>{const p=peers.find(p=>p.id===b.dataset.worldFollow);if(p){api.close();api.routeTo({...p,name:p.name});}});
-  if($('worldCreate'))$('worldCreate').onsubmit=e=>{e.preventDefault();const name=$('worldName').value.trim();act(async()=>{const response=await fetch('/api/profile',{method:'PUT',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({name,avatar:'jules',status:'at-home',note:'',homeId:'last-exit'}),signal:AbortSignal.timeout(8000)});if(!response.ok){const r=await response.json();throw Error(r.error||'Could not create your driver.');}await load();});};
+  if($('worldCreate'))$('worldCreate').onsubmit=e=>{e.preventDefault();const name=$('worldName').value.trim();act(async()=>{const response=await fetch('/api/profile',{method:'PUT',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({name,avatar:'jules',status:'at-home',note:'',homeId:'last-exit'}),signal:AbortSignal.timeout(8000)});if(!response.ok){const r=await response.json();throw Error(r.error||'Could not create your driver.');}await load();if(pendingVenue)await join();});};
   if($('worldJoin'))$('worldJoin').onclick=()=>act(()=>join());
   if($('worldRefresh'))$('worldRefresh').onclick=()=>act(load);
   if($('worldLeave'))$('worldLeave').onclick=()=>act(leave);
@@ -49,7 +49,8 @@ export function createNeighborhood(api){
   if($('worldCancelJob'))$('worldCancelJob').onclick=()=>act(()=>jobAction('cancel',data.home.job.id));
  }
  async function act(fn){if(busy)return;busy=true;error='';render();try{await fn();}catch(e){error=e.message;}finally{busy=false;if(isOpen())render();refreshHUD();}}
- async function join(id){const result=await request('/join','POST',id?{roomId:id}:{});session=result.session;roomId=result.roomId;data.profile=result.profile;data.home=result.home;seq=0;lastPoll=Date.now();failures=0;error='';clearPeers();applyHome();await load();api.joined?.();api.notify('WELCOME HOME · '+address());}
+ async function join(id,venue=pendingVenue){const result=await request('/join','POST',{...(id?{roomId:id}:{}),...(venue?{venue,carId:api.state().carId}:{})});session=result.session;roomId=result.roomId;data.profile=result.profile;data.home=result.home;seq=0;lastPoll=Date.now();failures=0;error='';clearPeers();applyHome();await load();pendingVenue='';api.joined?.(result.venue||'');api.notify(venue?'YOU’RE IN · NEIGHBORHOOD '+roomId:'WELCOME HOME · '+address());}
+ async function joinVenue(venue){await load();pendingVenue=venue;if(!data.profile){open();return false;}await join(undefined,venue);return true;}
  async function leave(){const old=session;session=null;roomId=null;clearPeers();refreshHUD();if(old)await request('/leave','POST',{session:old});}
  function disposePeer(p){p.view.group.removeFromParent();p.human?.dispose();p.view.root.traverse(o=>{if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});p.label.material.map.dispose();p.label.material.dispose();}
  function clearPeers(){peers=[];for(const p of views.values())disposePeer(p);views.clear();}
@@ -63,12 +64,14 @@ export function createNeighborhood(api){
   }
   if(!busy&&tab==='servers'&&isOpen()&&before!==JSON.stringify(peers.map(p=>[p.id,p.name,p.mode,p.homeId,p.unit])))render();
  }
- async function sync(){
-  if(!session||syncing||disposed)return;syncing=true;const token=session;
-  try{await interiorUpdate;const s=api.state();const result=await request('/sync','POST',{session:token,seq:++seq,x:s.x,z:s.z,heading:s.heading,mode:s.mode,venue:s.venue||'',carId:s.carId,travel:s.travel,local:api.localPosition?.()?{x:api.localPosition().x,z:api.localPosition().z}:undefined});if(token!==session)return;data.home=result.home;applyHome();updatePeers(result.players);if(result.evicted)api.evicted?.();failures=0;error='';}
+ function sync(){if(syncTask)return syncTask;if(!session||disposed)return Promise.resolve();syncTask=performSync().finally(()=>{syncTask=null;});return syncTask;}
+ async function performSync(){
+  syncing=true;const token=session;
+  try{await interiorUpdate;const s=api.state();const result=await request('/sync','POST',{session:token,seq:++seq,x:s.x,z:s.z,heading:s.heading,mode:s.mode,venue:s.venue||'',carId:s.carId,travel:s.travel,local:api.localPosition?.()?{x:api.localPosition().x,z:api.localPosition().z}:undefined});if(token!==session)return;data.home=result.home;applyHome();updatePeers(result.players);if(result.evicted)api.evicted?.();failures=0;error='';return true;}
   catch(e){if(token!==session)return;if(e.status===429){retryAt=Date.now()+600;return;}failures++;if([401,409,422].includes(e.status)||failures>=4){session=null;roomId=null;clearPeers();error=e.message;api.notify('NEIGHBORHOOD DISCONNECTED · Open ONLINE to rejoin.');}else retryAt=Date.now()+2000;}
   finally{syncing=false;refreshHUD();}
  }
+ async function syncFresh(){await syncTask;for(let attempt=0;attempt<3;attempt++){if(!session)throw Error('Join a neighborhood to use the shared tables.');lastPoll=Date.now()+700;await new Promise(resolve=>setTimeout(resolve,275));if(await sync())return;}throw Error('Your position is catching up. Try your seat again.');}
  async function jobAction(action,id){const result=await request('/jobs','POST',{session,action,id});data.home=result.home;applyHome();if(result.reward){api.notify('DELIVERY COMPLETE · +'+result.reward+' HOME CR');api.jobCompleted(result.reward);}return result;}
  function trackJob(){const job=NEIGHBORHOOD_JOBS.find(j=>j.id===data.home?.job?.id);if(!job)return;const point=data.home.job.stage?job.to:job.from;api.close();if(api.state().mode!=='driving')api.cruise(place());api.routeTo(point);refreshHUD();}
  function refreshHUD(){
@@ -88,6 +91,6 @@ export function createNeighborhood(api){
  }refreshHUD();}
  $('worldButton').onclick=()=>open();
  addEventListener('pagehide',()=>{disposed=true;if(session)void request('/leave','POST',{session},true).catch(()=>{});});
- function enterInterior(mode,venue=''){if(!session)return venue?Promise.reject(Error('Join a neighborhood first.')):Promise.resolve();const token=session;const task=interiorUpdate.catch(()=>{}).then(()=>request('/interior','POST',{session:token,mode,venue,hostId:api.roomOwner?.()}));interiorUpdate=task.catch(()=>{});lastPoll=Date.now()+400;return venue?task:interiorUpdate;}
- return {session:()=>session,profile:()=>data.profile,sync,open,update,load:()=>load().catch(()=>{}),enterInterior,connected:()=>!!session,peers:()=>peers,room:()=>roomId,home:()=>data.home,place,job:()=>data.home?.job,trackJob,state:()=>({connected:!!session,roomId,players:peers.length+(session?1:0),home:data.home,error}),join,leave};
+ function enterInterior(mode,venue=''){if(!session)return venue?Promise.reject(Error('Join a neighborhood first.')):Promise.resolve();const token=session,inFlight=syncTask;const task=interiorUpdate.catch(()=>{}).then(async()=>{await inFlight;if(token!==session)throw Error('Reconnect to your neighborhood.');const p=api.state();return request('/interior','POST',{session:token,mode,venue,hostId:api.roomOwner?.(),...(venue?{entry:{x:p.x,z:p.z}}:{})});});interiorUpdate=task.catch(()=>{});lastPoll=Date.now()+400;return venue?task:interiorUpdate;}
+ return {session:()=>session,profile:()=>data.profile,sync,syncFresh,open,update,load:()=>load().catch(()=>{}),enterInterior,connected:()=>!!session,peers:()=>peers,room:()=>roomId,home:()=>data.home,place,job:()=>data.home?.job,trackJob,state:()=>({connected:!!session,roomId,players:peers.length+(session?1:0),home:data.home,error}),join,joinVenue,leave};
 }

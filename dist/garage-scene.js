@@ -1,10 +1,10 @@
-import {addHomeSurroundings,createHomeDesign} from './home-design.js?v=37';
-import {createWalkingView} from './first-person.js?v=37';
+import {addHomeSurroundings,createHomeDesign} from './home-design.js?v=38';
+import {createWalkingView} from './first-person.js?v=38';
 import * as THREE from './assets/three.module.js';
-import {buildGarageRoom} from './garage-room.js?v=37';
-import {findWalkPath} from './walk-navigation.mjs?v=37';
-import {makeVehicle} from './vehicles.js?v=37';
-import {CARS,PAINTS} from './driving.mjs?v=37';
+import {buildGarageRoom} from './garage-room.js?v=38';
+import {findWalkPath} from './walk-navigation.mjs?v=38';
+import {makeVehicle} from './vehicles.js?v=38';
+import {CARS,PAINTS} from './driving.mjs?v=38';
 export function buildGarage(templates){
  const scene=new THREE.Scene();scene.background=new THREE.Color('#0c1115');addHomeSurroundings(scene,true);scene.fog=new THREE.Fog('#324b3a',65,150);
  const camera=new THREE.PerspectiveCamera(41,1,.1,80);

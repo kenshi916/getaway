@@ -1,4 +1,4 @@
-import {connectFooter} from './site-config.js?v=37';
+import {connectFooter} from './site-config.js?v=38';
 connectFooter();
 const links=[...document.querySelectorAll('.docs-sidebar nav a')];
 function highlight(id){for(const link of links){if(link.hash==='#'+id)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');}}

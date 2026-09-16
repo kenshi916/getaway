@@ -52,7 +52,7 @@ export async function clubApi(request,{db,me,body,json,fail,url}){
   if(b.action==='sit'){
    if(Math.hypot(member.local_x-def.x,member.local_z-def.z)>4.2)fail('Walk closer to this card table.',409);
    if(seat)return json({ok:true});if(s.phase==='playing'||s.seats.length>=4)fail('Wait for a free seat after this hand.',409);
-   const other=await getTable(def.id===1?2:1);if(JSON.parse(other.data).seats.some(p=>p.id===me.id))fail('Leave your other table first.',409);
+   const others=await db.prepare('SELECT id,data FROM club_tables WHERE room_id=? AND id<>?').bind(member.room_id,row.id).all();if(others.results.some(other=>JSON.parse(other.data).seats.some(p=>p.id===me.id)))fail('Leave your other table first.',409);
    s.seats.push({id:me.id,name:me.name,hand:[],status:'watching',result:'',payout:0});await commit(row,s);return json({ok:true});
   }
   if(!seat)fail('Take a seat first.',409);

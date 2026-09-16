@@ -1,5 +1,5 @@
 import * as THREE from './assets/three.module.js';
-import {findWalkPath} from './walk-navigation.mjs?v=37';
+import {findWalkPath} from './walk-navigation.mjs?v=38';
 
 // A walkable arrival courtyard. The same character assets are used inside the home.
 export const ARRIVAL_SPAWN={x:-9,z:10},ARRIVAL_DOOR={x:4,z:-1.15};

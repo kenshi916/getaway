@@ -17,22 +17,24 @@ export async function worldApi(request,{db,me,body,json,fail,url}){
  if(!me)fail('Create your player name to join a neighborhood.',409);
  if(path==='/api/world/join'&&method==='POST'){
   const b=await body(request);if(b.roomId!==undefined&&(!Number.isInteger(b.roomId)||b.roomId<1))fail('Choose a neighborhood from the server list.');
+  const arrival=b.venue?[CLUB,MOTOR_CLUB].find(v=>v.id===b.venue):null;if(b.venue&&!arrival)fail('Choose a known public venue.');if(arrival&&b.carId!==undefined&&!cars.has(b.carId))fail('Choose a valid car.');
   let home=await getHome();
   if(!home){const id=HOMES[homeIndex(me.id)].id;await db.prepare('INSERT INTO residences (profile_id,home_id,unit,level,credits,deliveries,job_stage,job_started_at,updated_at) SELECT ?,?,COALESCE(MAX(unit),0)+1,0,120,0,0,0,? FROM residences WHERE home_id=? ON CONFLICT(profile_id) DO NOTHING').bind(me.id,id,now,id).run();home=await getHome();}
   await ensureAccount(db,me.id,now);
-  const place=placeFor(home),session=crypto.randomUUID();let assigned=null;
+  const place=arrival||placeFor(home),session=crypto.randomUUID();let assigned=null;
   for(let attempt=0;attempt<4&&!assigned;attempt++){
    let room=b.roomId?await db.prepare('SELECT id FROM world_rooms WHERE id=?').bind(b.roomId).first():await db.prepare('SELECT r.id FROM world_rooms r WHERE (SELECT COUNT(*) FROM world_members m WHERE m.room_id=r.id AND m.last_seen>? AND m.profile_id<>?)<? ORDER BY r.id LIMIT 1').bind(now-WORLD_TTL,me.id,ROOM_CAPACITY).first();
    if(!room&&b.roomId)fail('That neighborhood is no longer available.',404);
    if(!room)room=await db.prepare('INSERT INTO world_rooms (created_at) VALUES (?) RETURNING id').bind(now).first();
-   const result=await db.prepare(`INSERT INTO world_members (profile_id,room_id,session,seq,x,z,heading,mode,car_id,last_seen) SELECT ?,?,?,0,?,?,0,'apartment','van',? WHERE (SELECT COUNT(*) FROM world_members WHERE room_id=? AND last_seen>? AND profile_id<>?)<? ON CONFLICT(profile_id) DO UPDATE SET room_id=excluded.room_id,session=excluded.session,seq=0,x=excluded.x,z=excluded.z,heading=0,mode='apartment',car_id='van',last_seen=excluded.last_seen`).bind(me.id,room.id,session,place.x,place.z,now,room.id,now-WORLD_TTL,me.id,ROOM_CAPACITY).run();
+   const result=await db.prepare(`INSERT INTO world_members (profile_id,room_id,session,seq,x,z,heading,mode,car_id,last_seen) SELECT ?,?,?,0,?,?,0,?,?,? WHERE (SELECT COUNT(*) FROM world_members WHERE room_id=? AND last_seen>? AND profile_id<>?)<? ON CONFLICT(profile_id) DO UPDATE SET room_id=excluded.room_id,session=excluded.session,seq=0,x=excluded.x,z=excluded.z,heading=0,mode=excluded.mode,car_id=excluded.car_id,last_seen=excluded.last_seen`).bind(me.id,room.id,session,place.x,place.z,arrival?'destination':'apartment',arrival?b.carId||'van':'van',now,room.id,now-WORLD_TTL,me.id,ROOM_CAPACITY).run();
    if(result.meta.changes)assigned=room.id;else if(b.roomId)fail('This server is full. Choose another neighborhood.',409);
   }
   if(!assigned)fail('The server filled up. Please try joining again.',409);
   await db.prepare('DELETE FROM neighborhood_presence WHERE profile_id=?').bind(me.id).run();
+  if(arrival)await db.prepare("INSERT INTO neighborhood_presence (profile_id,venue,host_id,travel,local_x,local_z) VALUES (?,?,?,'foot',?,?)").bind(me.id,arrival.id,me.id,arrival.spawn?.x||0,arrival.spawn?.z||10.4).run();
   // Crew friends see the assigned in-game address too.
   await db.prepare('UPDATE profiles SET home_id=?,last_seen=? WHERE id=?').bind(home.home_id,now,me.id).run();
-  return json({session,roomId:assigned,capacity:ROOM_CAPACITY,profile:profileView(me),home:homeView(home)});
+  return json({session,roomId:assigned,capacity:ROOM_CAPACITY,profile:profileView(me),home:homeView(home),venue:arrival?.id||''});
  }
  if(path==='/api/world/upgrade'&&method==='POST'){
   const b=await body(request),home=await getHome();if(!home)fail('Join a neighborhood to get your home.',409);
@@ -74,7 +76,16 @@ export async function worldApi(request,{db,me,body,json,fail,url}){
   const b=await body(request);if(!['apartment','garage','destination'].includes(b.mode)||typeof b.session!=='string')fail('Choose your apartment or garage.');
   const home=await getHome();if(!home)fail('Join a neighborhood first.',409);const place=placeFor(home);
   const member=await db.prepare('SELECT * FROM world_members WHERE profile_id=? AND session=?').bind(me.id,b.session).first(),host=typeof b.hostId==='string'?b.hostId:me.id;if(!member)fail('Rejoin your neighborhood.',409);
-  if(b.mode==='destination'){const venue=[CLUB,MOTOR_CLUB].find(v=>v.id===b.venue);if(!venue||member.mode!=='driving'||Math.hypot(member.x-venue.x,member.z-venue.z)>venue.radius)fail('Reach the club entrance first.',409);const r=await db.prepare("UPDATE world_members SET mode='destination',last_seen=? WHERE profile_id=? AND session=? AND last_seen>?").bind(now,me.id,b.session,now-WORLD_TTL).run();if(!r.meta.changes)fail('Reconnect first.',409);await db.prepare("INSERT INTO neighborhood_presence (profile_id,venue,host_id,travel,local_x,local_z) VALUES (?,?,?,'foot',0,6) ON CONFLICT(profile_id) DO UPDATE SET venue=excluded.venue,host_id=excluded.host_id,travel='foot',local_x=0,local_z=6").bind(me.id,venue.id,me.id).run();return json({ok:true});}
+  if(b.mode==='destination'){
+   const venue=[CLUB,MOTOR_CLUB].find(v=>v.id===b.venue),entry=b.entry||{x:member.x,z:member.z};
+   if(![entry.x,entry.z].every(Number.isFinite))fail('Invalid entrance position.');
+   if(!venue||member.mode!=='driving'||Math.hypot(entry.x-venue.x,entry.z-venue.z)>venue.radius)fail('Stop by the casino or club front entrance.',409);
+   const presence=await db.prepare('SELECT travel FROM neighborhood_presence WHERE profile_id=?').bind(me.id).first();
+   const limit=presence?.travel==='foot'?8:70;
+   if(Math.hypot(entry.x-member.x,entry.z-member.z)>Math.max(12,(now-member.last_seen)/1000*limit+8))fail('Move closer to the entrance and try again.',409);
+   const r=await db.prepare("UPDATE world_members SET mode='destination',x=?,z=?,last_seen=? WHERE profile_id=? AND session=? AND last_seen>?").bind(entry.x,entry.z,now,me.id,b.session,now-WORLD_TTL).run();if(!r.meta.changes)fail('Reconnect first.',409);
+   await db.prepare("INSERT INTO neighborhood_presence (profile_id,venue,host_id,travel,local_x,local_z) VALUES (?,?,?,'foot',?,?) ON CONFLICT(profile_id) DO UPDATE SET venue=excluded.venue,host_id=excluded.host_id,travel='foot',local_x=excluded.local_x,local_z=excluded.local_z").bind(me.id,venue.id,me.id,venue.spawn?.x||0,venue.spawn?.z||10.4).run();return json({ok:true});
+  }
   if(!await canVisit(db,me.id,host,member.room_id,now))fail('This home is closed.',403);
   const result=await db.prepare('UPDATE world_members SET x=?,z=?,mode=?,last_seen=? WHERE profile_id=? AND session=? AND last_seen>?').bind(place.x,place.z,b.mode,now,me.id,b.session,now-WORLD_TTL).run();
   if(!result.meta.changes)fail('Rejoin your neighborhood.',409);

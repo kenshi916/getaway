@@ -1,4 +1,4 @@
-import {BURN_ITEMS} from './collection.mjs?v=37';
+import {BURN_ITEMS} from './collection.mjs?v=38';
 export const TESTNET_ITEMS=[...BURN_ITEMS,
  {itemId:10,id:'loft-collection',name:'Loft furniture collection',cost:800,kind:'furniture',description:'Collector shelf, reading lamp and armchair for your home.'},
  {itemId:11,id:'midnight-garage',name:'Midnight garage',cost:1000,kind:'garage',description:'Deep blue walls and cool lighting in Last Exit.'},
