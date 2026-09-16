@@ -1,4 +1,4 @@
-import {FIRST_JOBS,HOME_THEMES,CAR_COLORS,WHEEL_FINISHES,firstHourState,nextChapter,chapterInfo,cleanDecor} from './first-hour.mjs?v=34';
+import {FIRST_JOBS,HOME_THEMES,CAR_COLORS,WHEEL_FINISHES,firstHourState,nextChapter,chapterInfo,cleanDecor} from './first-hour.mjs?v=35';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=id=>document.getElementById(id);
 export function createFirstHour(api){

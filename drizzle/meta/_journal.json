@@ -36,6 +36,13 @@
       "when": 1789524156782,
       "tag": "0004_lame_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789528445071,
+      "tag": "0005_cool_the_initiative",
+      "breakpoints": true
     }
   ]
 }

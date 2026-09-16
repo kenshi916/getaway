@@ -1,8 +1,8 @@
 import * as THREE from './assets/three.module.js';
-import {CARS,PAINTS,dist} from './driving.mjs?v=34';
-import {makeVehicle,animateVehicle,DETAILED_STAND_INS} from './vehicles.js?v=34';
-import {HOMES} from './social-catalog.mjs?v=34';
-import {HOME_UPGRADES,NEIGHBORHOOD_JOBS,ROOM_CAPACITY} from './world-catalog.mjs?v=34';
+import {CARS,PAINTS,dist} from './driving.mjs?v=35';
+import {makeVehicle,animateVehicle,DETAILED_STAND_INS} from './vehicles.js?v=35';
+import {HOMES} from './social-catalog.mjs?v=35';
+import {HOME_UPGRADES,NEIGHBORHOOD_JOBS,ROOM_CAPACITY} from './world-catalog.mjs?v=35';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=id=>document.getElementById(id);
 export function createNeighborhood(api){
@@ -64,7 +64,7 @@ export function createNeighborhood(api){
  }
  async function sync(){
   if(!session||syncing||disposed)return;syncing=true;const token=session;
-  try{await interiorUpdate;const s=api.state();const result=await request('/sync','POST',{session:token,seq:++seq,x:s.x,z:s.z,heading:s.heading,mode:s.mode,carId:s.carId,travel:s.travel,local:api.localPosition?.()?{x:api.localPosition().x,z:api.localPosition().z}:undefined});if(token!==session)return;data.home=result.home;applyHome();updatePeers(result.players);if(result.evicted)api.evicted?.();failures=0;error='';}
+  try{await interiorUpdate;const s=api.state();const result=await request('/sync','POST',{session:token,seq:++seq,x:s.x,z:s.z,heading:s.heading,mode:s.mode,venue:s.venue||'',carId:s.carId,travel:s.travel,local:api.localPosition?.()?{x:api.localPosition().x,z:api.localPosition().z}:undefined});if(token!==session)return;data.home=result.home;applyHome();updatePeers(result.players);if(result.evicted)api.evicted?.();failures=0;error='';}
   catch(e){if(token!==session)return;failures++;if([401,409,422].includes(e.status)||failures>=4){session=null;roomId=null;clearPeers();error=e.message;api.notify('NEIGHBORHOOD DISCONNECTED · Open ONLINE to rejoin.');}else retryAt=Date.now()+2000;}
   finally{syncing=false;refreshHUD();}
  }
@@ -80,13 +80,13 @@ export function createNeighborhood(api){
   $('worldJobAction').onclick=async()=>{if(jobBusy)return;if(!near){api.routeTo(point);return;}jobBusy=true;refreshHUD();try{await sync();if(!session)throw Error('Reconnect to your neighborhood first.');await jobAction(stage?'finish':'pickup',job.id);if(!stage)api.routeTo(job.to);}catch(e){api.notify(e.message);}finally{jobBusy=false;refreshHUD();}};
  }
  function update(dt){const now=Date.now();if(session&&!syncing&&now-lastPoll>900&&now>=retryAt&&!document.hidden){lastPoll=now;void sync();}const s=api.state();for(const item of views.values()){
- const t=item.target,c=item.current,inside=t.mode==='apartment'||t.mode==='garage',onFoot=inside||t.travel==='foot',parent=inside?api.roomScene?.():api.world,visible=inside?t.mode===s.mode&&t.hostId===api.roomOwner?.():s.mode==='driving'&&dist(s,t)<160;
- const tx=inside?t.localX:t.x,tz=inside?t.localZ:t.z,space=inside?t.mode+':'+t.hostId:'city';if(item.space!==space||Math.hypot(c.x-tx,c.z-tz)>100){c.x=tx;c.z=tz;item.space=space;}const f=1-Math.exp(-dt*8),moving=Math.hypot(c.x-tx,c.z-tz)>.06;c.x+=(tx-c.x)*f;c.z+=(tz-c.z)*f;c.heading+=Math.atan2(Math.sin(t.heading-c.heading),Math.cos(t.heading-c.heading))*f;
+ const t=item.target,c=item.current,inClub=t.mode==='destination'&&t.venue==='last-hand',inside=inClub||t.mode==='apartment'||t.mode==='garage',onFoot=inside||t.travel==='foot',parent=inside?api.roomScene?.():api.world,visible=inside?inClub?s.venue==='last-hand':t.mode===s.mode&&t.hostId===api.roomOwner?.():s.mode==='driving'&&dist(s,t)<160;
+ const tx=inside?t.localX:t.x,tz=inside?t.localZ:t.z,space=inside?inClub?'club:last-hand':t.mode+':'+t.hostId:'city';if(item.space!==space||Math.hypot(c.x-tx,c.z-tz)>100){c.x=tx;c.z=tz;item.space=space;}const f=1-Math.exp(-dt*8),moving=Math.hypot(c.x-tx,c.z-tz)>.06;c.x+=(tx-c.x)*f;c.z+=(tz-c.z)*f;c.heading+=Math.atan2(Math.sin(t.heading-c.heading),Math.cos(t.heading-c.heading))*f;
  item.view.group.visible=visible&&!onFoot;animateVehicle(item.view,{...c,y:0,vy:0,yawRate:0,speed:moving?8:0,steering:0,drifting:false,braking:!moving,boosting:false,config:CARS[item.carId],wheelTravel:now*.008},dt);
  if(item.human){const h=item.human;if(parent&&h.group.parent!==parent)parent.add(h.group);h.group.visible=visible&&onFoot;h.group.position.set(c.x,inside?(t.mode==='garage'?.035:.36):.18,c.z);h.group.rotation.y=c.heading;if(t.emoteAt!==item.emoteAt){item.emoteAt=t.emoteAt;h.emote(t.emote,t.emoteAt+3200);}h.update(dt,moving);if(onFoot){h.group.add(item.label);item.label.position.y=2.3;item.label.scale.set(2.1,.39,1);}else{item.view.group.add(item.label);item.label.position.y=4.5;item.label.scale.set(6,1.125,1);}}
  }refreshHUD();}
  $('worldButton').onclick=()=>open();
  addEventListener('pagehide',()=>{disposed=true;if(session)void request('/leave','POST',{session},true).catch(()=>{});});
- function enterInterior(mode){if(!session)return;const token=session;interiorUpdate=interiorUpdate.catch(()=>{}).then(()=>request('/interior','POST',{session:token,mode,hostId:api.roomOwner?.()})).catch(()=>{});lastPoll=Date.now()+400;}
+ function enterInterior(mode,venue=''){if(!session)return venue?Promise.reject(Error('Join a neighborhood first.')):Promise.resolve();const token=session;const task=interiorUpdate.catch(()=>{}).then(()=>request('/interior','POST',{session:token,mode,venue,hostId:api.roomOwner?.()}));interiorUpdate=task.catch(()=>{});lastPoll=Date.now()+400;return venue?task:interiorUpdate;}
  return {session:()=>session,profile:()=>data.profile,sync,open,update,load:()=>load().catch(()=>{}),enterInterior,connected:()=>!!session,peers:()=>peers,room:()=>roomId,home:()=>data.home,place,job:()=>data.home?.job,trackJob,state:()=>({connected:!!session,roomId,players:peers.length+(session?1:0),home:data.home,error}),join,leave};
 }

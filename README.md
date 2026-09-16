@@ -156,3 +156,25 @@ All six playable rides now use detailed concept cars. The user's four Unity Fan 
 Four imported files are adapted with baked door poses, four named wheel pivots, editable paint and brake materials, reduced geometry, and 1024-pixel textures. Workhorse is now a detailed utility crossover; Night Cab has an illuminated taxi sign. Traffic and police use lighter versions of the same designs (about 26,000 triangles each), with 512-pixel textures. Police retain their flashing red/blue light bar. Detailed showroom models stream in after those lighter versions; a failed high-detail download retains a usable version of the same vehicle. Every paint finish applies to every playable ride.
 
 The city adds balcony railings and planters, cornices and facade trim, planted roof terraces, fuller park tree cover, a colored horizon, and a tighter moving shadow area around the player. Static details are batched per block. Existing streets, pedestrian paths, mission markers and collision footprints remain usable. Asset URLs use `?v=26`.
+
+
+## Last Hand and daily life
+
+Join a numbered neighborhood, open **N → Explore**, and route to Last Hand.
+Stop by the sign and enter with **E**. Two shared blackjack tables seat four
+players each; a lounge, room-scoped chat, emotes and first-person walking are
+available without playing cards. Chips are server-saved free play counters:
+500 initially, a daily top-up to 500, 10 per hand, no purchases, transfers,
+cash-outs, token conversions or collectible prizes. The server shuffles,
+withholds the hole card and undealt deck, validates actions, and settles payouts
+atomically. Disconnected or timed-out hands stand; unplayed stakes are refunded.
+
+Explore also has three daily errands. They award home credits and persistent
+wood, scrap or fabric. Two recipes consume materials and unlock placeable home
+furniture. These accounts remain separate from demo and testnet tokens. The
+player guide documents the complete first evening, errands, recipes and cards.
+
+`node checks/club.mjs` covers venue access, shared hands, hidden cards, duplicate
+requests, rewards, abandoned hands, daily errands and crafting. Existing world,
+Neighborhoods and game-flow checks remain applicable. Movement is still
+client-reported; no real-value or competitive rewards are enabled.

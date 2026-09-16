@@ -22,7 +22,7 @@ export const neighborhoodAccounts=sqliteTable('neighborhood_accounts',{
  profileId:text('profile_id').primaryKey().references(()=>profiles.id,{onDelete:'cascade'}),data:text('data').notNull(),revision:integer('revision').notNull().default(0),operation:text('operation').notNull().default(''),updatedAt:integer('updated_at').notNull()
 });
 export const neighborhoodPresence=sqliteTable('neighborhood_presence',{
- profileId:text('profile_id').primaryKey().references(()=>profiles.id,{onDelete:'cascade'}),travel:text('travel').notNull().default('car'),hostId:text('host_id'),localX:real('local_x').notNull().default(0),localZ:real('local_z').notNull().default(0),emote:text('emote').notNull().default(''),emoteAt:integer('emote_at').notNull().default(0)
+ profileId:text('profile_id').primaryKey().references(()=>profiles.id,{onDelete:'cascade'}),venue:text('venue').notNull().default(''),travel:text('travel').notNull().default('car'),hostId:text('host_id'),localX:real('local_x').notNull().default(0),localZ:real('local_z').notNull().default(0),emote:text('emote').notNull().default(''),emoteAt:integer('emote_at').notNull().default(0)
 });
 export const neighborhoodContracts=sqliteTable('neighborhood_contracts',{
  id:text('id').primaryKey(),roomId:integer('room_id').notNull().references(()=>worldRooms.id),hostId:text('host_id').notNull().references(()=>profiles.id),jobId:text('job_id').notNull(),members:text('members').notNull(),stage:integer('stage').notNull().default(-1),revision:integer('revision').notNull().default(0),createdAt:integer('created_at').notNull(),stageAt:integer('stage_at').notNull(),status:text('status').notNull().default('forming')
@@ -38,4 +38,11 @@ export const neighborhoodReports=sqliteTable('neighborhood_reports',{
 },t=>[uniqueIndex('idx_reports_pair').on(t.ownerId,t.messageId)]);
 export const testnetAccounts=sqliteTable('testnet_accounts',{
  ownerId:text('owner_id').primaryKey(),registry:text('registry').notNull().default(''),token:text('token').notNull().default(''),wallet:text('wallet'),nonce:text('nonce'),expiresAt:integer('expires_at').notNull().default(0),updatedAt:integer('updated_at').notNull()
+});
+
+export const clubAccounts=sqliteTable('club_accounts',{
+ profileId:text('profile_id').primaryKey().references(()=>profiles.id,{onDelete:'cascade'}),chips:integer('chips').notNull().default(500),giftDay:text('gift_day').notNull()
+},t=>[check('club_chips_nonnegative',sql`${t.chips} >= 0`)]);
+export const clubTables=sqliteTable('club_tables',{
+ id:text('id').primaryKey(),roomId:integer('room_id').notNull().references(()=>worldRooms.id),data:text('data').notNull(),revision:integer('revision').notNull().default(0),operation:text('operation').notNull().default(''),updatedAt:integer('updated_at').notNull()
 });

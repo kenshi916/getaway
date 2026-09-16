@@ -1,5 +1,5 @@
 import * as THREE from './assets/three.module.js';
-import {HOME_THEMES,cleanDecor} from './first-hour.mjs?v=34';
+import {HOME_THEMES,cleanDecor} from './first-hour.mjs?v=35';
 // These are actual scene surfaces, present in close, overhead and walking cameras.
 export function addHomeSurroundings(scene,garage=false){
  const root=new THREE.Group();root.name='landscaped-home-surroundings';scene.add(root);

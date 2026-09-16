@@ -1,33 +1,37 @@
-import {createNeighborhoodLife} from './neighborhood-ui.js?v=34';
-import {createNeighbor,createCityWalker,createPlacedFurniture} from './neighborhood-scenes.js?v=34';
-import {buildArrival} from './arrival-scene.js?v=34';
-import {createArrivalUI} from './arrival-ui.js?v=34';
-import {createFirstHour} from './first-hour-ui.js?v=34';
-import {FIRST_JOBS,CAR_COLORS,WHEEL_FINISHES} from './first-hour.mjs?v=34';
-import {createDrivingFeedback} from './driving-feedback.js?v=34';
-import {createNeighborhood} from './world-client.js?v=34';
-import {homeRouteFromSearch} from './social-catalog.mjs?v=34';
-import {destinationQuest} from './destination-quests.mjs?v=34';
-import {buildDestination} from './destination-scene.js?v=34';
-import {createCityResidents,updateCityResidents} from './city-residents.js?v=34';
-import {buildGarage} from './garage-scene.js?v=34';
-import {createCityAtlas} from './atlas.js?v=34';
-import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=34';
-import {createPassengerActor} from './passenger-actors.js?v=34';
-import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=34';
+import {CLUB} from './club-catalog.mjs?v=35';
+import {buildClub} from './club-scene.js?v=35';
+import {createClubUI} from './club-ui.js?v=35';
+import {createNeighborhoodLife} from './neighborhood-ui.js?v=35';
+import {createNeighbor,createCityWalker,createPlacedFurniture} from './neighborhood-scenes.js?v=35';
+import {buildArrival} from './arrival-scene.js?v=35';
+import {createArrivalUI} from './arrival-ui.js?v=35';
+import {createFirstHour} from './first-hour-ui.js?v=35';
+import {FIRST_JOBS,CAR_COLORS,WHEEL_FINISHES} from './first-hour.mjs?v=35';
+import {createDrivingFeedback} from './driving-feedback.js?v=35';
+import {createNeighborhood} from './world-client.js?v=35';
+import {homeRouteFromSearch} from './social-catalog.mjs?v=35';
+import {destinationQuest} from './destination-quests.mjs?v=35';
+import {buildDestination} from './destination-scene.js?v=35';
+import {createCityResidents,updateCityResidents} from './city-residents.js?v=35';
+import {buildGarage} from './garage-scene.js?v=35';
+import {createCityAtlas} from './atlas.js?v=35';
+import {PASSENGERS,PASSENGER_MODELS,passengerFor,passengerPortrait,storyFor,rideStatus,updateRides,rememberRide,rideFarewell} from './passengers.mjs?v=35';
+import {createPassengerActor} from './passenger-actors.js?v=35';
+import {createGamePhone,phoneQuests,phoneIcon} from './phone.js?v=35';
 import * as THREE from './assets/three.module.js';
-import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded} from './vehicles.js?v=34';
-import {loadCityPack,buildCity} from './city.js?v=34';
-import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=34';
-import {createCollectionUI} from './collection-ui.js?v=34';
-import {createBurnWallet} from './burn-wallet.mjs?v=34';
-import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=34';
-import {captureShift,restoreShift} from './progress.mjs?v=34';
+import {makeVehicle,animateVehicle,loadVehiclePack,onVehicleLoaded} from './vehicles.js?v=35';
+import {loadCityPack,buildCity} from './city.js?v=35';
+import {SKINS,DRIVERS,BURN_CARS,ownsItem} from './collection.mjs?v=35';
+import {createCollectionUI} from './collection-ui.js?v=35';
+import {createBurnWallet} from './burn-wallet.mjs?v=35';
+import {buildApartment,HOME_SPAWN,HOME_SPOTS,APARTMENT_ASSETS} from './apartment.js?v=35';
+import {captureShift,restoreShift} from './progress.mjs?v=35';
 import {GLTFLoader} from './assets/GLTFLoader.js';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=34';
+import {clamp,ROAD,LIMIT,DISTRICTS,LANDMARKS,districtAt,HOME,CARS,PAINTS,BLOCKS,STOPS,DESTS,RAMPS,dist,blocked,visible,closestRoad,route,createCar,drive,defaultProfile,cleanProfile,buyCar,createRun,makeJob,pickup,deliver,settleRun} from './driving.mjs?v=35';
 
 const $=id=>document.getElementById(id),touch=matchMedia('(pointer:coarse)').matches;
+let clubScene=null,clubUI=null,clubEntering=false,clubReturnMode='driving';
 let firstHour=null,cityLife=null,cityWalker=null,placedFurniture=null,visitingTransition=false;
 let profile=defaultProfile(),storageAvailable=true;
 try{profile=cleanProfile(JSON.parse(localStorage.getItem('getaway-profile-v1')||'null'));}catch{storageAvailable=false;}
@@ -238,12 +242,12 @@ function showJobs(){if(mode==='driving')showPhone('dispatch');}
 function showCredits(){paused=true;clearControls();modal(`<button class="modal-close" data-close aria-label="Close credits">×</button><h2 id="dialogTitle">GOOD COMPANY.</h2><p>Animated characters and street props by <a href="https://kenney.nl" target="_blank" rel="noopener noreferrer">Kenney</a>, used under CC0.</p><p>Blocky Characters · City Kit Commercial · City Kit Roads · Furniture Kit. City design, driving, missions, and sound effects made for GETAWAY.</p><p>Vehicles by <a href="https://rgsdev.itch.io/free-low-poly-vehicles-pack" target="_blank" rel="noopener noreferrer">RGS_Dev</a> (CC0). <a href="/assets/packs/rgsdev-vehicles.zip" download>Download the original 21-vehicle pack</a>.</p><p>Night Runner, Redline, Night Cab and Ironhide: FREE Concept Cars 011, 050, 005 and 006 by <a href="https://sketchfab.com/unityfan777" target="_blank" rel="noopener noreferrer">Unity Fan</a>, released by the author as public domain (CC0) on Sketchfab. Optimised for GETAWAY with game wheel pivots, brake lights and paint.</p><p>Alley Cat concept coupe: Car Concept by Eric Chadwick, © 2024 Darmstadt Graphics Group GmbH, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Adapted with game wheel pivots, materials, and a blank plate. <a href="https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept" target="_blank" rel="noopener noreferrer">Free original model</a>.</p><p>Three.js (MIT). Space Mono and Silkscreen (SIL Open Font License).</p><button class="primary" data-close>BACK TO THE NIGHT <span>↗</span></button>`);}
 function toggleSound(){initAudio();profile.muted=!profile.muted;saveProfile();refreshMenu();updateAudio();}
 let lookPointer=null,driverLook={yaw:0,pitch:0},cameraUiState='';
-function walkingScene(){return mode==='walking'?cityWalker:mode==='apartment'?apartment:mode==='garage'?garageScene:mode==='destination'?destinationScene:null;}
+function walkingScene(){return mode==='club'?clubScene:mode==='walking'?cityWalker:mode==='apartment'?apartment:mode==='garage'?garageScene:mode==='destination'?destinationScene:null;}
 function isFirstView(){return mode==='driving'?profile.camera==='first':!!walkingScene()?.walkingView.enabled&&!(mode==='garage'&&garageScene.inspection);}
 function cycleCamera(){const options=['chase','first','high'];profile.camera=options[(options.indexOf(profile.camera)+1)%options.length];driverLook={yaw:0,pitch:0};cameraHeading=player.heading;cameraTarget.set(player.x,0,player.z);cameraUpdate(1);saveProfile();syncCameraUI();}
 function changePerspective(){if(!ready||collectionUI?.isBusy())return;if(mode==='driving')cycleCamera();else if(walkingScene()){profile.walkCamera=profile.walkCamera==='first'?'third':'first';walkingScene().setFirstPerson(profile.walkCamera==='first');refreshHomeCamera();saveProfile();syncCameraUI();}lookPointer=null;}
 function walkingInput(){const first=profile.walkCamera==='first';return{up:keys.KeyW||keys.ArrowUp||mobile.up,down:keys.KeyS||keys.ArrowDown||mobile.down,left:keys.KeyA||(!first&&keys.ArrowLeft)||mobile.left,right:keys.KeyD||(!first&&keys.ArrowRight)||mobile.right,turnLeft:first&&keys.ArrowLeft,turnRight:first&&keys.ArrowRight,lookUp:first&&keys.PageUp,lookDown:first&&keys.PageDown};}
-function syncCameraUI(){const available=ready&&!paused&&['apartment','garage','destination','driving','walking'].includes(mode)&&!(mode==='garage'&&garageScene.inspection),first=isFirstView(),signature=[mode,available,first,profile.camera].join(':');if(signature===cameraUiState)return;cameraUiState=signature;$('perspectiveControls').classList.toggle('hidden',!available);$('lookReticle').classList.toggle('hidden',!available||!first);$('lookHint').classList.toggle('hidden',!first);$('lookHint').textContent=mode==='driving'?'DRAG TO LOOK · C TO SWITCH':'DRAG TO LOOK · ARROWS TO TURN';$('perspectiveLabel').textContent=first?(mode==='driving'?'HIGH CAMERA':'THIRD PERSON'):mode==='driving'&&profile.camera==='high'?'CHASE CAMERA':'FIRST PERSON';$('perspectiveBtn').setAttribute('aria-pressed',String(first));$('ui').classList.toggle('first-person',first);$('ui').dataset.cameraScene=mode;}
+function syncCameraUI(){const available=ready&&!paused&&['apartment','garage','destination','driving','walking','club'].includes(mode)&&!(mode==='garage'&&garageScene.inspection),first=isFirstView(),signature=[mode,available,first,profile.camera].join(':');if(signature===cameraUiState)return;cameraUiState=signature;$('perspectiveControls').classList.toggle('hidden',!available);$('lookReticle').classList.toggle('hidden',!available||!first);$('lookHint').classList.toggle('hidden',!first);$('lookHint').textContent=mode==='driving'?'DRAG TO LOOK · C TO SWITCH':'DRAG TO LOOK · ARROWS TO TURN';$('perspectiveLabel').textContent=first?(mode==='driving'?'HIGH CAMERA':'THIRD PERSON'):mode==='driving'&&profile.camera==='high'?'CHASE CAMERA':'FIRST PERSON';$('perspectiveBtn').setAttribute('aria-pressed',String(first));$('ui').classList.toggle('first-person',first);$('ui').dataset.cameraScene=mode;}
 $('perspectiveBtn').onclick=()=>{if(!paused)changePerspective();};
 renderer.domElement.addEventListener('pointerdown',e=>{if(!ready||paused||!isFirstView())return;e.preventDefault();lookPointer={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false,total:0};renderer.domElement.setPointerCapture?.(e.pointerId);});
 renderer.domElement.addEventListener('pointermove',e=>{if(!lookPointer||e.pointerId!==lookPointer.id||paused||!isFirstView())return;const dx=e.clientX-lookPointer.x,dy=e.clientY-lookPointer.y;lookPointer.total+=Math.hypot(dx,dy);lookPointer.moved=lookPointer.total>6;lookPointer.x=e.clientX;lookPointer.y=e.clientY;if(lookPointer.moved){if(mode==='driving'){driverLook.yaw=clamp(driverLook.yaw-dx*.004,-1.45,1.45);driverLook.pitch=clamp(driverLook.pitch-dy*.004,-.7,.7);}else walkingScene().look(dx,dy);}});
@@ -327,8 +331,8 @@ renderer.domElement.addEventListener('wheel',e=>{if(mode==='apartment'&&!paused&
 $('playBtn').onclick=openSavedHome;$('garageBtn').onclick=showGarage;$('howBtn').onclick=showHow;$('helpBtn').onclick=showHow;$('creditsBtn').onclick=showCredits;$('soundBtn').onclick=toggleSound;$('pauseBtn').onclick=showPause;$('jobsBtn').onclick=showJobs;$('routeBtn').onclick=toggleGarageRoute;$('bankBtn').onclick=bank;
 const neighborhood=createNeighborhood({
  world,modal,close:closeModal,notify:message=>toast(message,'good',4),
- evicted:()=>{cityLife?.resetHost();returnHome();toast('THIS HOME CLOSED · You are back at your apartment','good');},human:avatar=>createNeighbor(templates,avatar),roomScene:()=>mode==='apartment'?apartment?.scene:mode==='garage'?garageScene?.scene:world,roomOwner:()=>cityLife?.host?.hostId||neighborhood.profile()?.id,localPosition:()=>['apartment','garage'].includes(mode)?walkingScene()?.avatar.position:null,carStyle:()=>activeSkin(),
- state:()=>({mode:mode==='walking'?'driving':['apartment','garage','driving','destination'].includes(mode)?mode:'apartment',travel:mode==='walking'?'foot':mode==='driving'?'car':'foot',x:mode==='walking'?cityWalker.avatar.position.x:player.x,z:mode==='walking'?cityWalker.avatar.position.z:player.z,heading:mode==='walking'?cityWalker.avatar.rotation.y:walkingScene()?.avatar.rotation.y??player.heading,carId:player.config.id,speed:mode==='walking'?0:player.speed}),
+ evicted:()=>{cityLife?.resetHost();returnHome();toast('THIS HOME CLOSED · You are back at your apartment','good');},human:avatar=>createNeighbor(templates,avatar),roomScene:()=>mode==='club'?clubScene?.scene:mode==='apartment'?apartment?.scene:mode==='garage'?garageScene?.scene:world,roomOwner:()=>cityLife?.host?.hostId||neighborhood.profile()?.id,localPosition:()=>['apartment','garage','club'].includes(mode)?walkingScene()?.avatar.position:null,carStyle:()=>activeSkin(),
+ state:()=>({venue:mode==='club'?CLUB.id:'',mode:mode==='club'?'destination':mode==='walking'?'driving':['apartment','garage','driving','destination'].includes(mode)?mode:'apartment',travel:mode==='walking'?'foot':mode==='driving'?'car':'foot',x:mode==='walking'?cityWalker.avatar.position.x:player.x,z:mode==='walking'?cityWalker.avatar.position.z:player.z,heading:mode==='walking'?cityWalker.avatar.rotation.y:walkingScene()?.avatar.rotation.y??player.heading,carId:player.config.id,speed:mode==='walking'?0:player.speed}),
  canOpen:()=>ready&&firstHour?.loaded&&!collectionUI?.isBusy()&&!['destination','arrival','menu'].includes(mode),
  pause:()=>{collectionUI?.invalidate();phoneUI?.closed();paused=true;clearControls();if(ready)saveProfile();},
  homeChanged:(home,place)=>{cityLife?.homeChanged(home);apartment?.setHomeLevel(home?.level||0,home?.unit);firstHour?.apply();if(home&&!cityLife?.host){$('homeAddress').textContent=place.name.toUpperCase()+' / '+String(home.unit).padStart(3,'0');if(!assignedHomeMarker){assignedHomeMarker=ring(place.x,place.z,'#d4ed8a',3.8);assignedHomeSign=sign('HOME / '+String(home.unit).padStart(3,'0'),5,.85,place.x,4.8,place.z,'#e8f6b2','#354c2d');}}},
@@ -339,7 +343,7 @@ const neighborhood=createNeighborhood({
 });
 
 function lifePosition(){return mode==='walking'?{x:cityWalker.avatar.position.x,z:cityWalker.avatar.position.z}:player;}
-function toggleCityWalking(){
+function toggleCityWalking(){if(mode==='club'){leaveClub();return;}
  if(!ready||paused||['arrival','destination','menu'].includes(mode))return;
  if(mode==='walking'){if(Math.hypot(cityWalker.avatar.position.x-player.x,cityWalker.avatar.position.z-player.z)>7){toast('WALK BACK TO YOUR PARKED CAR · '+Math.round(Math.hypot(cityWalker.avatar.position.x-player.x,cityWalker.avatar.position.z-player.z))+' m','good',4);return;}cityWalker.hide();mode='driving';showDrivingUI();cameraHeading=player.heading;cameraUpdate(1);clearControls();return;}
  if(mode==='driving'&&player.speed>2){toast('STOP YOUR CAR BEFORE GETTING OUT','good');return;}
@@ -347,13 +351,23 @@ function toggleCityWalking(){
  if(!cityWalker)cityWalker=createCityWalker(templates,world,camera);cityWalker.spawn(player.x,player.z);cityWalker.setFirstPerson(profile.walkCamera==='first');mode='walking';cityLife?.apply();clearControls();['homeUI','garageUI','hud','menu','bottomBar','carPlaque'].forEach(id=>$(id).classList.add('hidden'));$('topbar').classList.remove('hidden');toast('WALK THE CITY · WASD · F to return to your car · H at home','good',5);
 }
 cityLife=createNeighborhoodLife({online:neighborhood,modal,close:closeModal,pause:()=>{paused=true;clearControls();},notify:m=>toast(m,'good',5),
- state:()=>({mode,paused,...lifePosition()}),direction:(key,on)=>{mobile[key]=on;},local:()=>mode==='apartment'||mode==='garage'?walkingScene()?.avatar.position:null,walk:toggleCityWalking,
+ state:()=>({mode,paused,...lifePosition()}),direction:(key,on)=>{mobile[key]=on;},local:()=>['apartment','garage','club'].includes(mode)?walkingScene()?.avatar.position:null,walk:toggleCityWalking,
  route:point=>{if(!['driving','walking'].includes(mode)){enterGarage();startTestDrive(profile.selected);}mapWaypoint={x:point.x,z:point.z,name:point.name||point.label};bankRoute=false;pickupLock=null;targetLock=null;refreshRoute();updateHUD();},
  apply:(state,level,host)=>{if(!apartment||!state)return;if(host?.design?.decor){apartment.setDecor(host.design.decor,true);garageScene?.setDecor(host.design.decor,true);}if(!placedFurniture)placedFurniture=createPlacedFurniture(templates,apartment);placedFurniture.apply(host?.design||state);apartment.setHomeLevel(host?.level??level??0,host?.unit??neighborhood.home()?.unit);const outfit=state.outfit||neighborhood.profile()?.avatar||'jules',template=templates[({mina:'passenger-e',theo:'passenger-f',rae:'passenger-m'}[outfit])||activeDriver().model];if(apartment.avatar.userData.outfit!==outfit){apartment.setCharacter(template);apartment.avatar.userData.outfit=outfit;}garageScene?.setCharacter(template);cityWalker?.setOutfit(outfit);const garageDesign=host?.design||state;garageScene?.setDecor(garageDesign.garageTheme==='midnight'?{...firstHour.decor,theme:'coastal',garageFloor:'midnight'}:host?.design?.decor||firstHour.decor,true);repaintPlayer();if(mode==='garage')garageScene.select(garageCarId,activeSkin());},
  visit:(home,next)=>{visitingTransition=true;try{cityWalker?.hide();if(testDrive){testDrive=null;profile.checkpoint=null;}if(next==='garage')enterGarage();else returnHome();if(home){$('homeAddress').textContent=home.name.toUpperCase()+' / UNIT '+home.unit;apartment.setHomeLevel(home.level,home.unit);}$('ui').classList.toggle('live-guest',!!home&&home.hostId!==neighborhood.profile()?.id);}finally{visitingTransition=false;}},
  emote:id=>{if(mode==='walking')cityWalker?.emote(id);else walkingScene()?.emote?.(id);},
- photo:()=>{const s=mode==='apartment'?apartment.scene:mode==='garage'?garageScene.scene:scene,c=mode==='apartment'?apartment.camera:mode==='garage'?garageScene.camera:camera;renderer.render(s,c);renderer.domElement.toBlob(blob=>{if(!blob){toast('PHOTO COULD NOT SAVE','bad');return;}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='getaway-neighborhood-'+Date.now()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('PHOTO SAVED','good');});}
+ photo:()=>{const s=mode==='club'?clubScene.scene:mode==='apartment'?apartment.scene:mode==='garage'?garageScene.scene:scene,c=mode==='club'?clubScene.camera:mode==='apartment'?apartment.camera:mode==='garage'?garageScene.camera:camera;renderer.render(s,c);renderer.domElement.toBlob(blob=>{if(!blob){toast('PHOTO COULD NOT SAVE','bad');return;}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='getaway-neighborhood-'+Date.now()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('PHOTO SAVED','good');});}
 });
+async function enterClub(){
+ if(clubEntering||paused||!ready)return;if(!neighborhood.connected()){toast('JOIN A NEIGHBORHOOD TO MEET PEOPLE AT LAST HAND','good');neighborhood.open();return;}
+ const p=lifePosition();if(!['driving','walking'].includes(mode)||Math.hypot(p.x-CLUB.x,p.z-CLUB.z)>CLUB.radius||mode==='driving'&&Math.abs(player.speed)>2)return;
+ clubEntering=true;clearControls();paused=true;
+ try{await neighborhood.sync();await neighborhood.enterInterior('destination',CLUB.id);clubReturnMode=mode;cityLife.resetHost();cityWalker?.hide();if(!clubScene)clubScene=buildClub(templates,neighborhood.profile()?.avatar);clubScene.avatar.position.set(0,.16,6);clubScene.setFirstPerson(profile.walkCamera==='first');clubScene.resize(innerWidth,innerHeight);mode='club';closeModal();['homeUI','garageUI','destinationUI','hud','menu','bottomBar','carPlaque'].forEach(id=>$(id).classList.add('hidden'));toast('WELCOME TO LAST HAND · Walk to a table or chat with the room','good',5);}
+ catch(e){paused=false;toast(e.message,'bad');}finally{clubEntering=false;}
+}
+function leaveClub(){if(mode!=='club')return;closeModal();clearControls();mode=clubReturnMode;if(mode==='walking'){cityWalker.avatar.visible=true;cityWalker.setFirstPerson(profile.walkCamera==='first');}else{mode='driving';showDrivingUI();}void neighborhood.sync();}
+clubUI=createClubUI({scene:()=>clubScene,state:()=>({mode,paused,...lifePosition()}),session:neighborhood.session,room:neighborhood.room,sync:neighborhood.sync,enter:enterClub,exit:leaveClub,chat:()=>cityLife.open('crew'),modal,pause:()=>{paused=true;clearControls();}});
+renderer.domElement.addEventListener('pointerup',e=>{if(mode==='club'&&!paused&&!isFirstView())clubScene.clickAt(e.clientX,e.clientY,innerWidth,innerHeight);});
 renderer.domElement.addEventListener('pointerup',e=>{if(mode==='walking'&&!paused&&!isFirstView())cityWalker.clickAt(e.clientX,e.clientY,innerWidth,innerHeight);});
 firstHour=createFirstHour({
  mode:()=>mode,testing:()=>!!testDrive,pause:()=>{paused=true;clearControls();},modal,close:closeModal,notify:m=>toast(m,'good',5),home:returnHome,arrival:startArrival,garage:()=>{enterGarage();garageScene.setInspection(true);refreshGarageUI();},online:()=>neighborhood.open('home'),resumeCasual:()=>{if(!profile.casualCheckpoint)return;profile.checkpoint=profile.casualCheckpoint;profile.casualCheckpoint=null;profile.storyMode=false;profile.storyJob=null;resumeRun();},hasCasual:()=>!!profile.casualCheckpoint,story:startStoryJob,bankRoute:storyBankRoute,
@@ -409,6 +423,8 @@ addEventListener('keydown',e=>{
  if(ready&&e.code!=='Escape'&&e.code!=='Tab'&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName||''))return;
  if(ready&&!paused&&e.code==='KeyC'){e.preventDefault();if(!e.repeat)changePerspective();return;}
  if(ready&&!paused&&isFirstView()&&['PageUp','PageDown'].includes(e.code)){e.preventDefault();keys[e.code]=true;return;}
+ if(!paused&&e.code==='KeyE'&&['driving','walking'].includes(mode)&&Math.hypot(lifePosition().x-CLUB.x,lifePosition().z-CLUB.z)<CLUB.radius){e.preventDefault();if(!e.repeat)void enterClub();return;}
+ if(mode==='club'&&!paused&&['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE'].includes(e.code)){e.preventDefault();if(e.code==='KeyE'&&!e.repeat)clubUI.interact();keys[e.code]=true;return;}
  if(mode==='walking'&&!paused){if(e.code==='KeyH'&&neighborhood.home()&&Math.hypot(cityWalker.avatar.position.x-neighborhood.place().x,cityWalker.avatar.position.z-neighborhood.place().z)<14){returnHome();return;}if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft'].includes(e.code)){e.preventDefault();keys[e.code]=true;return;}}
  if(mode==='destination'){if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','Escape','KeyP','Tab','Space'].includes(e.code))e.preventDefault();if(e.code==='Escape'){leaveDestination();return;}if(!paused){if(e.code==='KeyE'&&!keys.KeyE)interactDestination();keys[e.code]=true;}return;}
  if(mode==='driving'&&!paused&&e.code==='KeyH'&&neighborhood.home()&&dist(player,neighborhood.place())<12&&player.speed<2){e.preventDefault();returnHome();return;}
@@ -421,7 +437,7 @@ addEventListener('keydown',e=>{
  if(e.code==='KeyP'&&ready){e.preventDefault();if(!e.repeat){if(phoneUI?.isOpen())closeModal();else if($('modalRoot').classList.contains('hidden'))showPhone();}return;}
  if(e.code==='Tab'&&!$('modalRoot').classList.contains('hidden')){const focus=[...$('modalRoot').querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled])')];if(!focus.length)return;const i=focus.indexOf(document.activeElement);e.preventDefault();focus[(i+(e.shiftKey?-1:1)+focus.length)%focus.length].focus();return;}
  if(e.code==='Escape'&&mode==='apartment'&&apartment.activity&&!paused){apartment.stopActivity();saveProfile();return;}
- if(e.code==='Escape'){if($('modalRoot').classList.contains('hidden'))showPause();else if(mode==='driving'||mode==='menu'||mode==='apartment'||mode==='garage'||mode==='walking')closeModal();return;}
+ if(e.code==='Escape'){if($('modalRoot').classList.contains('hidden'))showPause();else if(mode==='driving'||mode==='menu'||mode==='apartment'||mode==='garage'||mode==='walking'||mode==='club')closeModal();return;}
  if(mode==='apartment'&&!paused){if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','KeyC','KeyF'].includes(e.code)){e.preventDefault();if(e.code==='KeyE'&&!keys.KeyE)interactHome();if(e.code==='KeyC'&&!keys.KeyC)toggleHomeView();keys[e.code]=true;}return;}
  if(mode!=='driving'||paused)return;if(['Space','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(!keys[e.code]){if(e.code==='KeyC')cycleCamera();if(e.code==='KeyJ')showJobs();if(e.code==='Tab')toggleGarageRoute();if(e.code==='KeyE')bank();if(e.code==='KeyR')recover();}keys[e.code]=true;
 });addEventListener('keyup',e=>{keys[e.code]=false;});
@@ -567,6 +583,7 @@ function tick(){requestAnimationFrame(tick);if(!ready)return;const dt=Math.min(c
   if(mode==='driving'){if(!testDrive)run.time=Math.max(0,run.time-dt);run.elapsed+=dt;damageCooldown-=dt;currentInput={throttle:(keys.KeyW||keys.ArrowUp||mobile.gas?1:0)-(keys.KeyS||keys.ArrowDown||mobile.reverse?1:0),steer:(keys.KeyD||keys.ArrowRight||mobile.right?1:0)-(keys.KeyA||keys.ArrowLeft||mobile.left?1:0),brake:!!(keys.Space||mobile.drift),boost:!!(keys.ShiftLeft||keys.ShiftRight||mobile.boost)};drive(player,currentInput,dt);if(player.impact>3&&damageCooldown<=0){damage(Math.min(20,player.impact*.8));run.crashes++;emitSparks(player.x,player.z);sound(72,.18,'sawtooth',.045,-32);}if(player.landed){driveFeedback.hit(Math.min(12,4+player.airtime*6),profile.muted);run.airJumps++;run.style+=125;pop('AIR TIME +125');sound(240,.14,'triangle',.04,310);}animateCar(playerView,player,dt,currentInput.steer);breakProps(dt);if(mode==='driving'){if(!testDrive)updatePolice(dt);updateTraffic(dt);if(!testDrive)for(const message of updateRides(run,player,dt))showPassengerLine(message.job,message.line);if(player.health<=0)finish(false,'RIDE TOTALED.');else if(!testDrive&&run.time<=0)finish(false,'SHIFT OVER.');else if(mode==='driving')stopActivities(dt);}routeTimer-=dt;if(routeTimer<=0){refreshRoute();routeTimer=.8;}if(time-lastHUD>.1){updateHUD();lastHUD=time;}}
   else if(mode==='menu'){animateCar(playerView,player,dt);updateTraffic(dt);for(const p of pickups)p.actor.update(dt,player);}
   if(mode==='arrival'){arrivalScene.update(dt,arrivalUI.walking?{up:keys.KeyW||keys.ArrowUp||mobile.up,down:keys.KeyS||keys.ArrowDown||mobile.down,left:keys.KeyA||keys.ArrowLeft||mobile.left,right:keys.KeyD||keys.ArrowRight||mobile.right}:{},time);arrivalUI.update();}
+  else if(mode==='club'){clubScene.update(dt,walkingInput());}
   else if(mode==='walking'){cityWalker.update(dt,{...walkingInput(),sprint:keys.ShiftLeft});updateTraffic(dt);cityState?.update(time,cityWalker.avatar.position);updateCityResidents(residents,time,dt,cityWalker.avatar.position,touch?32:48);}
   else if(mode==='apartment'){
    homeTravel+=apartment.update(dt,walkingInput(),profile.tutorialStep,time);
@@ -577,10 +594,10 @@ function tick(){requestAnimationFrame(tick);if(!ready)return;const dt=Math.min(c
   }else if(mode==='destination'){destinationScene.update(dt,walkingInput(),time);const arrival=destinationScene.takeArrival();if(arrival)interactDestination(arrival);if(mode==='destination')updateDestinationUI();}else if(mode==='garage'){garageScene.update(dt,walkingInput(),time);$('garageUI').classList.toggle('inspecting',garageScene.inspection);const arrival=garageScene.takeArrival();if(arrival)interactGarage(arrival);if(mode==='garage'){const near=garageScene.nearest();$('garageInteract').disabled=!near;$('garageInteract').textContent=near?(touch?'':'E · ')+near.label:garageScene.navigating?'WALKING…':'WALK TO A MARKER';}}else{effects(dt);cameraUpdate(dt);}
   autosaveTimer+=dt;if(autosaveTimer>=3){autosaveTimer=0;saveProfile();}
  }
- if(ready){firstHour?.update();driveFeedback.update(dt,player,currentInput,{active:mode==='driving',muted:profile.muted,paused,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});if(mode==='driving'&&!paused)driveFeedback.cameraKick(camera,time);neighborhood.update(dt);cityLife?.update(dt);atlasUI.update(Date.now());const nearHome=['driving','walking'].includes(mode)&&neighborhood.home()&&dist(lifePosition(),neighborhood.place())<12&&(mode==='walking'||player.speed<2);$('worldHomeDoor').classList.toggle('hidden',!nearHome);if(assignedHomeMarker){assignedHomeMarker.root.visible=mode==='driving';assignedHomeSign.visible=mode==='driving';}if(playerView)playerView.group.visible=!(mode==='driving'&&profile.camera==='first');syncCameraUI();}
- if(ready&&!['apartment','garage','destination','arrival'].includes(mode))fadeObstructions(dt);updateAudio();renderer.render(mode==='arrival'?arrivalScene.scene:mode==='destination'?destinationScene.scene:mode==='apartment'?apartment.scene:mode==='garage'?garageScene.scene:scene,mode==='arrival'?arrivalScene.camera:mode==='destination'?destinationScene.camera:mode==='apartment'?apartment.camera:mode==='garage'?garageScene.camera:camera);
+ if(ready){firstHour?.update();driveFeedback.update(dt,player,currentInput,{active:mode==='driving',muted:profile.muted,paused,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});if(mode==='driving'&&!paused)driveFeedback.cameraKick(camera,time);neighborhood.update(dt);cityLife?.update(dt);clubUI?.update();atlasUI.update(Date.now());const nearHome=['driving','walking'].includes(mode)&&neighborhood.home()&&dist(lifePosition(),neighborhood.place())<12&&(mode==='walking'||player.speed<2);$('worldHomeDoor').classList.toggle('hidden',!nearHome);if(assignedHomeMarker){assignedHomeMarker.root.visible=mode==='driving';assignedHomeSign.visible=mode==='driving';}if(playerView)playerView.group.visible=!(mode==='driving'&&profile.camera==='first');syncCameraUI();}
+ if(ready&&!['apartment','garage','destination','arrival','club'].includes(mode))fadeObstructions(dt);updateAudio();renderer.render(mode==='club'?clubScene.scene:mode==='arrival'?arrivalScene.scene:mode==='destination'?destinationScene.scene:mode==='apartment'?apartment.scene:mode==='garage'?garageScene.scene:scene,mode==='club'?clubScene.camera:mode==='arrival'?arrivalScene.camera:mode==='destination'?destinationScene.camera:mode==='apartment'?apartment.camera:mode==='garage'?garageScene.camera:camera);
 }
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);arrivalScene?.resize(innerWidth,innerHeight);apartment?.resize(innerWidth,innerHeight);garageScene?.resize(innerWidth,innerHeight);destinationScene?.resize(innerWidth,innerHeight);});refreshMenu();tick();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);arrivalScene?.resize(innerWidth,innerHeight);apartment?.resize(innerWidth,innerHeight);garageScene?.resize(innerWidth,innerHeight);destinationScene?.resize(innerWidth,innerHeight);clubScene?.resize(innerWidth,innerHeight);});refreshMenu();tick();
 
 const modelContext=document.modelContext;
 if(modelContext?.registerTool){const lifecycle=new AbortController();const register=t=>{try{Promise.resolve(modelContext.registerTool(t,{signal:lifecycle.signal})).catch(()=>{});}catch{}};

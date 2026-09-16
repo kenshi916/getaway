@@ -1,4 +1,6 @@
 export const FURNITURE=[
+ {id:'crafted-planter',name:'Neighborhood planter',model:'plant-small',cost:0,width:1.1,depth:1.1,reward:true},
+ {id:'crafted-chair',name:'Reclaimed lounge chair',model:'chair-lounge',cost:0,width:1.2,depth:1.2,reward:true},
  {id:'fern',name:'Courtyard fern',model:'plant-small',cost:35,width:.8,depth:.8},
  {id:'armchair',name:'Sunday armchair',model:'chair-lounge',cost:100,width:1.2,depth:1.2},
  {id:'coffee-table',name:'Oak coffee table',model:'table-coffee',cost:85,width:1.4,depth:.8},

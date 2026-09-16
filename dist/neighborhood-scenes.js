@@ -1,7 +1,7 @@
 import * as THREE from './assets/three.module.js';
-import {createWalkingView} from './first-person.js?v=34';
-import {blocked,BLOCKS} from './driving.mjs?v=34';
-import {FURNITURE,WALLPAPERS} from './neighborhood-catalog.mjs?v=34';
+import {createWalkingView} from './first-person.js?v=35';
+import {blocked,BLOCKS} from './driving.mjs?v=35';
+import {FURNITURE,WALLPAPERS} from './neighborhood-catalog.mjs?v=35';
 export function createNeighbor(templates,avatar='jules') {
  const keys={jules:'suit',mina:'passenger-e',theo:'passenger-f',rae:'passenger-m'},source=templates[keys[avatar]]||templates.suit;
  const group=new THREE.Group(),root=source.scene.clone(true),size=new THREE.Box3().setFromObject(root),scale=1.8/size.getSize(new THREE.Vector3()).y;root.scale.setScalar(scale);root.position.y=-size.min.y*scale;group.add(root);

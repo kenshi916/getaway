@@ -1,12 +1,13 @@
-import {DISTRICTS,LANDMARKS,BLOCKS,ROAD,LIMIT,HOME,STOPS,districtAt,closestRoad,route,dist,clamp} from './driving.mjs?v=34';
-import {HOMES} from './social-catalog.mjs?v=34';
+import {CLUB,DAILY_STOPS} from './club-catalog.mjs?v=35';
+import {DISTRICTS,LANDMARKS,BLOCKS,ROAD,LIMIT,HOME,STOPS,districtAt,closestRoad,route,dist,clamp} from './driving.mjs?v=35';
+import {HOMES} from './social-catalog.mjs?v=35';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const EXTENT=LIMIT+40,MAX_SPAN=EXTENT*2;
 const palette={garage:'#efd269',pickup:'#80b750',drop:'#ef9465',waypoint:'#bba2db',home:'#d5a277',player:'#70cbd0'};
 export function createCityAtlas(api){
  let filter='all',selected=null,center={x:0,z:0},span=MAX_SPAN,drag=null,query='',lastLive=0;
  const $=id=>document.getElementById(id);
- function pois(state){return [{...HOME,id:'garage',kind:'garage'},...LANDMARKS.map(p=>({...p,kind:'waypoint'})),...HOMES.map(h=>({...h,kind:'home',name:(state.home?.homeId===h.id?'YOUR HOME · ':'')+h.name})),...state.jobs.map(j=>({...STOPS.find(p=>p.id===j.id),kind:'pickup',job:j.job})),...state.passengers.map(j=>({...j.dest,id:j.id,kind:'drop',job:j})),...(state.peers||[]).map(p=>({...p,id:'player-'+p.id,kind:'player',name:p.name+(p.mode==='driving'?' · DRIVING':' · '+p.mode.toUpperCase())}))];}
+ function pois(state){return [{...HOME,id:'garage',kind:'garage'},{...CLUB,kind:'waypoint',description:'Walk-in social lounge. Shared blackjack tables, free chips, chat and emotes.'},...DAILY_STOPS.map(s=>({...s,id:'daily-'+s.id,kind:'waypoint',description:s.action+' to earn materials for your home.'})),...LANDMARKS.map(p=>({...p,kind:'waypoint'})),...HOMES.map(h=>({...h,kind:'home',name:(state.home?.homeId===h.id?'YOUR HOME · ':'')+h.name})),...state.jobs.map(j=>({...STOPS.find(p=>p.id===j.id),kind:'pickup',job:j.job})),...state.passengers.map(j=>({...j.dest,id:j.id,kind:'drop',job:j})),...(state.peers||[]).map(p=>({...p,id:'player-'+p.id,kind:'player',name:p.name+(p.mode==='driving'?' · DRIVING':' · '+p.mode.toUpperCase())}))];}
  const shown=p=>(filter==='all'||filter==='jobs'&&['pickup','drop'].includes(p.kind)||filter==='districts'&&p.kind==='waypoint'||filter==='homes'&&p.kind==='home'||filter==='players'&&p.kind==='player')&&(!query||p.name.toLowerCase().includes(query.toLowerCase()));
  const kindName=p=>({garage:'GARAGE',pickup:'PICKUP',drop:'DROP-OFF',waypoint:'DISTRICT',home:'HOME',player:'PLAYER'}[p.kind]);
  function marker(p){

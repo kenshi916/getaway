@@ -1,5 +1,5 @@
-import {HOMES,AVATARS,STATUSES} from './social-catalog.mjs?v=34';
-import {ROAD,BLOCKS,DISTRICTS} from './driving.mjs?v=34';
+import {HOMES,AVATARS,STATUSES} from './social-catalog.mjs?v=35';
+import {ROAD,BLOCKS,DISTRICTS} from './driving.mjs?v=35';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let state=null,tab='friends',selected=null,initialized=false,busy=false,generation=0;
 function notice(message,error=false){$('crewNotice').textContent=message;$('crewNotice').classList.toggle('error',error);$('crewNotice').hidden=!message;}

@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import worker from '../worker/index.js';
+import {localD1} from './d1-local.mjs';
+import {DAILY_STOPS,handValue} from '../dist/club-catalog.mjs';
+const DB=localD1(),env={DB,ASSETS:{fetch:()=>new Response('static')}},origin='https://getaway.test',realNow=Date.now;let now=realNow();Date.now=()=>now;const users={};
+async function call(u,path,body,method=body?'POST':'GET'){const r=await worker.fetch(new Request(origin+'/api/'+path,{method,headers:{origin,'oai-authenticated-user-id':u,'content-type':'application/json'},body:body?JSON.stringify({...body,session:users[u]?.session}):undefined}),env,{});return {status:r.status,...await r.json()};}
+async function move(u,x,z,extra={}){now+=1600;const p=users[u];const r=await call(u,'world/sync',{seq:++p.seq,x,z,heading:0,mode:'driving',carId:'van',...extra});assert.equal(r.status,200,JSON.stringify(r));return r;}
+async function club(u){const r=await call(u,'club');assert.equal(r.status,200,JSON.stringify(r));return r;}
+async function table(u,action,id=1){const d=await club(u),t=d.tables.find(t=>t.id===id);const r=await call(u,'club/table',{action,table:id,revision:t.revision});assert.equal(r.status,200,JSON.stringify(r));return r;}
+try{
+ for(const u of ['a','b','c']){await call(u,'profile',{name:'Club '+u,avatar:'jules',status:'at-home',homeId:'last-exit',note:''},'PUT');users[u]={...await call(u,'world/join',u==='a'?{}:{roomId:users.a.roomId}),seq:0};}
+ assert.equal((await call('a','club/table',{table:1,action:'sit',revision:0})).status,409,'must physically enter');
+ for(const u of ['a','b']){await move(u,36,54);await move(u,54,36);assert.equal((await call(u,'world/interior',{mode:'destination',venue:'last-hand'})).status,200);await move(u,54,36,{mode:'destination',venue:'last-hand',travel:'foot',local:{x:-4,z:.3}});await table(u,'sit');}
+ const view=await club('a');assert.equal(view.tables[0].seats.length,2);assert.equal(view.account.chips,500);assert.equal(view.inside,true);
+ await call('a','neighborhood/chat',{text:'Meet at Clover!'});assert.equal((await call('b','neighborhood/social')).messages.length,1);assert.equal((await call('c','neighborhood/social')).messages.length,0,'club chat stays in venue');
+ const rev=(await club('a')).tables[0].revision;const ready=await Promise.all([call('a','club/table',{table:1,action:'ready',revision:rev}),call('a','club/table',{table:1,action:'ready',revision:rev})]);assert.equal(ready.filter(r=>r.status===200).length,1);assert.equal((await club('a')).account.chips,490,'single debit');await table('b','ready');await table('a','deal');
+ let d=await club('a');if(d.tables[0].phase==='playing'){assert.equal(d.tables[0].dealer[1],null,'hole card hidden');assert(!JSON.stringify(d).includes('deck'),'undealt deck never exposed');}
+ // Set a known round on the server to check settlement and repeat requests exactly.
+ const row=await DB.prepare('SELECT * FROM club_tables WHERE id=?').bind(users.a.roomId+':1').first(),s=JSON.parse(row.data);s.phase='playing';s.deadline=now+60000;s.dealer=[9,6];s.deck=[2,3,4];s.seats[0].hand=[0,12];s.seats[1].hand=[9,6];s.seats.forEach(p=>p.status='playing');await DB.prepare('UPDATE club_tables SET data=? WHERE id=?').bind(JSON.stringify(s),row.id).run();
+ await table('a','stand');await table('b','stand');d=await club('a');assert.equal(d.account.chips,510);assert.equal((await club('b')).account.chips,500);assert.equal(d.tables[0].phase,'results');assert.equal(d.tables[0].dealer[1],6);assert.equal((await club('a')).account.chips,510,'poll does not repay');
+ assert.equal((await call('a','club/table',{action:'stand',table:1,revision:d.tables[0].revision})).status,409);
+ await table('a','ready');assert.equal((await club('a')).account.chips,500);await table('a','leave');assert.equal((await club('a')).account.chips,510,'unplayed stake refunded');
+ await table('b','leave');await table('a','sit');await table('a','ready');await table('a','deal');now+=61000;await move('a',54,36,{mode:'destination',venue:'last-hand',travel:'foot',local:{x:-4,z:0}}).catch(()=>{});
+ // Rejoin after expiry and inspect the old room; abandoned hands always settle.
+ users.a={...await call('a','world/join',{roomId:users.a.roomId}),seq:0};d=await club('a');assert.equal(d.tables[0].phase,'results');
+ assert.equal(handValue([0,13,9]),12,'multiple aces');assert.equal(handValue([9,10,11]),30);
+ // Daily jobs: location, dwell time, one claim per day, owned furniture and crafting costs.
+ for(const stop of DAILY_STOPS){const member=await DB.prepare('SELECT * FROM world_members WHERE profile_id=?').bind(users.a.profile.id).first();await DB.prepare("UPDATE world_members SET x=?,z=?,mode='driving',last_seen=? WHERE profile_id=?").bind(stop.x,stop.z,now,users.a.profile.id).run();assert.equal((await call('a','neighborhood/daily',{action:'start',id:stop.id})).status,200);assert.equal((await call('a','neighborhood/daily',{action:'finish',id:stop.id})).status,409);now+=4500;assert.equal((await call('a','neighborhood/daily',{action:'finish',id:stop.id})).status,200);assert.equal((await call('a','neighborhood/daily',{action:'finish',id:stop.id})).status,409);}
+ d=await call('a','neighborhood');assert.equal(d.credits,180);assert.deepEqual(d.state.materials,{wood:3,scrap:3,fabric:3});d=await call('a','neighborhood/daily',{action:'craft',id:'crafted-planter'});assert(d.state.inventory.includes('crafted-planter'));assert.equal(d.state.materials.wood,0);assert.equal((await call('a','neighborhood/daily',{action:'craft',id:'crafted-planter'})).state.materials.scrap,2);assert.equal((await call('a','neighborhood/daily',{action:'craft',id:'crafted-chair'})).status,409);
+ await DB.prepare('UPDATE club_accounts SET chips=30,gift_day=? WHERE profile_id=?').bind('2000-01-01',users.a.profile.id).run();await DB.prepare("UPDATE world_members SET x=54,z=36,mode='driving',last_seen=? WHERE profile_id=?").bind(now,users.a.profile.id).run();await call('a','world/interior',{mode:'destination',venue:'last-hand'});assert.equal((await call('a','club/chips',{})).account.chips,500);await DB.prepare('UPDATE club_accounts SET chips=490 WHERE profile_id=?').bind(users.a.profile.id).run();assert.equal((await call('a','club/chips',{})).account.chips,490,'topup once daily');
+ assert.equal((await call('a','club/transfer',{amount:10,to:users.b.profile.id})).status,404,'no chip transfer endpoint');
+ console.log('PASS: walk-in access, shared tables, scoped chat, hidden dealer/deck, concurrent debit, settlement exactly once, refunds, timeout, daily errands/crafting, nontransferable chips and daily top-up.');
+}finally{Date.now=realNow;DB.close();}

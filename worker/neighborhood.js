@@ -1,3 +1,4 @@
+import {DAILY_STOPS,RECIPES,utcDay} from '../dist/club-catalog.mjs';
 import {FURNITURE,WALLPAPERS,CAR_PARTS,EMOTES,ACTIVITIES,COOP_JOBS,HOME_EXPANSIONS,rankFor,cityActivities,weekInfo,freshNeighborhood} from '../dist/neighborhood-catalog.mjs';
 import {WORLD_TTL} from '../dist/world-catalog.mjs';
 import {canPlaceFurniture} from '../dist/home-placement.mjs';
@@ -32,6 +33,14 @@ export async function neighborhoodApi(request,{db,me,body,json,fail,url}) {
  const near=(p,stop,r=17)=>p.mode==='driving'&&Math.hypot(p.x-stop.x,p.z-stop.z)<=r;
  function award(next,id,career,credits,xp,furniture){if(next.receipts.includes(id))return false;if(id.startsWith('coop:')){next.crewClaims??={};if(next.crewClaims[id])return false;for(const key of Object.keys(next.crewClaims))if(next.crewClaims[key]<now-1800000)delete next.crewClaims[key];next.crewClaims[id]=now;}next.receipts=[...next.receipts,id].slice(-200);next.xp[career]=(next.xp[career]||0)+xp;if(furniture&&!next.inventory.includes(furniture))next.inventory.push(furniture);const w=weekInfo(now);next.weekly[w.id]={...(next.weekly[w.id]||{count:0}),count:(next.weekly[w.id]?.count||0)+1};for(const key of Object.keys(next.weekly))if(key!==w.id)delete next.weekly[key];return credits;}
  if(path==='/'&&method==='GET')return json(snapshot());
+ if(path==='/daily'&&method==='POST'){
+  online();const day=utcDay(now);state.daily=state.daily?.day===day?state.daily:{day,done:[],active:null};state.materials??={wood:0,scrap:0,fabric:0};
+  if(b.action==='craft'){const recipe=RECIPES.find(r=>r.id===b.id);if(!recipe)fail('Choose a workshop recipe.');if(state.inventory.includes(recipe.id))return json(snapshot());if(!Object.entries(recipe.materials).every(([k,n])=>(state.materials[k]||0)>=n))fail('Collect the materials shown on this recipe.',409);for(const [k,n]of Object.entries(recipe.materials))state.materials[k]-=n;state.inventory.push(recipe.id);return commit(state);}
+  const stop=DAILY_STOPS.find(s=>s.id===b.id);if(!stop)fail('Choose a neighborhood errand.');if(!near(member,stop,14))fail('Reach the marked neighborhood stop first.',409);if(state.daily.done.includes(stop.id))fail('This errand is finished for today.',409);
+  if(b.action==='start'){state.daily.active={id:stop.id,at:now};return commit(state);}
+  if(b.action!=='finish'||state.daily.active?.id!==stop.id||now-state.daily.active.at<4000)fail('Spend a few seconds helping before collecting materials.',409);
+  state.daily.done.push(stop.id);state.daily.active=null;state.materials[stop.material]=(state.materials[stop.material]||0)+stop.quantity;return commit(state,home.credits+stop.credits);
+ }
  if(path==='/buy'&&method==='POST') {
   const catalogs={furniture:FURNITURE,wallpaper:WALLPAPERS,part:CAR_PARTS,emote:EMOTES},keys={furniture:'inventory',wallpaper:'wallpapers',part:'parts',emote:'emotes'};
   const item=catalogs[b.kind]?.find(i=>i.id===b.id);if(!item||item.reward)fail('Choose an available shop item.');
@@ -75,7 +84,7 @@ export async function neighborhoodApi(request,{db,me,body,json,fail,url}) {
   return json({ok:true,evicted});
  }
  if(path==='/emote'&&method==='POST') {online();if(!state.emotes.includes(b.id))fail('Choose an owned emote.');await db.prepare('INSERT INTO neighborhood_presence (profile_id,emote,emote_at) VALUES (?,?,?) ON CONFLICT(profile_id) DO UPDATE SET emote=excluded.emote,emote_at=excluded.emote_at WHERE neighborhood_presence.emote_at<?').bind(me.id,b.id,now,now-1500).run();return json({ok:true});}
- const scope=async()=>{const p=await db.prepare('SELECT host_id FROM neighborhood_presence WHERE profile_id=?').bind(me.id).first();let host=p?.host_id||me.id;if(host!==me.id&&!await canVisit(db,me.id,host,member.room_id,now))host=me.id;return ['apartment','garage'].includes(member?.mode)?member.mode+':'+host:'city';};
+ const scope=async()=>{const p=await db.prepare('SELECT host_id,venue FROM neighborhood_presence WHERE profile_id=?').bind(me.id).first();if(member?.mode==='destination'&&p?.venue==='last-hand')return 'club:last-hand';let host=p?.host_id||me.id;if(host!==me.id&&!await canVisit(db,me.id,host,member.room_id,now))host=me.id;return ['apartment','garage'].includes(member?.mode)?member.mode+':'+host:'city';};
  if(path==='/social'&&method==='GET') {
   if(!member)return json({messages:[],contracts:[],players:[]});const place=await scope();
   const messages=await db.prepare('SELECT m.id,m.profile_id,p.name,m.text,m.created_at FROM neighborhood_messages m JOIN profiles p ON p.id=m.profile_id WHERE m.room_id=? AND m.scope=? AND m.created_at>? AND NOT EXISTS (SELECT 1 FROM neighborhood_mutes u WHERE u.owner_id=? AND u.target_id=m.profile_id) ORDER BY m.id DESC LIMIT 30').bind(member.room_id,place,now-600000,me.id).all();

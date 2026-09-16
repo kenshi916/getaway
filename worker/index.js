@@ -2,6 +2,7 @@ import {HOMES,AVATARS,STATUSES} from '../dist/social-catalog.mjs';
 import {worldApi} from './world.js';
 import {firstHourApi} from './first-hour.js';
 import {neighborhoodApi} from './neighborhood.js';
+import {clubApi} from './club.js';
 import {testnetApi} from './testnet.js';
 const headers={'content-type':'application/json; charset=utf-8','cache-control':'private, no-store','x-content-type-options':'nosniff'};
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
@@ -16,6 +17,7 @@ async function api(request,env){
  const db=env.DB;if(!db)fail('Crew is temporarily unavailable. Try again shortly.',503);
  if(path==='/api/first-hour'||path.startsWith('/api/first-hour/'))return firstHourApi(request,{db,owner,body,json,fail,url});
  const me=await db.prepare('SELECT * FROM profiles WHERE owner_id = ?').bind(owner).first();
+ if(path==='/api/club'||path.startsWith('/api/club/'))return clubApi(request,{db,me,body,json,fail,url});
  if(path.startsWith('/api/testnet/'))return testnetApi(request,{db,owner,me,body,json,fail,url});
  if(path==='/api/neighborhood'||path.startsWith('/api/neighborhood/'))return neighborhoodApi(request,{db,me,body,json,fail,url});
  if(path==='/api/world'||path.startsWith('/api/world/'))return worldApi(request,{db,me,body,json,fail,url});
