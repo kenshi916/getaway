@@ -21,6 +21,9 @@
     "build": "node scripts/build.mjs",
     "db:generate": "drizzle-kit generate",
     "test:social": "node checks/social.mjs",
-    "test:neighborhood": "node checks/neighborhood.mjs && node checks/world-client.mjs"
+    "test:neighborhood": "node checks/neighborhood.mjs && node checks/world-client.mjs",
+    "test:neighborhoods": "node checks/neighborhoods-release.mjs",
+    "test:testnet": "node checks/testnet.mjs",
+    "compile:testnet": "node scripts/compile-testnet.mjs"
   }
 }

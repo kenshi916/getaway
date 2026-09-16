@@ -1,8 +1,8 @@
 import * as THREE from './assets/three.module.js';
-import {createCityFinish,addCitySky} from './city-finish.js?v=32';
-import {createCityLandscape} from './city-landscape.js?v=32';
+import {createCityFinish,addCitySky} from './city-finish.js?v=34';
+import {createCityLandscape} from './city-landscape.js?v=34';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=32';
+import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=34';
 
 const ASSETS=[...'abcdefghijklmn'].map(c=>'building-'+c).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','detail-parasol-a','detail-parasol-b'],[...'abfgkqrt'].map(c=>'industrial/building-'+c),['water-tower','shipping-container-a','shipping-container-b','solar-panel-landscape-group','detail-tank'].map(n=>'industrial/'+n),[...'acfgkmoq'].map(c=>'suburban/building-type-'+c),['tree_oak','tree_detailed','tree_palmDetailedTall','plant_bushDetailed','flower_redA'].map(n=>'nature/'+n));
 const models=new Map();
@@ -241,6 +241,14 @@ export function buildCity(world){
  for(let n=0;n<9;n++){const x=26+n*2.5;block(.24,.3,.24,n%2?'#ffeea5':'#b0f8db',x,4.8,-48.5,stage,{emissive:n%2?'#ffd279':'#76e8c3',emissiveIntensity:1});}
  label('STARLIGHT',14,2.1,36,5.7,-84.8,'#ffe0a0','#63354e',Math.PI);
  for(const x of [28.7,43.3])for(let y=4.8;y<7;y+=.5)block(.16,.16,.12,'#fff0b9',x,y,-84.9,stage,{emissive:'#ffc879',emissiveIntensity:1});
+ // Recognizable meeting places and contact signs sit beside the drivable lane.
+ for(const [name,x,z,ink] of [['MINA / GARDEN DEPOT',84,-72,'#cbe7a1'],['RAE / MOTOR WORKS',-84,36,'#ffd186'],['CENTRAL PLAZA / CAR MEET',0,48,'#a5e6d1'],['WATERFRONT SOCIAL',0,336,'#addae9']]){
+  const g=new THREE.Group();g.name=name;stage.add(g);for(const dx of [-2.1,2.1])pole(.1,3.4,'#354e46',x+dx,1.7,z,g);block(4.65,.95,.18,'#243d38',x,2.95,z,g);label(name,4.5,.82,x,2.95,z+.11,ink,'#243d38',0,g);
+  for(const dx of [-2.4,2.4]){block(.8,.5,.8,'#a18761',x+dx,.5,z,g);model('nature/plant_bushDetailed',x+dx,z,.9,.9,1,0,g);}
+ }
+ // A small planted market pavilion gives the gardens a gathering spot.
+ const garden=BLOCKS.find(b=>b.park&&b.x===72&&b.z===-72);
+ if(garden){const x=garden.x+6,z=garden.z+5,g=new THREE.Group();g.name='Garden market pavilion';stage.add(g);for(const dx of [-2,2])for(const dz of [-1.2,1.2])pole(.065,2.8,'#6f6547',x+dx,1.7,z+dz,g);for(let n=0;n<8;n++)block(.55,.14,3,n%2?'#dedab4':'#538969',x-1.925+n*.55,3.1,z,g);label('THE GARDEN CLUB',4,.5,x,2.75,z+1.52,'#ffeab2','#365d47',0,g);bench(x,z,0,g);}
  function finishBlock(group){group.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(group);batch(group);const copies=new Map();group.traverse(o=>{if(!o.isMesh)return;const unique=m=>{if(!copies.has(m)){const c=m.clone();c.transparent=true;copies.set(m,c);}return copies.get(m);};o.material=Array.isArray(o.material)?o.material.map(unique):unique(o.material);});buildings.push({group,box:bounds,materials:[...copies.values()]});}
  // Bake solid surface colors into merged geometry. Glass, mapped signs, and
  // animated signals retain their own rendering properties and block fading.

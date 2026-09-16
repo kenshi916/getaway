@@ -1,5 +1,5 @@
-import {DISTRICTS,LANDMARKS,BLOCKS,ROAD,LIMIT,HOME,STOPS,districtAt,closestRoad,route,dist,clamp} from './driving.mjs?v=32';
-import {HOMES} from './social-catalog.mjs?v=32';
+import {DISTRICTS,LANDMARKS,BLOCKS,ROAD,LIMIT,HOME,STOPS,districtAt,closestRoad,route,dist,clamp} from './driving.mjs?v=34';
+import {HOMES} from './social-catalog.mjs?v=34';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const EXTENT=LIMIT+40,MAX_SPAN=EXTENT*2;
 const palette={garage:'#efd269',pickup:'#80b750',drop:'#ef9465',waypoint:'#bba2db',home:'#d5a277',player:'#70cbd0'};

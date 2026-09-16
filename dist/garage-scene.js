@@ -1,10 +1,10 @@
-import {addHomeSurroundings,createHomeDesign} from './home-design.js?v=32';
-import {createWalkingView} from './first-person.js?v=32';
+import {addHomeSurroundings,createHomeDesign} from './home-design.js?v=34';
+import {createWalkingView} from './first-person.js?v=34';
 import * as THREE from './assets/three.module.js';
-import {buildGarageRoom} from './garage-room.js?v=32';
-import {findWalkPath} from './walk-navigation.mjs?v=32';
-import {makeVehicle} from './vehicles.js?v=32';
-import {CARS,PAINTS} from './driving.mjs?v=32';
+import {buildGarageRoom} from './garage-room.js?v=34';
+import {findWalkPath} from './walk-navigation.mjs?v=34';
+import {makeVehicle} from './vehicles.js?v=34';
+import {CARS,PAINTS} from './driving.mjs?v=34';
 export function buildGarage(templates){
  const scene=new THREE.Scene();scene.background=new THREE.Color('#0c1115');addHomeSurroundings(scene,true);scene.fog=new THREE.Fog('#324b3a',65,150);
  const camera=new THREE.PerspectiveCamera(41,1,.1,80);
@@ -31,11 +31,11 @@ export function buildGarage(templates){
  for(const x of [-11.8,11.8])box(.4,6.5,9.3,'#343b3d',x,3.5,7.3,{},fpShell);
  box(24,6.8,.4,'#434c4e',0,3.3,12.5,{},fpShell);const ceiling=box(24,.16,21.2,'#3c4548',0,6.78,2.1,{},fpShell);ceiling.castShadow=false;
  design=createHomeDesign({scene,room,floor,walls:[...walls,...fpShell.children],garage:true});
- const walkingView=createWalkingView(camera,avatar);
+ let emoteUntil=0,emoteName='';const walkingView=createWalkingView(camera,avatar);
  function setFirstPerson(value){walkingView.set(value);if(inspection)setInspection(false);resize(viewport.w,viewport.h);}
  const halo=new THREE.Mesh(new THREE.RingGeometry(.36,.43,32),new THREE.MeshBasicMaterial({color:'#f0d194',transparent:true,opacity:.65,side:THREE.DoubleSide,depthWrite:false}));halo.rotation.x=-Math.PI/2;halo.position.y=.025;avatar.add(halo);
  function play(name){if(animation===name)return;for(const action of Object.values(actions))action.fadeOut(.16);actions[name]?.reset().fadeIn(.16).play();animation=name;}
- function setCharacter(template){if(driverTemplate===template)return;driverTemplate=template;if(mixer){mixer.stopAllAction();mixer.uncacheRoot(character);avatar.remove(character);}character=template.scene.clone(true);character.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(character),scale=1.8/(b.max.y-b.min.y);character.scale.setScalar(scale);character.position.y=-b.min.y*scale;avatar.add(character);mixer=new THREE.AnimationMixer(character);actions={};for(const name of ['idle','walk']){const clip=template.animations.find(c=>c.name===name);if(clip)actions[name]=mixer.clipAction(clip);}animation='';play('idle');}
+ function setCharacter(template){if(driverTemplate===template)return;driverTemplate=template;if(mixer){mixer.stopAllAction();mixer.uncacheRoot(character);avatar.remove(character);}character=template.scene.clone(true);character.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(character),scale=1.8/(b.max.y-b.min.y);character.scale.setScalar(scale);character.position.y=-b.min.y*scale;avatar.add(character);mixer=new THREE.AnimationMixer(character);actions={};for(const name of ['idle','walk','emote-yes']){const clip=template.animations.find(c=>c.name===name);if(clip)actions[name]=mixer.clipAction(clip);}animation='';play('idle');}
  setCharacter(templates.suit);
  for(const h of hotspots){const ring=new THREE.Mesh(new THREE.RingGeometry(.43,.51,32),new THREE.MeshBasicMaterial({color:h.id==='drive'?'#e2cf9e':'#f1ce71',transparent:true,opacity:.45,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.set(h.x,.04,h.z);scene.add(ring);h.ring=ring;}
  let inspection=false,viewport={w:1280,h:800},route=[],routeTarget=null,arrived=null,pendingCar=null;
@@ -50,7 +50,7 @@ export function buildGarage(templates){
  function resetSpawn(){avatar.position.set(spawn.x,.035,spawn.z);route=[];arrived=null;routeTarget=null;setInspection(false);}
  function update(dt,input={},time=0){const manual=!!(input.up||input.down||input.left||input.right);if(manual){if(inspection)setInspection(false);route=[];routeTarget=null;arrived=null;pendingCar=null;}if(!inspection){const direction=walkingView.movement(input,dt);let dx=direction.x,dz=direction.z,distance=3.5*dt;
   if(!manual&&route.length){while(route.length&&Math.hypot(route[0].x-avatar.position.x,route[0].z-avatar.position.z)<.025)route.shift();if(route.length){dx=route[0].x-avatar.position.x;dz=route[0].z-avatar.position.z;distance=Math.min(distance,Math.hypot(dx,dz));}else{arrived=routeTarget;routeTarget=null;}}
-  const before=avatar.position.clone(),length=Math.hypot(dx,dz);if(length){const sx=dx/length*distance,sz=dz/length*distance;if(!blocked(avatar.position.x+sx,avatar.position.z))avatar.position.x+=sx;if(!blocked(avatar.position.x,avatar.position.z+sz))avatar.position.z+=sz;avatar.rotation.y=Math.atan2(dx,dz);}play(before.distanceTo(avatar.position)>.0001?'walk':'idle');mixer?.update(dt);walkCamera(1-Math.exp(-dt*7));
+  const before=avatar.position.clone(),length=Math.hypot(dx,dz);if(length){const sx=dx/length*distance,sz=dz/length*distance;if(!blocked(avatar.position.x+sx,avatar.position.z))avatar.position.x+=sx;if(!blocked(avatar.position.x,avatar.position.z+sz))avatar.position.z+=sz;avatar.rotation.y=Math.atan2(dx,dz);}play(Date.now()<emoteUntil?(emoteName==='dance'?'walk':'emote-yes'):before.distanceTo(avatar.position)>.0001?'walk':'idle');mixer?.update(dt);walkCamera(1-Math.exp(-dt*7));
  }else if(auto)angle+=dt*.12;if(display)display.group.rotation.y=angle;for(const h of hotspots){h.ring.visible=!inspection;h.ring.material.opacity=canInteract(h.id)?.7:.28+Math.sin(time*2)*.07;}}
- return {setDecor:design.apply,upgrade,scene,camera,props,ghosts,avatar,walkingView,setFirstPerson,look:walkingView.look,colliders,hotspots,bounds,spawn,blocked,nearest,canInteract,walkTo,clickAt,setCharacter,resetSpawn,setInspection,select,resize,update,rotate(dx){auto=false;angle+=dx*.012;if(display)display.group.rotation.y=angle},setAuto(){auto=!auto;return auto},takeSelectedCar(){const id=pendingCar;pendingCar=null;return id;},takeArrival(){const id=arrived;arrived=null;return id;},get inspection(){return inspection},get navigating(){return route.length>0},get auto(){return auto},get display(){return display},get selected(){return currentId}};
+ return {emote(id){emoteName=id;emoteUntil=Date.now()+3200;},setDecor:design.apply,upgrade,scene,camera,props,ghosts,avatar,walkingView,setFirstPerson,look:walkingView.look,colliders,hotspots,bounds,spawn,blocked,nearest,canInteract,walkTo,clickAt,setCharacter,resetSpawn,setInspection,select,resize,update,rotate(dx){auto=false;angle+=dx*.012;if(display)display.group.rotation.y=angle},setAuto(){auto=!auto;return auto},takeSelectedCar(){const id=pendingCar;pendingCar=null;return id;},takeArrival(){const id=arrived;arrived=null;return id;},get inspection(){return inspection},get navigating(){return route.length>0},get auto(){return auto},get display(){return display},get selected(){return currentId}};
 }

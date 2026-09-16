@@ -1,8 +1,8 @@
-import {getWalletSession,networkLabel} from './wallet-session.mjs?v=31';
+import {getWalletSession,networkLabel} from './wallet-session.mjs?v=34';
 const wallet=getWalletSession(),buttons=[...document.querySelectorAll('[data-wallet-open]')];
 const short=address=>address.slice(0,6)+'…'+address.slice(-4);
 const dialog=document.createElement('dialog');dialog.className='wallet-dialog';dialog.setAttribute('aria-labelledby','walletTitle');
-dialog.innerHTML='<div class="wallet-heading"><span>GETAWAY / WALLET</span><button type="button" class="wallet-close" aria-label="Close wallet panel">×</button></div><div class="wallet-body"><h2 id="walletTitle">CONNECT YOUR WALLET</h2><p id="walletIntro">Choose a wallet to connect to GETAWAY.</p><div id="walletContent"></div><p id="walletNotice" class="wallet-notice" role="status" aria-live="polite"></p><div class="wallet-launch"><b>GETAWAY TOKEN / COMING AT LAUNCH</b><p>Live token burns are not enabled yet. The game and demo collection are open.</p><a href="/docs/#wallet">WALLET GUIDE</a></div></div>';
+dialog.innerHTML='<div class="wallet-heading"><span>GETAWAY / WALLET</span><button type="button" class="wallet-close" aria-label="Close wallet panel">×</button></div><div class="wallet-body"><h2 id="walletTitle">CONNECT YOUR WALLET</h2><p id="walletIntro">Choose a wallet to connect to GETAWAY.</p><div id="walletContent"></div><p id="walletNotice" class="wallet-notice" role="status" aria-live="polite"></p><div class="wallet-launch"><b>GETAWAY / TESTNET WORKSHOP</b><p>Try burns with free test tokens on Robinhood Chain Testnet. Mainnet burns are not enabled.</p><a href="/testnet/">OPEN TESTNET SETUP</a></div></div>';
 document.body.appendChild(dialog);let opener=null,providerSignature='',view='';
 const $=id=>dialog.querySelector('#'+id),notice=text=>$('walletNotice').textContent=text;
 function button(label,action,className='wallet-action'){const b=document.createElement('button');b.type='button';b.className=className;b.textContent=label;b.addEventListener('click',action);return b;}

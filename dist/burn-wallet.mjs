@@ -1,14 +1,14 @@
-import {getWalletSession} from './wallet-session.mjs?v=31';
-import {BURN_CONFIG} from './burn-config.js?v=32';
-import {BURN_ITEMS} from './collection.mjs?v=32';
-import {METHODS} from './burn-methods.mjs?v=32';
+import {getWalletSession} from './wallet-session.mjs?v=34';
+import {BURN_CONFIG} from './burn-config.js?v=34';
+import {BURN_ITEMS} from './collection.mjs?v=34';
+import {METHODS} from './burn-methods.mjs?v=34';
 
 const address=v=>typeof v==='string'&&/^0x[0-9a-f]{40}$/i.test(v)&&!/^0x0{40}$/i.test(v);
 const word=v=>BigInt(v).toString(16).padStart(64,'0');
 const accountWord=v=>v.slice(2).toLowerCase().padStart(64,'0');
 export function createBurnWallet(config=BURN_CONFIG,provider){
  const session=provider?null:getWalletSession(),currentProvider=()=>provider||session.getProvider();
- const live=config.enabled===true;
+ let live=config.enabled===true;
  let account=null,mask=0n,balance=0n,busy=false,revision=0;
  const request=(method,params=[])=>{const p=currentProvider();if(!p?.request)throw Error('Connect a wallet from the GETAWAY website first.');return p.request({method,params});};
  const call=(to,data)=>request('eth_call',[{to,data},'latest']);
@@ -30,5 +30,7 @@ export function createBurnWallet(config=BURN_CONFIG,provider){
  }
  const invalidate=()=>{revision++;account=null;mask=0n;balance=0n;};provider?.on?.('accountsChanged',invalidate);provider?.on?.('chainChanged',invalidate);provider?.on?.('disconnect',invalidate);
  let sessionIdentity='';session?.subscribe(s=>{const key=[s.account,s.chainId,s.walletName].join(':');if(key!==sessionIdentity){sessionIdentity=key;invalidate();}});
- return {state,connect,sync,quote,unlock,config};
+ async function refreshConfig(){if(provider||config!==BURN_CONFIG)return;try{const r=await fetch('/api/testnet/config',{credentials:'same-origin',signal:AbortSignal.timeout(8000)});if(r.ok){const next=await r.json();if(next.enabled&&next.testnet&&next.chainId==='0xb626'){Object.assign(config,next);live=true;}}}catch{}}
+ if(!provider&&config===BURN_CONFIG&&typeof location!=='undefined')void refreshConfig();
+ return {state,connect,sync,quote,unlock,config,refreshConfig};
 }

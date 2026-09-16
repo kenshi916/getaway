@@ -37,4 +37,4 @@ export function createWalletSession(host=globalThis){
 }
 let singleton;
 export function getWalletSession(){if(!singleton){singleton=createWalletSession();singleton.scan();}return singleton;}
-export function networkLabel(chainId){const networks={'0x1':'Ethereum','0xa':'Optimism','0x38':'BNB Smart Chain','0x89':'Polygon','0x2105':'Base','0xa4b1':'Arbitrum One','0xaa36a7':'Sepolia testnet'};return networks[chainId]||(chainId?'Chain '+BigInt(chainId).toString():'Network unavailable');}
+export function networkLabel(chainId){const networks={'0xb626':'Robinhood Chain Testnet','0x1237':'Robinhood Chain','0x1':'Ethereum','0xa':'Optimism','0x38':'BNB Smart Chain','0x89':'Polygon','0x2105':'Base','0xa4b1':'Arbitrum One','0xaa36a7':'Sepolia testnet'};return networks[chainId]||(chainId?'Chain '+BigInt(chainId).toString():'Network unavailable');}

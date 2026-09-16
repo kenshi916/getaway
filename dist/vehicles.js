@@ -60,6 +60,7 @@ export function makeVehicle(model,scale=1.7,paint=null,skin=null){
   if(skin?.accent&&['chrome','rim'].includes(m.name)){m.color.set(skin.accent);m.metalness=.75;m.roughness=.27;}
   if(skin?.customPaint&&m.name==='paint')m.color.set(skin.customPaint);
   if(skin?.wheelColor&&['chrome','rim'].includes(m.name))m.color.set(skin.wheelColor);
+  if(skin?.seatColor&&/seat|interior|leather|upholstery/i.test(m.name))m.color.set(skin.seatColor);
   if(m.name==='brake')tail=m;
   if(m.name==='police-red')policeLights[0]={material:m};
   if(m.name==='police-blue')policeLights[1]={material:m};
@@ -67,6 +68,15 @@ export function makeVehicle(model,scale=1.7,paint=null,skin=null){
  };
  asset.traverse(o=>{if(o.isMesh)o.material=Array.isArray(o.material)?o.material.map(cloneMaterial):cloneMaterial(o.material);if(o.userData.wheel)wheels.push({pivot:o,front:o.userData.front,radius:o.userData.radius});});
  for(const w of wheels){const spin=new THREE.Group();for(const child of [...w.pivot.children])spin.add(child);w.pivot.add(spin);w.spin=spin;}
+ if(skin?.bodyKit==='street'){
+  const bounds=new THREE.Box3().setFromObject(body),size=bounds.getSize(new THREE.Vector3());
+  const kit=new THREE.Group();kit.name='Street aero kit';const carbon=new THREE.MeshStandardMaterial({color:'#1b262c',roughness:.35,metalness:.45});
+  function part(w,h,d,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),carbon);m.position.set(x,y,z);m.castShadow=true;kit.add(m);}
+  part(size.x*.94,.045,size.z*.13,0,bounds.min.y+.14,bounds.max.z-size.z*.06);
+  for(const side of [-1,1]){part(.08,.09,size.z*.65,side*size.x*.47,bounds.min.y+.12,(bounds.min.z+bounds.max.z)/2);part(.045,.26,.045,side*size.x*.32,bounds.max.y*.74,bounds.min.z+size.z*.15);}
+  part(size.x*.9,.05,.26,0,bounds.max.y*.74+.14,bounds.min.z+size.z*.15);body.add(kit);
+ }
+ if(skin?.plate){const bounds=new THREE.Box3().setFromObject(body),size=bounds.getSize(new THREE.Vector3()),canvas=document.createElement('canvas');canvas.width=256;canvas.height=80;const ctx=canvas.getContext('2d');ctx.fillStyle='#eee5bf';ctx.fillRect(0,0,256,80);ctx.fillStyle='#203137';ctx.font='bold 36px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(skin.plate).slice(0,8),128,43,235);const tx=new THREE.CanvasTexture(canvas);tx.colorSpace=THREE.SRGBColorSpace;const plate=new THREE.Mesh(new THREE.PlaneGeometry(size.x*.35,size.x*.11),new THREE.MeshStandardMaterial({map:tx,roughness:.55}));plate.name='Custom license plate';plate.position.set(0,bounds.min.y+size.y*.25,bounds.min.z-.015);plate.rotation.y=Math.PI;body.add(plate);}
  if(skin?.underglow){const glow=new THREE.Mesh(new THREE.PlaneGeometry(4.2,6.2),new THREE.MeshBasicMaterial({map:glowMap(),color:skin.underglowColor||'#a9ec79',transparent:true,opacity:.4,depthWrite:false,blending:THREE.AdditiveBlending}));glow.rotation.x=-Math.PI/2;glow.position.y=.055;group.add(glow);}
  return{group,root,body,wheels,tail,policeLights,pitch:0,roll:0,spring:0,springVelocity:0,bodyY:body.position.y,model,standIn};
 }

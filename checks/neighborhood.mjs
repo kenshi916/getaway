@@ -37,7 +37,8 @@ try{
  const job=NEIGHBORHOOD_JOBS[0];
  for(let i=0;i<4;i++){
   await call('a','world/interior','POST',{session:a.session,mode:'garage'});
-  assert.equal((await sync('a',a,job.from)).status,200);
+  assert.equal((await sync('a',a,{x:36,z:54})).status,200);
+  const approach=Math.ceil(Math.hypot(job.from.x-36,job.from.z-54)/70);for(let n=1;n<=approach;n++)assert.equal((await sync('a',a,{x:36+(job.from.x-36)*n/approach,z:54+(job.from.z-54)*n/approach})).status,200);
   assert.equal((await call('a','world/jobs','POST',{session:a.session,id:job.id,action:'start'})).status,200);
   assert.equal((await call('a','world/jobs','POST',{session:a.session,id:job.id,action:'finish'})).status,409,'cannot finish before pickup');
   step(1200);assert.equal((await call('a','world/jobs','POST',{session:a.session,id:job.id,action:'pickup'})).status,200);

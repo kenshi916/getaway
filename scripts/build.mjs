@@ -7,3 +7,9 @@ await fs.writeFile('dist/server/wrangler.json',JSON.stringify({name:'getaway',ma
 console.log('Built GETAWAY static client, Crew Worker, and D1 migrations.');
 await fs.writeFile('dist/server/first-hour.js',(await fs.readFile('worker/first-hour.js','utf8')).replaceAll("from '../dist/","from './"));
 await fs.copyFile('dist/first-hour.mjs','dist/server/first-hour.mjs');
+await fs.writeFile('dist/server/neighborhood.js',(await fs.readFile('worker/neighborhood.js','utf8')).replaceAll("from '../dist/","from './"));
+await fs.copyFile('dist/neighborhood-catalog.mjs','dist/server/neighborhood-catalog.mjs');
+await fs.writeFile('dist/server/testnet.js',(await fs.readFile('worker/testnet.js','utf8')).replaceAll("from '../dist/","from './"));
+await fs.cp('worker/generated','dist/server/generated',{recursive:true});
+await fs.mkdir('dist/server/assets',{recursive:true});await fs.copyFile('dist/assets/ethers.min.js','dist/server/assets/ethers.min.js');
+for(const name of ['testnet-items.mjs','collection.mjs','home-placement.mjs'])await fs.copyFile('dist/'+name,'dist/server/'+name);

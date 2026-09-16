@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import * as THREE from '../dist/assets/three.module.js';
 import {GLTFLoader} from '../dist/assets/GLTFLoader.js';
 import {buildDestination} from '../dist/destination-scene.js';
-import {loadVehiclePack} from '../dist/vehicles.js?v=32';
+import {loadVehiclePack} from '../dist/vehicles.js?v=34';
 import {APARTMENT_ASSETS} from '../dist/apartment.js';
 import {PASSENGERS} from '../dist/passengers.mjs';
 import {destinationQuest} from '../dist/destination-quests.mjs';
-import {findWalkPath} from '../dist/walk-navigation.mjs?v=29';
+import {findWalkPath} from '../dist/walk-navigation.mjs?v=34';
 
 globalThis.self=globalThis;globalThis.createImageBitmap=async()=>({width:1,height:1,close(){}});
 const ctx=new Proxy({createLinearGradient:()=>({addColorStop(){}})},{get:(o,k)=>o[k]||(()=>{})});

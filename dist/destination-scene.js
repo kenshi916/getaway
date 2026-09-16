@@ -1,8 +1,8 @@
-import {addHomeSurroundings} from './home-design.js?v=32';
-import {createWalkingView} from './first-person.js?v=32';
+import {addHomeSurroundings} from './home-design.js?v=34';
+import {createWalkingView} from './first-person.js?v=34';
 import * as THREE from './assets/three.module.js';
-import {findWalkPath} from './walk-navigation.mjs?v=32';
-import {makeVehicle} from './vehicles.js?v=32';
+import {findWalkPath} from './walk-navigation.mjs?v=34';
+import {makeVehicle} from './vehicles.js?v=34';
 
 export function buildDestination(templates,quest,person,driver){
  const scene=new THREE.Scene(),room=new THREE.Group(),camera=new THREE.PerspectiveCamera(46,1,.1,100);
