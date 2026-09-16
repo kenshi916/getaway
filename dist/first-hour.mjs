@@ -27,7 +27,7 @@ export function advanceFirstHour(raw,event){const s=firstHourState(raw);switch(e
  default:throw Error('Choose a valid chapter action.');
  }return s;}
 export function chapterInfo(s){const phase=nextChapter(s);return {
- move:['YOUR NEW KEYS','Welcome to Last Exit. Move in, explore your rooms, then head downstairs.','MOVE IN'],
+ move:['YOUR NEW KEYS','Meet Jules outside, follow the marked path, and open your apartment door to collect your keys.','MEET JULES'],
  starter:['YOUR FIRST RIDE','Choose a paint finish for your free Workhorse in the garage.','CHOOSE STARTER'],
  jobs:[FIRST_JOBS[s.completed]?.name,FIRST_JOBS[s.completed]?.copy,'CONTINUE STORY'],
  bank:['BRING IT HOME','Return to Last Exit and bank your haul to earn the housewarming kit.','ROUTE TO GARAGE'],
