@@ -12,4 +12,11 @@ await fs.copyFile('dist/neighborhood-catalog.mjs','dist/server/neighborhood-cata
 await fs.writeFile('dist/server/testnet.js',(await fs.readFile('worker/testnet.js','utf8')).replaceAll("from '../dist/","from './"));
 await fs.cp('worker/generated','dist/server/generated',{recursive:true});
 await fs.mkdir('dist/server/assets',{recursive:true});await fs.copyFile('dist/assets/ethers.min.js','dist/server/assets/ethers.min.js');
-for(const name of ['testnet-items.mjs','collection.mjs','home-placement.mjs'])await fs.copyFile('dist/'+name,'dist/server/'+name);
+for(const name of ['testnet-items.mjs','collection.mjs','home-placement.mjs'])await fs.writeFile('dist/server/'+name,(await fs.readFile('dist/'+name,'utf8')).replace(/\?v=\d+/g,''));
+// Workers resolve exact module names; browser cache suffixes are not file names.
+for(const entry of await fs.readdir('dist/server')){
+ if(!/\.(mjs|js)$/.test(entry))continue;
+ const source=await fs.readFile('dist/server/'+entry,'utf8');
+ for(const match of source.matchAll(/from\s*['"](\.[^'"]+)['"]/g))await fs.access(path.resolve('dist/server',match[1]));
+}
+console.log('Exact Worker module paths verified.');
