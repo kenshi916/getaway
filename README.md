@@ -1,5 +1,34 @@
 # GETAWAY — The Night Shift
 
+A browser game about cars, apartments, crews, and city jobs. The current build includes a 13-district Three.js city, walking and driving, six detailed garage cars, a welcome tutorial, home customization, multiplayer neighborhoods, cooperative activities, Motor Club, and Last Hand Casino.
+
+- **Start here:** [Project handoff](HANDOFF.md), including the code map, design direction, tests, and hosting details.
+- **Live game:** https://heist-retro.kenshipops.chatgpt.site/play/ (access controlled by the Site owner).
+- **Player guide:** `dist/docs/index.html`.
+- **Assets and licenses:** `dist/assets/LICENSES.txt` and credits included alongside the models.
+
+## Development
+
+The authored browser source lives directly in `dist/`; do not delete that directory. The backend is a Cloudflare Worker with a D1 database. Build output goes into the ignored `dist/client/`, `dist/server/`, and `dist/.openai/` subdirectories.
+
+```sh
+npm ci
+npm run build
+node checks/casino-entry.mjs
+node checks/casino-layout.mjs
+node checks/club.mjs
+node checks/world-client.mjs
+node checks/neighborhoods-release.mjs
+```
+
+The local database checks use Node's built-in SQLite support; this project was validated with Node 24. Serving `dist/` as static files shows the client, but server-backed profiles, multiplayer and rewards also require the Worker and database. See [HANDOFF.md](HANDOFF.md) for the established preview and publishing workflow.
+
+GETAWAY token launch remains pending. The wallet-based setup uses testnet; demo unlocks and casino play chips have no cash value. Casino chips cannot be purchased, transferred, cashed out, or exchanged for tokens.
+
+## Historical development notes
+
+The entries below record earlier iterations. Counts and capability descriptions in older entries may have been superseded; use the current handoff and source for today's behavior.
+
 A self-contained solo arcade driving game. Serve `dist/` over HTTP. The website opens at `/`, the game at `/play/`, and the guide at `/docs/`. All models, fonts, and libraries are local; no installation or build is required.
 
 ## Play
