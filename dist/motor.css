@@ -2,4 +2,4 @@
 @media(max-width:850px){.motor-hud{left:10px;right:10px;bottom:10px;padding:10px;gap:10px;flex-wrap:wrap}.motor-hud>div{flex:1;min-width:180px}.motor-hud strong{font-size:12px}.motor-hud span{font-size:12px}.motor-hud nav{order:2;width:100%;gap:6px}.motor-hud nav button{flex:1;padding:9px 6px;font-size:10px}.motor-hud #motorInteract{font-size:10px;max-width:46%}.motor-entrance{bottom:200px}.in-motor-club .life-foot{bottom:235px}.motor-specs{gap:18px}}
 
 .motor-ride-image{width:100%;max-height:240px;object-fit:contain;background:#172b3c;border:3px solid #b99859;image-rendering:auto}
-@media(max-width:850px){#ui[data-camera-scene=motor] .perspective-controls{top:72px;bottom:auto;right:12px}}
+@media(max-width:850px){#ui[data-camera-scene=motor] .perspective-controls{top:158px;bottom:auto;right:12px}}
