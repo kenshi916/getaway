@@ -1,9 +1,10 @@
 import * as THREE from './assets/three.module.js';
-import {buildCasinoExterior} from './casino-exterior.js?v=36';
-import {createCityFinish,addCitySky} from './city-finish.js?v=36';
-import {createCityLandscape} from './city-landscape.js?v=36';
+import {buildMotorExterior} from './motor-exterior.js?v=37';
+import {buildCasinoExterior} from './casino-exterior.js?v=37';
+import {createCityFinish,addCitySky} from './city-finish.js?v=37';
+import {createCityLandscape} from './city-landscape.js?v=37';
 import {mergeGeometries} from './assets/BufferGeometryUtils.js';
-import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=36';
+import {BLOCKS,ROAD,RAMPS,LIMIT,districtAt} from './driving.mjs?v=37';
 
 const ASSETS=[...'abcdefghijklmn'].map(c=>'building-'+c).concat(['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c','detail-parasol-a','detail-parasol-b'],[...'abfgkqrt'].map(c=>'industrial/building-'+c),['water-tower','shipping-container-a','shipping-container-b','solar-panel-landscape-group','detail-tank'].map(n=>'industrial/'+n),[...'acfgkmoq'].map(c=>'suburban/building-type-'+c),['tree_oak','tree_detailed','tree_palmDetailedTall','plant_bushDetailed','flower_redA'].map(n=>'nature/'+n));
 const models=new Map();
@@ -11,7 +12,7 @@ export async function loadCityPack(loader){await Promise.all(ASSETS.map(async na
 export function buildCity(world){
  if(world.parent?.isScene)addCitySky(world.parent);
  const stage=new THREE.Group();stage.name='Downtown';world.add(stage);
- const buildings=[],signals=[],materials=new Map(),buildingBounds=[],landmarkLights=[],fountainRings=[],usedAssets=new Set(),signMaterials=new Map();
+ const venueUpdates=[],buildings=[],signals=[],materials=new Map(),buildingBounds=[],landmarkLights=[],fountainRings=[],usedAssets=new Set(),signMaterials=new Map();
  function mat(color,extra={}){const key=color+JSON.stringify(Object.fromEntries(Object.entries(extra).map(([k,v])=>[k,v?.isTexture?v.uuid:v])));if(!materials.has(key))materials.set(key,new THREE.MeshStandardMaterial({color,roughness:.88,...extra}));return materials.get(key);}
  function block(w,h,d,color,x,y,z,parent=stage,extra={}){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,extra));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
  function ground(w,d,color,x,z,y=.025,parent=stage,extra={}){const geo=new THREE.PlaneGeometry(w,d);if(extra.map){const uv=geo.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*w/6,uv.getY(i)*d/6);}const m=new THREE.Mesh(geo,mat(color,{side:THREE.DoubleSide,...extra}));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.receiveShadow=true;parent.add(m);return m;}
@@ -107,6 +108,7 @@ export function buildCity(world){
    buildingBounds.push({name:'last-hand-casino',bounds:casino.box,block:b});landmarkLights.push(casino.light);
    finishBlock(group);return;
   }
+  if(b.x===-108&&b.z===36){const motor=buildMotorExterior(group,{block,ground,label,tree});group.name='RAE’S MOTOR CLUB';buildingBounds.push({name:'motor-club',bounds:motor.box,block:b});venueUpdates.push(motor.update);finishBlock(group);return;}
   if(b.outer){
    const area=districtAt(b),v=blockSeed(b.x,b.z),industrial=area.type==='industrial',residential=['residential','garden'].includes(area.type),palette=industrial?['#738d94','#a9937e','#648181','#899a9d']:residential?['#d8c5a5','#a4bfaa','#c0c7d2','#cb9b87']:['#d9bea3','#b8c9ce','#d0ac9e','#c1c3af'],wall=palette[v%palette.length];
    const names=industrial?[...'abfgkqrt'].map(n=>'industrial/building-'+n):residential?[...'acfgkmoq'].map(n=>'suburban/building-type-'+n):(v%4===0?['building-skyscraper-a','building-skyscraper-b','building-skyscraper-c']:['building-j','building-f','building-l','building-m','building-i','building-k','building-n','building-b']);
@@ -290,5 +292,5 @@ export function buildCity(world){
  vec2 units=masonry*vec2(${kind===1?'1.75,3.6':'0.45,0.31'});units.x+=mod(floor(units.y),2.0)*${kind===1?'.5':'0.'};
  vec2 seamWidth=max(fwidth(units)*1.25,vec2(${kind===1?'.025':'.012'}));vec2 edge=smoothstep(vec2(1.0)-seamWidth,vec2(1.0),fract(units));float seam=max(edge.x,edge.y);
  float grain=fract(sin(dot(floor(units),vec2(12.9898,78.233)))*43758.5453);float tone=mix(.91+grain*.09,${kind===1?'.67':'.76'},seam);diffuseColor.rgb*=mix(tone,1.0,step(.65,abs(vMasonryNormal.y)));`);};}
- return{buildings,buildingBounds,stage,landmarkLights,usedAssets,landscape,update(time,focus){if(focus)for(const b of buildings){const c=b.box;const x=(c.min.x+c.max.x)/2,z=(c.min.z+c.max.z)/2;b.group.visible=Math.hypot(x-focus.x,z-focus.z)<195;}let signalChanged=false;signals.forEach((s,i)=>{const go=Math.sin(time*.28+s.phase)>0;if(go!==s.go){s.go=go;greenSignals.setColorAt(i,new THREE.Color(go?'#76f6be':'#20392c'));redSignals.setColorAt(i,new THREE.Color(go?'#402934':'#ff5573'));signalChanged=true;}});if(signalChanged){redSignals.instanceColor.needsUpdate=true;greenSignals.instanceColor.needsUpdate=true;}for(const r of fountainRings){const p=(time*.32+r.phase)%1;r.mesh.scale.setScalar(.45+p*2.45);r.mesh.material.opacity=(1-p)*.32;}}};
+ return{buildings,buildingBounds,stage,landmarkLights,usedAssets,landscape,update(time,focus){venueUpdates.forEach(update=>update(time,focus));if(focus)for(const b of buildings){const c=b.box;const x=(c.min.x+c.max.x)/2,z=(c.min.z+c.max.z)/2;b.group.visible=Math.hypot(x-focus.x,z-focus.z)<195;}let signalChanged=false;signals.forEach((s,i)=>{const go=Math.sin(time*.28+s.phase)>0;if(go!==s.go){s.go=go;greenSignals.setColorAt(i,new THREE.Color(go?'#76f6be':'#20392c'));redSignals.setColorAt(i,new THREE.Color(go?'#402934':'#ff5573'));signalChanged=true;}});if(signalChanged){redSignals.instanceColor.needsUpdate=true;greenSignals.instanceColor.needsUpdate=true;}for(const r of fountainRings){const p=(time*.32+r.phase)%1;r.mesh.scale.setScalar(.45+p*2.45);r.mesh.material.opacity=(1-p)*.32;}}};
 }

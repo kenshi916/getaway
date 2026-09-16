@@ -1,4 +1,4 @@
-import {TABLES,CLUB,cardName,handValue} from './club-catalog.mjs?v=36';
+import {TABLES,CLUB,cardName,handValue} from './club-catalog.mjs?v=37';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function createClubUI(api){
  let data=null,table=1,busy=false,polling=false,last=0,error='',signature='';const hud=document.createElement('section');hud.className='club-hud hidden';hud.innerHTML='<div><small>LAST HAND / SOCIAL CLUB</small><strong>A seat for everyone.</strong><span id="clubChipCount">Free play · no purchases or cash-outs</span></div><nav aria-label="Club actions"><button data-club-walk="1">♣ CLOVER TABLE</button><button data-club-walk="2">♦ DIAMOND TABLE</button><button id="clubChat">CHAT & EMOTES</button><button id="clubExit">LEAVE CLUB</button></nav><button id="clubInteract">WALK TO A TABLE</button>';document.body.append(hud);

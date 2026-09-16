@@ -15,6 +15,7 @@ await fs.mkdir('dist/server/assets',{recursive:true});await fs.copyFile('dist/as
 for(const name of ['testnet-items.mjs','collection.mjs','home-placement.mjs'])await fs.writeFile('dist/server/'+name,(await fs.readFile('dist/'+name,'utf8')).replace(/\?v=\d+/g,''));
 await fs.writeFile('dist/server/club.js',(await fs.readFile('worker/club.js','utf8')).replaceAll("from '../dist/","from './"));
 await fs.copyFile('dist/club-catalog.mjs','dist/server/club-catalog.mjs');
+await fs.copyFile('dist/motor-catalog.mjs','dist/server/motor-catalog.mjs');
 
 // Workers resolve exact module names; browser cache suffixes are not file names.
 for(const entry of await fs.readdir('dist/server')){

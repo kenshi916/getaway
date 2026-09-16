@@ -1,13 +1,13 @@
 import * as THREE from './assets/three.module.js';
-import {createWalkingView} from './first-person.js?v=36';
-import {blocked,BLOCKS} from './driving.mjs?v=36';
-import {FURNITURE,WALLPAPERS} from './neighborhood-catalog.mjs?v=36';
+import {createWalkingView} from './first-person.js?v=37';
+import {blocked,BLOCKS} from './driving.mjs?v=37';
+import {FURNITURE,WALLPAPERS} from './neighborhood-catalog.mjs?v=37';
 export function createNeighbor(templates,avatar='jules') {
  const keys={jules:'suit',mina:'passenger-e',theo:'passenger-f',rae:'passenger-m'},source=templates[keys[avatar]]||templates.suit;
  const group=new THREE.Group(),root=source.scene.clone(true),size=new THREE.Box3().setFromObject(root),scale=1.8/size.getSize(new THREE.Vector3()).y;root.scale.setScalar(scale);root.position.y=-size.min.y*scale;group.add(root);
- const mixer=new THREE.AnimationMixer(root),actions=new Map();let current='',emoteUntil=0,emote='';
+ const mixer=new THREE.AnimationMixer(root),actions=new Map();let current='',emoteUntil=0,emote='',seated=false;
  function play(name){const clip=source.animations.find(c=>c.name===name)||source.animations.find(c=>c.name==='idle');if(!clip||current===clip.name)return;current=clip.name;for(const a of actions.values())a.fadeOut(.15);let action=actions.get(current);if(!action){action=mixer.clipAction(clip);actions.set(current,action);}action.reset().fadeIn(.15).play();}
- return {group,root,mixer,emote(id,until=Date.now()+3200){emote=id;emoteUntil=until;},update(dt,moving=false){const active=Date.now()<emoteUntil;play(active?(emote==='dance'?'walk':'emote-yes'):moving?'walk':'idle');mixer.update(dt);root.rotation.y=active&&emote==='dance'?Math.sin(Date.now()*.006)*.6:0;root.position.y=-size.min.y*scale+(active&&emote==='cheer'?Math.abs(Math.sin(Date.now()*.01))*.15:0);},dispose(){mixer.stopAllAction();mixer.uncacheRoot(root);group.removeFromParent();}};
+ return {group,root,mixer,sit(value){seated=!!value;},emote(id,until=Date.now()+3200){emote=id;emoteUntil=until;},update(dt,moving=false){const active=Date.now()<emoteUntil;play(seated?'sit':active?(emote==='dance'?'walk':'emote-yes'):moving?'walk':'idle');mixer.update(dt);root.rotation.y=active&&emote==='dance'?Math.sin(Date.now()*.006)*.6:0;root.position.y=-size.min.y*scale+(active&&emote==='cheer'?Math.abs(Math.sin(Date.now()*.01))*.15:0);},dispose(){mixer.stopAllAction();mixer.uncacheRoot(root);group.removeFromParent();}};
 }
 export function createCityWalker(templates,world,camera){
  let person=createNeighbor(templates),avatar=person.group;const footBlocks=BLOCKS.filter(b=>!b.park),parks=BLOCKS.filter(b=>b.park),footBlocked=(x,z)=>blocked(x,z,.3,footBlocks)||parks.some(p=>Math.hypot(x-p.x,z-p.z)<1.9);let outfit='jules';avatar.visible=false;world.add(avatar);const walkingView=createWalkingView(camera,avatar),ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-.17),point=new THREE.Vector3();let target=null;

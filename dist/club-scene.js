@@ -1,8 +1,8 @@
 import * as THREE from './assets/three.module.js';
-import {createNeighbor} from './neighborhood-scenes.js?v=36';
-import {createWalkingView} from './first-person.js?v=36';
-import {findWalkPath} from './walk-navigation.mjs?v=36';
-import {TABLES} from './club-catalog.mjs?v=36';
+import {createNeighbor} from './neighborhood-scenes.js?v=37';
+import {createWalkingView} from './first-person.js?v=37';
+import {findWalkPath} from './walk-navigation.mjs?v=37';
+import {TABLES} from './club-catalog.mjs?v=37';
 export function buildClub(templates,appearance='jules'){
  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,120);scene.background=new THREE.Color('#102b25');scene.fog=new THREE.Fog('#102b25',38,75);
  const solids=[],materials=new Map(),geometries=[],textures=[],rigs=[];const room=new THREE.Group();scene.add(room);

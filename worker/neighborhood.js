@@ -1,3 +1,4 @@
+import {MOTOR_CLUB,MOTOR_SEATS} from '../dist/motor-catalog.mjs';
 import {DAILY_STOPS,RECIPES,utcDay} from '../dist/club-catalog.mjs';
 import {FURNITURE,WALLPAPERS,CAR_PARTS,EMOTES,ACTIVITIES,COOP_JOBS,HOME_EXPANSIONS,rankFor,cityActivities,weekInfo,freshNeighborhood} from '../dist/neighborhood-catalog.mjs';
 import {WORLD_TTL} from '../dist/world-catalog.mjs';
@@ -83,8 +84,16 @@ export async function neighborhoodApi(request,{db,me,body,json,fail,url}) {
   await db.prepare('INSERT INTO neighborhood_presence (profile_id,travel,host_id,local_x,local_z) VALUES (?,?,?,?,?) ON CONFLICT(profile_id) DO UPDATE SET travel=excluded.travel,host_id=excluded.host_id,local_x=excluded.local_x,local_z=excluded.local_z').bind(me.id,b.travel,host,b.x,b.z).run();
   return json({ok:true,evicted});
  }
+ if(path==='/motor-seat'&&method==='POST'){
+  online();const presence=await db.prepare('SELECT * FROM neighborhood_presence WHERE profile_id=?').bind(me.id).first();
+  if(member.mode!=='destination'||presence?.venue!==MOTOR_CLUB.id)fail('Walk into the Motor Club first.',409);
+  if(b.id===null){await db.prepare("UPDATE neighborhood_presence SET emote='' WHERE profile_id=?").bind(me.id).run();return json({ok:true});}
+  const seat=MOTOR_SEATS.find(s=>s.id===b.id);if(!seat||Math.hypot(presence.local_x-seat.x,presence.local_z-seat.z)>2)fail('Walk closer to that seat.',409);
+  const result=await db.prepare("UPDATE neighborhood_presence SET emote=?,emote_at=?,local_x=?,local_z=? WHERE profile_id=? AND NOT EXISTS (SELECT 1 FROM neighborhood_presence p JOIN world_members m ON m.profile_id=p.profile_id WHERE p.venue=? AND p.emote=? AND m.room_id=? AND m.mode='destination' AND m.last_seen>? AND p.profile_id<>?)").bind('sit:'+seat.id,now,seat.x,seat.z,me.id,MOTOR_CLUB.id,'sit:'+seat.id,member.room_id,now-WORLD_TTL,me.id).run();
+  if(!result.meta.changes)fail('Someone is already sitting there.',409);return json({ok:true});
+ }
  if(path==='/emote'&&method==='POST') {online();if(!state.emotes.includes(b.id))fail('Choose an owned emote.');await db.prepare('INSERT INTO neighborhood_presence (profile_id,emote,emote_at) VALUES (?,?,?) ON CONFLICT(profile_id) DO UPDATE SET emote=excluded.emote,emote_at=excluded.emote_at WHERE neighborhood_presence.emote_at<?').bind(me.id,b.id,now,now-1500).run();return json({ok:true});}
- const scope=async()=>{const p=await db.prepare('SELECT host_id,venue FROM neighborhood_presence WHERE profile_id=?').bind(me.id).first();if(member?.mode==='destination'&&p?.venue==='last-hand')return 'club:last-hand';let host=p?.host_id||me.id;if(host!==me.id&&!await canVisit(db,me.id,host,member.room_id,now))host=me.id;return ['apartment','garage'].includes(member?.mode)?member.mode+':'+host:'city';};
+ const scope=async()=>{const p=await db.prepare('SELECT host_id,venue FROM neighborhood_presence WHERE profile_id=?').bind(me.id).first();if(member?.mode==='destination'&&['last-hand',MOTOR_CLUB.id].includes(p?.venue))return 'club:'+p.venue;let host=p?.host_id||me.id;if(host!==me.id&&!await canVisit(db,me.id,host,member.room_id,now))host=me.id;return ['apartment','garage'].includes(member?.mode)?member.mode+':'+host:'city';};
  if(path==='/social'&&method==='GET') {
   if(!member)return json({messages:[],contracts:[],players:[]});const place=await scope();
   const messages=await db.prepare('SELECT m.id,m.profile_id,p.name,m.text,m.created_at FROM neighborhood_messages m JOIN profiles p ON p.id=m.profile_id WHERE m.room_id=? AND m.scope=? AND m.created_at>? AND NOT EXISTS (SELECT 1 FROM neighborhood_mutes u WHERE u.owner_id=? AND u.target_id=m.profile_id) ORDER BY m.id DESC LIMIT 30').bind(member.room_id,place,now-600000,me.id).all();
