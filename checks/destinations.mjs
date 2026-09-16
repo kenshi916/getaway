@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from '../dist/assets/three.module.js';
 import {GLTFLoader} from '../dist/assets/GLTFLoader.js';
 import {buildDestination} from '../dist/destination-scene.js';
-import {loadVehiclePack} from '../dist/vehicles.js?v=29';
+import {loadVehiclePack} from '../dist/vehicles.js?v=32';
 import {APARTMENT_ASSETS} from '../dist/apartment.js';
 import {PASSENGERS} from '../dist/passengers.mjs';
 import {destinationQuest} from '../dist/destination-quests.mjs';

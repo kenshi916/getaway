@@ -1,7 +1,7 @@
 import {getWalletSession} from './wallet-session.mjs?v=31';
-import {BURN_CONFIG} from './burn-config.js?v=29';
-import {BURN_ITEMS} from './collection.mjs?v=29';
-import {METHODS} from './burn-methods.mjs?v=29';
+import {BURN_CONFIG} from './burn-config.js?v=32';
+import {BURN_ITEMS} from './collection.mjs?v=32';
+import {METHODS} from './burn-methods.mjs?v=32';
 
 const address=v=>typeof v==='string'&&/^0x[0-9a-f]{40}$/i.test(v)&&!/^0x0{40}$/i.test(v);
 const word=v=>BigInt(v).toString(16).padStart(64,'0');

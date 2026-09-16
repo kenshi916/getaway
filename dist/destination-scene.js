@@ -1,13 +1,14 @@
-import {createWalkingView} from './first-person.js?v=29';
+import {addHomeSurroundings} from './home-design.js?v=32';
+import {createWalkingView} from './first-person.js?v=32';
 import * as THREE from './assets/three.module.js';
-import {findWalkPath} from './walk-navigation.mjs?v=29';
-import {makeVehicle} from './vehicles.js?v=29';
+import {findWalkPath} from './walk-navigation.mjs?v=32';
+import {makeVehicle} from './vehicles.js?v=32';
 
 export function buildDestination(templates,quest,person,driver){
  const scene=new THREE.Scene(),room=new THREE.Group(),camera=new THREE.PerspectiveCamera(46,1,.1,100);
- scene.background=new THREE.Color('#13222c');scene.fog=new THREE.Fog('#13222c',45,85);scene.add(room);
+ const surroundings=addHomeSurroundings(scene,quest.theme==='garage');scene.fog=new THREE.Fog('#809763',65,120);scene.add(room);
  const materials=new Map(),ownedGeometries=new Set(),ownedMaterials=new Set(),ownedTextures=new Set(),colliders=[],props=[],facade=[],mixers=[],tileMeshes=[];
- const palette={apartment:{wall:'#b7a58c',floor:'#8c7156',accent:'#efbd78'},garage:{wall:'#677773',floor:'#536366',accent:'#9ad9ba'},garden:{wall:'#a6b295',floor:'#b2b59e',accent:'#c8e895'},venue:{wall:'#665f77',floor:'#564e63',accent:'#c7b6f0'}}[quest.theme];
+ const palette={apartment:{wall:'#b7a58c',floor:'#8c7156',accent:'#efbd78'},garage:{wall:'#487c70',floor:'#2e665b',accent:'#9ad9ba'},garden:{wall:'#a6b295',floor:'#b2b59e',accent:'#c8e895'},venue:{wall:'#665f77',floor:'#564e63',accent:'#c7b6f0'}}[quest.theme];
  function mat(color,extra={}){const {map,...values}=extra,key=color+JSON.stringify(values)+(map?.uuid||'');if(!materials.has(key)){const m=new THREE.MeshStandardMaterial({color,roughness:.8,...extra});materials.set(key,m);ownedMaterials.add(m);}return materials.get(key);}
  function box(w,h,d,color,x,y,z,extra={},parent=room){const g=new THREE.BoxGeometry(w,h,d);ownedGeometries.add(g);const m=new THREE.Mesh(g,mat(color,extra));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
  function solid(x,z,w,d,name){colliders.push({minX:x-w/2-.32,maxX:x+w/2+.32,minZ:z-d/2-.32,maxZ:z+d/2+.32,name});}
@@ -18,8 +19,8 @@ export function buildDestination(templates,quest,person,driver){
  for(const [x,z,color]of [[-5,-4,'#ffd59a'],[5,-4,quest.color],[0,6,'#ffe8c5']]){const l=new THREE.PointLight(color,70,17,2);l.position.set(x,4,z);scene.add(l);}
  box(24,.28,26,'#263e42',0,-.08,2);box(18,.16,13,palette.floor,0,.05,-1.5);
  // Individual boards and inlaid tiles keep the room legible at walking distance.
- function tiles(startZ,endZ,y,court=false){const entries=[];for(let x=-8.5;x<9;x+=1)for(let z=startZ;z<endZ;z+=1){const warm=quest.theme==='apartment',dark=(Math.round(x+z)*7)%3===0,color=court?((Math.floor(x+z)%2)?'#7e8e89':'#84938e'):warm?(dark?'#967e60':'#a78a65'):(dark?'#657778':palette.floor);entries.push({x,z,color});}const g=new THREE.BoxGeometry(court?.975:.965,.015,court?.975:.965);ownedGeometries.add(g);const mesh=new THREE.InstancedMesh(g,mat('#ffffff'),entries.length),stamp=new THREE.Object3D();entries.forEach((e,i)=>{stamp.position.set(e.x,y,e.z);stamp.updateMatrix();mesh.setMatrixAt(i,stamp.matrix);mesh.setColorAt(i,new THREE.Color(e.color));});mesh.receiveShadow=true;room.add(mesh);tileMeshes.push(mesh);}
- tiles(-7.5,5,.14);box(18,.12,8.5,'#637578',0,.04,9.25);tiles(5.5,13.5,.11,true);
+ function tiles(startZ,endZ,y,court=false){const entries=[];for(let x=-8.5;x<9;x+=1)for(let z=startZ;z<endZ;z+=1){const warm=quest.theme==='apartment',dark=(Math.round(x+z)*7)%3===0,color=court?((Math.floor(x+z)%2)?'#c7ae7a':'#d7bf8d'):warm?(dark?'#967e60':'#a78a65'):(dark?'#507968':palette.floor);entries.push({x,z,color});}const g=new THREE.BoxGeometry(court?.975:.965,.015,court?.975:.965);ownedGeometries.add(g);const mesh=new THREE.InstancedMesh(g,mat('#ffffff'),entries.length),stamp=new THREE.Object3D();entries.forEach((e,i)=>{stamp.position.set(e.x,y,e.z);stamp.updateMatrix();mesh.setMatrixAt(i,stamp.matrix);mesh.setColorAt(i,new THREE.Color(e.color));});mesh.receiveShadow=true;room.add(mesh);tileMeshes.push(mesh);}
+ tiles(-7.5,5,.14);box(18,.12,8.5,'#bca371',0,.04,9.25);tiles(5.5,13.5,.11,true);
  for(const side of [-1,1]){box(3.5,.16,5.8,'#6e8b4d',side*6.8,.17,10);for(const dz of [8,10,12])planter(side*7.1,dz,.9);box(.25,3.4,13.3,palette.wall,side*9,1.8,-1.5);solid(side*9,-1.5,.25,13.3,'side wall');box(.15,.15,13.4,palette.accent,side*8.8,3.3,-1.5);}
  box(18.2,3.8,.25,palette.wall,0,2,-8);solid(0,-8,18.2,.25,'back wall');box(18.3,.18,.4,palette.accent,0,3.9,-8);
  for(const x of [-5.4,0,5.4]){box(3.9,2.35,.15,'#31494c',x,2.05,-7.8);box(3.55,1.95,.04,'#8cbdc0',x,2.08,-7.68,{emissive:'#5b889b',emissiveIntensity:.25,metalness:.35,roughness:.3});for(const dx of [-.85,.85])box(.065,2.05,.08,palette.accent,x+dx,2.08,-7.62);box(3.65,.07,.08,palette.accent,x,2.1,-7.61);}
@@ -80,5 +81,5 @@ export function buildDestination(templates,quest,person,driver){
   move(playerRig,dx,dz,distance);mixers.forEach(m=>m.update(dt));cameraUpdate(1-Math.exp(-dt*8));for(const h of hotspots){h.ring.visible=available(h);h.ring.material.opacity=canInteract(h.id)?.85:.45+Math.sin(time*2)*.12;}
  }
  resize(1280,800);
- return {scene,camera,avatar,walkingView,setFirstPerson,look:walkingView.look,npc:npc.root,props,colliders,bounds,spawn,hotspots,blocked,nearest,canInteract,walkTo,clickAt,resize,update,get stage(){return stage;},get doorProgress(){return doorProgress;},get navigating(){return route.length>0;},openDoor(){if(stage!=='door'||opening||!canInteract('door'))return false;opening=true;return true;},finishTask(){if(stage!=='task'||!canInteract('task'))return false;stage='talk';parcel.material=mat('#b6d998',{emissive:'#82ad66',emissiveIntensity:.25});return true;},complete(){if(stage!=='talk'||!canInteract('talk'))return false;stage='complete';return true;},takeArrival(){const id=arrived;arrived=null;return id;},dispose(){sun.shadow.dispose();tileMeshes.forEach(m=>m.dispose());playerRig.dispose();npc.dispose();ownedGeometries.forEach(g=>g.dispose());ownedMaterials.forEach(m=>m.dispose());ownedTextures.forEach(t=>t.dispose());if(vehicle){vehicle.group.traverse(o=>{if(!o.isMesh)return;if(!o.geometry.userData.shared)o.geometry.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}scene.clear();}};
+ return {scene,camera,avatar,walkingView,setFirstPerson,look:walkingView.look,npc:npc.root,props,colliders,bounds,spawn,hotspots,blocked,nearest,canInteract,walkTo,clickAt,resize,update,get stage(){return stage;},get doorProgress(){return doorProgress;},get navigating(){return route.length>0;},openDoor(){if(stage!=='door'||opening||!canInteract('door'))return false;opening=true;return true;},finishTask(){if(stage!=='task'||!canInteract('task'))return false;stage='talk';parcel.material=mat('#b6d998',{emissive:'#82ad66',emissiveIntensity:.25});return true;},complete(){if(stage!=='talk'||!canInteract('talk'))return false;stage='complete';return true;},takeArrival(){const id=arrived;arrived=null;return id;},dispose(){surroundings.userData.dispose();sun.shadow.dispose();tileMeshes.forEach(m=>m.dispose());playerRig.dispose();npc.dispose();ownedGeometries.forEach(g=>g.dispose());ownedMaterials.forEach(m=>m.dispose());ownedTextures.forEach(t=>t.dispose());if(vehicle){vehicle.group.traverse(o=>{if(!o.isMesh)return;if(!o.geometry.userData.shared)o.geometry.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}scene.clear();}};
 }

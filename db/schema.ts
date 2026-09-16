@@ -1,5 +1,8 @@
 import {sqliteTable,text,integer,real,uniqueIndex,index,check} from 'drizzle-orm/sqlite-core';
 import {sql} from 'drizzle-orm';
+export const firstHour=sqliteTable('first_hour',{
+ ownerId:text('owner_id').primaryKey(),state:text('state').notNull().default('{}'),revision:integer('revision').notNull().default(0),inviteToken:text('invite_token'),updatedAt:integer('updated_at').notNull()
+},t=>[uniqueIndex('idx_first_hour_invite').on(t.inviteToken)]);
 export const profiles=sqliteTable('profiles',{
  id:text('id').primaryKey(),ownerId:text('owner_id').notNull(),friendCode:text('friend_code').notNull(),name:text('name').notNull(),avatar:text('avatar').notNull(),status:text('status').notNull(),note:text('note').notNull(),homeId:text('home_id').notNull(),lastSeen:integer('last_seen').notNull()
 },t=>[uniqueIndex('idx_profiles_owner').on(t.ownerId),uniqueIndex('idx_profiles_friend_code').on(t.friendCode)]);

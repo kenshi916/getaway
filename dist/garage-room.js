@@ -7,9 +7,9 @@ export function buildGarageRoom(scene,templates){
  function box(w,h,d,color,x,y,z,extra={},parent=room){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,extra));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
  function sign(text,w,h,x,y,z,ink='#e9d7a2',bg='#14191c',parent=room){const cv=document.createElement('canvas');cv.width=1024;cv.height=Math.max(128,Math.round(1024*h/w));const c=cv.getContext('2d');c.fillStyle=bg;c.fillRect(0,0,cv.width,cv.height);c.fillStyle=ink;c.textAlign='center';c.textBaseline='middle';c.font=`900 ${Math.min(cv.height*.66,1500/text.length)}px Arial,sans-serif`;c.fillText(text,512,cv.height/2,940);const tx=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:tx,emissiveMap:tx,emissive:'#ffffff',emissiveIntensity:.22,roughness:.8,side:THREE.DoubleSide}));m.position.set(x,y,z);parent.add(m);return m;}
  function prop(name,x,z,height,color='#4c5354',width=Infinity){const template=templates['home-'+name];if(!template)return null;const root=template.scene.clone(true),group=new THREE.Group();root.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(root),size=b.getSize(new THREE.Vector3()),center=b.getCenter(new THREE.Vector3()),scale=Math.min(height/size.y,width/size.x);root.scale.setScalar(scale);root.position.set(-center.x*scale,-b.min.y*scale,-center.z*scale);root.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;const recolor=m=>{const a=m.clone();a.color.set(color);a.roughness=.55;a.metalness=.2;return a;};o.material=Array.isArray(o.material)?o.material.map(recolor):recolor(o.material);});group.add(root);group.position.set(x,.03,z);room.add(group);props.push(group);return group;}
- const floor=box(24,.28,23,'#626567',0,-.15,1.2,{map:concrete,roughness:.54,metalness:.2});
- box(24,6.8,.4,'#535958',0,3.3,-8.5,{map:concrete,roughness:.93});
- for(const x of [-11.8,11.8]){box(.4,6.8,12,'#343b3d',x,3.3,-2.6,{map:concrete,roughness:.9});box(.4,.28,9.3,'#373d3d',x,.13,7.3);}
+ const floor=box(24,.28,23,'#264a47',0,-.15,1.2,{map:concrete,roughness:.54,metalness:.2});
+ box(24,6.8,.4,'#47736c',0,3.3,-8.5,{map:concrete,roughness:.93});
+ for(const x of [-11.8,11.8]){box(.4,6.8,12,'#294d49',x,3.3,-2.6,{map:concrete,roughness:.9});box(.4,.28,9.3,'#373d3d',x,.13,7.3);}
  for(let x=-8;x<=8;x+=4)box(.018,.01,23,'#3d4141',x,.002,1.2);for(let z=-6;z<=10;z+=4)box(24,.01,.018,'#3d4141',0,.003,z);
  // Cast-concrete panels, expansion joints, and a protective wall band.
  for(const x of [-8,-4,4,8])box(.025,6.7,.026,'#30383a',x,3.3,-8.28);for(const y of [2.2,4.4])box(24,.025,.035,'#31393a',0,y,-8.28);
@@ -35,10 +35,11 @@ export function buildGarageRoom(scene,templates){
  const deck=new THREE.Mesh(new THREE.CylinderGeometry(4.55,4.65,.12,72),mat('#303a3d',{metalness:.65,roughness:.35}));deck.position.y=.065;deck.receiveShadow=true;room.add(deck);
  const rim=new THREE.Mesh(new THREE.TorusGeometry(4.52,.017,6,80),new THREE.MeshBasicMaterial({color:'#d9b865'}));rim.rotation.x=-Math.PI/2;rim.position.y=.14;room.add(rim);
  for(let n=0;n<20;n++){const a=n*Math.PI/10,m=box(.012,.003,.47,'#596263',Math.sin(a)*4.24,.131,Math.cos(a)*4.24);m.rotation.y=a;}
- for(const side of [-1,1]){for(const x of [side*5.6,side*9.5])box(.06,.007,6.45,'#bbb69b',x,.008,-3.6);box(3.9,.007,.06,'#bbb69b',side*7.55,.008,-.36);const number=sign(side<0?'02':'03',1.2,.8,side*7.55,.013,.55,'#b5b49f','#535759');number.rotation.x=-Math.PI/2;box(2.3,.12,.22,'#363e3e',side*7.55,.06,-6.45);}
- const floorLabel=sign('DISPLAY 01',2.7,.48,0,.015,5.05,'#c4b17a','#535759');floorLabel.rotation.x=-Math.PI/2;
+ for(const side of [-1,1]){for(const x of [side*5.6,side*9.5])box(.06,.007,6.45,'#bbb69b',x,.008,-3.6);box(3.9,.007,.06,'#bbb69b',side*7.55,.008,-.36);const number=sign(side<0?'02':'03',1.2,.8,side*7.55,.013,.55,'#b5b49f','#284b48');number.rotation.x=-Math.PI/2;box(2.3,.12,.22,'#363e3e',side*7.55,.06,-6.45);}
+ const floorLabel=sign('DISPLAY 01',2.7,.48,0,.015,5.05,'#c4b17a','#284b48');floorLabel.rotation.x=-Math.PI/2;
  // Indoor reflection strips replace the exterior blue sky on the car paint.
  const faces=Array.from({length:6},(_,i)=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle='#333b3e';x.fillRect(0,0,128,128);x.fillStyle='#909695';x.fillRect(0,15,128,8);x.fillStyle='#fff1c9';x.fillRect(0,31+(i%2)*10,128,8);x.fillStyle='#181f24';x.fillRect(0,76,128,52);return c;});const reflection=new THREE.CubeTexture(faces);reflection.colorSpace=THREE.SRGBColorSpace;reflection.needsUpdate=true;scene.environment=reflection;
+ const walls=room.children.filter(m=>m.isMesh&&m.geometry.parameters?.height>6);
  const batches=new Map();for(const mesh of [...room.children]){if(!mesh.isMesh||mesh.material.map||mesh.material.transparent)continue;mesh.updateMatrix();const list=batches.get(mesh.material)||[];list.push(mesh);batches.set(mesh.material,list);}for(const [material,list]of batches){if(list.length<2)continue;const parts=list.map(m=>m.geometry.clone().applyMatrix4(m.matrix)),geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());if(!geometry)continue;const merged=new THREE.Mesh(geometry,material);merged.castShadow=true;merged.receiveShadow=true;room.add(merged);for(const m of list){room.remove(m);m.geometry.dispose();}}
- return {room,props,mat,box,sign};
+ return {room,props,mat,box,sign,floor,walls};
 }

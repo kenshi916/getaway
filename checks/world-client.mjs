@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';import fs from 'node:fs';
 import * as THREE from '../dist/assets/three.module.js';
 import {GLTFLoader} from '../dist/assets/GLTFLoader.js';
-import {loadVehiclePack} from '../dist/vehicles.js?v=29';
+import {loadVehiclePack} from '../dist/vehicles.js?v=32';
 import {createNeighborhood} from '../dist/world-client.js';
 import worker from '../worker/index.js';import {localD1} from './d1-local.mjs';
 const nodes=new Map();

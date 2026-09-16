@@ -1,5 +1,6 @@
 import {HOMES,AVATARS,STATUSES} from '../dist/social-catalog.mjs';
 import {worldApi} from './world.js';
+import {firstHourApi} from './first-hour.js';
 const headers={'content-type':'application/json; charset=utf-8','cache-control':'private, no-store','x-content-type-options':'nosniff'};
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
@@ -11,6 +12,7 @@ async function api(request,env){
  const owner=request.headers.get('oai-authenticated-user-id');if(!owner)fail('Sign in with ChatGPT to open your crew.',401);
  if(method!=='GET'&&(request.headers.get('origin')!==url.origin||request.headers.get('sec-fetch-site')==='cross-site'))fail('Open Crew on this site to make changes.',403);
  const db=env.DB;if(!db)fail('Crew is temporarily unavailable. Try again shortly.',503);
+ if(path==='/api/first-hour'||path.startsWith('/api/first-hour/'))return firstHourApi(request,{db,owner,body,json,fail,url});
  const me=await db.prepare('SELECT * FROM profiles WHERE owner_id = ?').bind(owner).first();
  if(path==='/api/world'||path.startsWith('/api/world/'))return worldApi(request,{db,me,body,json,fail,url});
  if(path==='/api/social'&&method==='GET'){

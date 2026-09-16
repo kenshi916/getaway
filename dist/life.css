@@ -1,0 +1,48 @@
+/* The journal, decorating drawer and world controls share the grass / timber kit. */
+#ui .home-card{display:none}
+#ui .chapter-button{position:absolute;left:22px;top:150px;width:290px;z-index:7;pointer-events:auto;display:grid;gap:10px;text-align:left;background:var(--soil);border:4px solid var(--game-edge);border-top:8px solid #97cd59;padding:16px;box-shadow:5px 5px #14241d;color:#fff3cf}
+#ui .chapter-button span,#ui .chapter-button small{font:12px/1.4 SpaceMono,monospace;color:#cce58d}
+#ui .chapter-button strong{font:700 17px/1.5 PixelArcade,monospace;text-transform:uppercase}
+#ui:has(#hud:not(.hidden)) .chapter-button{top:auto;bottom:31px;left:340px;width:245px;padding:10px}
+#ui:has(#garageUI:not(.hidden)) .chapter-button{top:210px;width:250px}
+#ui .life-eyebrow{font:12px/1.6 SpaceMono,monospace;color:#c3e887;display:block;margin-bottom:14px}
+#ui .life-journal h2,#ui .life-designer h2{font-size:25px!important;margin:5px 0 18px}
+#ui .life-steps{display:grid;grid-template-columns:repeat(5,1fr);list-style:none;padding:0;gap:8px;margin:24px 0}
+#ui .life-steps li{background:#263c31;border:2px solid #536347;padding:12px 9px;display:flex;flex-direction:column;gap:10px;font:12px/1.5 SpaceMono,monospace}
+#ui .life-steps b{font:20px PixelArcade,monospace;color:#fff3cf}
+#ui .life-steps li.done{border-color:#a6d46e;background:#455d35}
+#ui .life-objective{background:#203b31;border-left:5px solid #a9d16b;padding:18px;margin:18px 0}
+#ui .life-objective h3{font-size:20px!important;margin:9px 0}
+#ui .life-objective p{margin-bottom:0}
+#ui .life-objective>span{font:12px SpaceMono,monospace;color:#cde19c}
+#ui .life-links,.life-tabs{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+#ui .life-links>*{flex:1;min-width:150px;text-align:center}
+#ui .life-note{font-size:13px!important;color:#d7d0ac!important}
+#ui .life-error{background:#663c32;border:2px solid #f7bd87;padding:10px}
+#ui .life-starters{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+#ui .life-starters button{background:#284137;border:3px solid #809d61;padding:12px;color:#fff2cb;display:grid;gap:8px}
+#ui .life-starters img{width:100%;aspect-ratio:2;object-fit:contain}
+#ui .life-starters strong{font:18px PixelArcade,monospace}#ui .life-starters span{font:12px SpaceMono,monospace;color:#c5e28d}
+#ui .life-design-shade{background:linear-gradient(90deg,transparent 30%,#15271d44);justify-content:flex-end;padding:18px;pointer-events:none;backdrop-filter:none}
+#ui .life-design-shade>.modal{pointer-events:auto;width:390px!important;max-width:calc(100vw - 30px);max-height:calc(100dvh - 36px);padding:22px!important;display:flex;flex-direction:column;margin:0}
+#ui .life-designer{min-height:0;display:flex;flex-direction:column}#ui .life-designer h2{font-size:23px!important;padding-right:20px}
+#ui .life-design-scroll{overflow:auto;min-height:80px;max-height:calc(100dvh - 360px);padding:2px 7px 15px 0;overscroll-behavior:contain}
+#ui .life-designer h3{font-size:13px!important;margin:22px 0 10px}
+#ui .life-options{display:flex;flex-wrap:wrap;gap:8px}
+#ui .life-options button,#ui .life-tabs button{font:14px/1.4 Arial,sans-serif;min-height:42px;text-transform:capitalize;background:#344e42;border:2px solid #718469;padding:9px 12px;color:#fff3cf}
+#ui .life-options button[aria-pressed=true],#ui .life-tabs button[aria-pressed=true]{background:#abcf70;color:#1d3024;border-color:#e0eeaf}
+#ui .life-swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#ui .life-swatches button{font:12px Arial,sans-serif;display:grid;gap:8px;background:#263c32;border:2px solid #60725c;padding:9px;color:#f5e6c7}
+#ui .life-swatches span{height:23px;background:var(--swatch);display:block;border:2px solid #ffffff33}
+#ui .life-swatches [aria-pressed=true]{outline:3px solid #c3e777;outline-offset:0}
+#ui #designStatus{font-size:13px;min-height:18px;margin:10px 0}#ui #designCancel{margin-top:8px}
+#ui .life-invite-label{display:grid;gap:8px;font:13px SpaceMono,monospace;margin:24px 0 8px}
+#ui .life-invite-label input{min-width:0;width:100%;background:#1c352b;border:2px solid #80936b;padding:14px;font:14px Arial;color:#fcf1ce}
+#ui.guest-home .home-dock>button:not(#homeUpgrade),#ui.guest-home .home-action,#ui.guest-home .home-activity,#ui.guest-home #worldHomeDoor{display:none!important}
+#ui.guest-home #homeUpgrade{background:#b9d777!important;color:#24361f!important}
+#ui .home-place h1{font-size:18px!important}
+@media(min-width:900px){#ui .life-design-shade~*{pointer-events:none}}
+@media(max-width:700px){#ui .chapter-button{left:16px;top:174px;width:240px;padding:11px;gap:5px}#ui .chapter-button strong{font-size:13px}#ui .life-steps{grid-template-columns:repeat(3,1fr)}#ui:has(#hud:not(.hidden)) .chapter-button{left:15px;top:182px;bottom:auto;width:210px}#ui:has(#garageUI:not(.hidden)) .chapter-button{top:135px;width:190px}#ui:has(#garageUI.inspecting) .chapter-button{display:none}#ui .life-design-shade{align-items:flex-end;padding:8px;background:linear-gradient(transparent,#15271d44)}#ui .life-design-shade>.modal{width:100%!important;max-width:none;max-height:57dvh;padding:14px!important}#ui .life-design-scroll{max-height:24dvh}#ui .life-designer h2{font-size:16px!important;margin:2px 0 8px}#ui .life-eyebrow{margin-bottom:5px}#ui .life-designer .life-tabs{margin:0}#ui .life-designer h3{margin-top:14px}#ui .life-designer #designCancel{display:none}#ui .life-journal h2{font-size:19px!important}#ui .home-dock{gap:5px}#ui .home-dock>button{padding:10px!important;font-size:12px!important}}
+@media(max-height:580px) and (min-width:701px){#ui .life-design-scroll{max-height:calc(100dvh - 245px)}#ui .life-designer h2{font-size:16px!important;margin:0 0 6px}#ui .life-eyebrow{margin:0}#ui .chapter-button{top:120px}}
+
+#ui.guest-home #homeGarage{display:block!important}#ui.guest-home #worldButton,#ui.guest-home .garage-info,#ui.guest-home #garageCustomize,#ui.guest-home .garage-walk-hud,#ui.guest-home .garage-message{display:none!important}

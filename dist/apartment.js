@@ -1,11 +1,13 @@
-import {createWalkingView} from './first-person.js?v=29';
+import {addHomeSurroundings,createHomeDesign} from './home-design.js?v=32';
+import {createWalkingView} from './first-person.js?v=32';
 import * as THREE from './assets/three.module.js';
-import {HOME_SPAWN,HOME_SPOTS,HOME_BOUNDS,homeRoom} from './home-layout.mjs?v=29';
-export {HOME_SPAWN,HOME_SPOTS} from './home-layout.mjs?v=29';
+import {HOME_SPAWN,HOME_SPOTS,HOME_BOUNDS,homeRoom} from './home-layout.mjs?v=32';
+export {HOME_SPAWN,HOME_SPOTS} from './home-layout.mjs?v=32';
 export const APARTMENT_ASSETS=['bedDouble','cabinetBedDrawer','lampRoundTable','loungeDesignSofaCorner','loungeChairRelax','pillowBlue','tableCoffeeGlass','cabinetTelevision','televisionModern','books','laptop','desk','chairDesk','bookcaseClosedDoors','pottedPlant','plantSmall1','kitchenCabinetDrawer','kitchenSink','kitchenStove','kitchenFridge','hoodModern','kitchenCabinetUpperDouble','kitchenCoffeeMachine','tableRound','chairModernCushion','showerRound','toiletSquare','bathroomSinkSquare','bathroomMirror','washer','coatRackStanding','rugDoormat','lampRoundFloor','sideTable','trashcan','radio'];
 
 export function buildApartment(templates,position=HOME_SPAWN,life={}){
  const scene=new THREE.Scene();scene.background=new THREE.Color('#111c2a');
+ addHomeSurroundings(scene);
  const room=new THREE.Group();scene.add(room);const colliders=[],hotspots=[],occluders=[],furniture=[],materials=new Map();
  scene.add(new THREE.HemisphereLight('#d3e7f6','#7c7264',1.75));
  const sun=new THREE.DirectionalLight('#ffe6c5',2.6);sun.position.set(-7,14,11);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-17,right:17,top:17,bottom:-17,near:1,far:55});sun.shadow.normalBias=.025;sun.shadow.bias=-.0001;scene.add(sun);
@@ -63,7 +65,7 @@ export function buildApartment(templates,position=HOME_SPAWN,life={}){
  prop('kitchenCoffeeMachine',-1.85,-7.06,.48,{y:1.63,collision:false});prop('plantSmall1',-4.5,-7.18,.31,{y:1.63,collision:false});
  const dining=prop('tableRound',-5,-3.3,2.4,{height:1.3});for(const [x,z,rotation]of [[-6.65,-3.3,Math.PI/2],[-3.35,-3.3,-Math.PI/2],[-5,-5.05,0],[-5,-1.55,Math.PI]])prop('chairModernCushion',x,z,.67,{height:1.1,rotation});prop('plantSmall1',-5,-3.3,.28,{y:dining.top,collision:false});
  // Spacious lounge: the original furniture retains its proportions.
- box(8.2,.025,6.2,'#a5ad9a',-6,.32,3.7);box(7.87,.012,5.87,'#586e71',-6,.34,3.7);for(let i=0;i<10;i++)box(7.6,.006,.025,'#8b9e91',-6,.349,1.44+i*.49);
+ const baseRug=[box(8.2,.025,6.2,'#a5ad9a',-6,.32,3.7),box(7.87,.012,5.87,'#586e71',-6,.34,3.7)];for(let i=0;i<10;i++)baseRug.push(box(7.6,.006,.025,'#8b9e91',-6,.349,1.44+i*.49));
  prop('loungeDesignSofaCorner',-7.5,3.4,3.6,{height:1.3,rotation:Math.PI,colors:{carpetBlue:'#456d85'}});
  const coffee=prop('tableCoffeeGlass',-4.6,3.7,1.65,{height:.65});prop('books',-4.8,3.7,.52,{y:coffee.top,collision:false});prop('radio',-4.35,3.77,.32,{y:coffee.top,collision:false});
  prop('loungeChairRelax',-7.9,.05,1.1,{height:1.3,rotation:.35,colors:{carpet:'#b67755'}});prop('lampRoundFloor',-9.85,5.05,.56,{height:2.5});light('#ffc483',24,11,-9.85,2.2,5.05);
@@ -166,6 +168,7 @@ export function buildApartment(templates,position=HOME_SPAWN,life={}){
  const trophy=new THREE.Mesh(new THREE.CylinderGeometry(.23,.17,.34,6),mat('#d9b456',{metalness:.65,roughness:.35}));trophy.position.set(-6.1,2.82,7.55);homeLayers[2].add(trophy);box(.46,.12,.4,'#2e4431',-6.1,2.49,7.55,{},homeLayers[2]);box(.09,.18,.09,'#d9b456',-6.1,2.61,7.55,{},homeLayers[2]);
  let homeLevel=0;
  function setHomeLevel(level,unit){homeLevel=Math.max(0,Math.min(3,Number(level)||0));homeLayers.forEach((g,i)=>g.visible=homeLevel>i);floor.material.color.set(homeLevel>=3?'#d6c4a7':'#a28161');if(unit){const c=addressLabel.material.map.image,ctx=c.getContext('2d');ctx.fillStyle='#2d4852';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#e6c784';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 80px monospace';ctx.fillText(String(unit).padStart(3,'0'),c.width/2,c.height/2,c.width-30);addressLabel.material.map.needsUpdate=true;}}
- return {scene,camera,avatar,walkingView,setHomeLevel,homeLayers,get homeLevel(){return homeLevel;},setFirstPerson,look:walkingView.look,colliders,hotspots,furniture,update,nearest,canInteract,setPosition,blocked,resize,setCharacter,toggleView,zoomBy,interact,walkTo,clickAt,stopActivity,
+ const design=createHomeDesign({scene,room,floor,walls:[...occluders.filter(m=>!m.userData.homeAction),...fpShell.children]});
+ return {setDecor:(decor,reward)=>{design.apply(decor,reward);baseRug.forEach(m=>m.visible=false);homeLayers[0].children.slice(0,11).forEach(m=>m.visible=false);},scene,camera,avatar,walkingView,setHomeLevel,homeLayers,get homeLevel(){return homeLevel;},setFirstPerson,look:walkingView.look,colliders,hotspots,furniture,update,nearest,canInteract,setPosition,blocked,resize,setCharacter,toggleView,zoomBy,interact,walkTo,clickAt,stopActivity,
   takeArrival(){const id=arrived;arrived=null;return id;},takeNotice(){const value=notice;notice=null;return value;},get activity(){return activity;},get navigating(){return routePoints.length>0;},get savedPosition(){return activity?{...activity.origin}:{x:avatar.position.x,z:avatar.position.z};},get lifeState(){return {tvOn,completed:[...completed]};},get viewMode(){return viewMode;},get roomName(){return homeRoom(avatar.position.x,avatar.position.z);}};
 }

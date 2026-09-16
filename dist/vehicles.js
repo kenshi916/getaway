@@ -42,6 +42,8 @@ export async function loadVehiclePack(loader,{detailed='background'}={}){
 }
 export function vehicleReady(model){return streams.get(model)||Promise.resolve();}
 export function onVehicleLoaded(listener){listeners.add(listener);return()=>listeners.delete(listener);}
+let underglowMap;
+function glowMap(){if(underglowMap)return underglowMap;const data=new Uint8Array(64*64*4);for(let y=0;y<64;y++)for(let x=0;x<64;x++){const i=(y*64+x)*4,r=Math.hypot((x-31.5)/31.5,(y-31.5)/31.5);data.set([255,255,255,Math.round(Math.max(0,1-r)**1.3*220)],i);}underglowMap=new THREE.DataTexture(data,64,64);underglowMap.magFilter=THREE.LinearFilter;underglowMap.needsUpdate=true;return underglowMap;}
 export function makeVehicle(model,scale=1.7,paint=null,skin=null){
  let source=templates.get(model),standIn=null;
  if(!source&&DETAILED_STAND_INS[model]){source=templates.get(DETAILED_STAND_INS[model]);standIn=model;}
@@ -56,6 +58,8 @@ export function makeVehicle(model,scale=1.7,paint=null,skin=null){
   if(m.name==='paint'){if(['taxi','concept-cab'].includes(model))m.color.set('#e3b43e');else if(paint)m.color.set(paint);}
   if(skin?.color&&m.name==='paint'){m.color.set(skin.color);m.metalness=skin.metalness;m.roughness=skin.roughness;}
   if(skin?.accent&&['chrome','rim'].includes(m.name)){m.color.set(skin.accent);m.metalness=.75;m.roughness=.27;}
+  if(skin?.customPaint&&m.name==='paint')m.color.set(skin.customPaint);
+  if(skin?.wheelColor&&['chrome','rim'].includes(m.name))m.color.set(skin.wheelColor);
   if(m.name==='brake')tail=m;
   if(m.name==='police-red')policeLights[0]={material:m};
   if(m.name==='police-blue')policeLights[1]={material:m};
@@ -63,13 +67,17 @@ export function makeVehicle(model,scale=1.7,paint=null,skin=null){
  };
  asset.traverse(o=>{if(o.isMesh)o.material=Array.isArray(o.material)?o.material.map(cloneMaterial):cloneMaterial(o.material);if(o.userData.wheel)wheels.push({pivot:o,front:o.userData.front,radius:o.userData.radius});});
  for(const w of wheels){const spin=new THREE.Group();for(const child of [...w.pivot.children])spin.add(child);w.pivot.add(spin);w.spin=spin;}
- return{group,root,body,wheels,tail,policeLights,pitch:0,roll:0,model,standIn};
+ if(skin?.underglow){const glow=new THREE.Mesh(new THREE.PlaneGeometry(4.2,6.2),new THREE.MeshBasicMaterial({map:glowMap(),color:skin.underglowColor||'#a9ec79',transparent:true,opacity:.4,depthWrite:false,blending:THREE.AdditiveBlending}));glow.rotation.x=-Math.PI/2;glow.position.y=.055;group.add(glow);}
+ return{group,root,body,wheels,tail,policeLights,pitch:0,roll:0,spring:0,springVelocity:0,bodyY:body.position.y,model,standIn};
 }
 export function animateVehicle(view,car,dt){
  view.group.position.set(car.x,.04+car.y,car.z);view.group.rotation.y=car.heading;
  const smooth=dt?1-Math.exp(-dt*11):1;
  view.pitch+=(THREE.MathUtils.clamp((car.acceleration||0)*-.0017-car.vy*.025,-.12,.12)-view.pitch)*smooth;
  view.roll+=(THREE.MathUtils.clamp((car.yawRate||0)*car.speed*.003,-.095,.095)-view.roll)*smooth;
+ if(car.landed)view.springVelocity=-.95;
+ const springTarget=car.y<.1?Math.sin((car.wheelTravel||0)*1.8)*Math.min(car.speed*.00035,.009):0;
+ view.springVelocity+=((springTarget-view.spring)*85-view.springVelocity*13)*dt;view.spring=THREE.MathUtils.clamp(view.spring+view.springVelocity*dt,-.1,.065);view.body.position.y=view.bodyY+view.spring;
  view.body.rotation.set(view.pitch,0,view.roll);
  for(const w of view.wheels){w.pivot.rotation.y=w.front?-(car.steering||0)*.48:0;w.spin.rotation.x=(car.wheelTravel||0)/(w.radius*view.root.scale.x);}
  if(view.tail)view.tail.emissiveIntensity=car.braking?3.5:.65;
